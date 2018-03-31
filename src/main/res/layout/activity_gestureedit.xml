@@ -1,0 +1,108 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@+id/text_reset"
+        android:paddingTop="20dp"
+        android:orientation="vertical">
+        <ImageView
+            android:id="@+id/ivBack"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/back"
+            android:padding="20dp"/>
+       <!-- <RelativeLayout
+            android:id="@+id/top_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true" >-->
+
+            <TextView
+                android:id="@+id/tv_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:gravity="center"
+                android:text="@string/setup_gesture_code"
+                android:textSize="16sp"
+                android:textColor="#ffffff" />
+
+           <!-- <TextView
+                android:id="@+id/text_cancel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:layout_centerVertical="true"
+                android:gravity="right"
+                android:textColor="#fff"
+                android:text="放弃"
+                android:visibility="gone"
+                android:textSize="14sp" />
+        </RelativeLayout>-->
+
+        <LinearLayout
+            android:id="@+id/gesture_tip_layout"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="30dp"
+            android:gravity="center"
+            android:orientation="vertical" >
+
+            <com.beidou.ybz.accountbook.widget.LockIndicator
+                android:id="@+id/lock_indicator"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+            <TextView
+                android:id="@+id/text_tip"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_horizontal"
+                android:text="@string/set_gesture_pattern"
+                android:textColor="#fff"
+                android:textSize="14sp"
+                android:layout_marginTop="20dip" />
+        </LinearLayout>
+
+        <com.beidou.ybz.accountbook.widget.Lock9View
+            android:id="@+id/lock_9_view"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="24dp"
+            android:layout_marginRight="24dp"
+            android:layout_marginBottom="2dp"
+            android:layout_marginTop="35dp"
+            android:layout_gravity="center"
+            app:lock9_nodeSrc="@drawable/gesture_normal"
+            app:lock9_nodeOnSrc="@drawable/gesture_click"
+            app:lock9_nodeSize="63dp"
+            app:lock9_nodeAreaExpand="0dp"
+            app:lock9_lineColor="#C8A663"
+            app:lock9_lineWidth="3dp"
+            app:lock9_autoLink="true"
+            android:visibility="visible"
+            app:lock9_enableVibrate="true"
+            app:lock9_vibrateTime="20" />
+
+
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/text_reset"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="30dp"
+        android:layout_marginTop="20dip"
+        android:text=""
+        android:textSize="14sp"
+        android:textColor="#ddd" />
+
+</RelativeLayout>

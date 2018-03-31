@@ -1,0 +1,457 @@
+package com.beidou.ybz.accountbook.ui;
+
+import android.app.AlertDialog;
+import android.os.Bundle;
+import android.os.CountDownTimer;
+import android.support.v7.widget.Toolbar;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
+
+import com.baidu.mobstat.StatService;
+import com.beidou.ybz.accountbook.R;
+import com.beidou.ybz.accountbook.mvp.entity.AddOverseasRequestModel;
+import com.beidou.ybz.accountbook.mvp.entity.BindModel;
+import com.beidou.ybz.accountbook.mvp.entity.CheckPiccodeModel;
+import com.beidou.ybz.accountbook.mvp.entity.GetPiccodeModel;
+import com.beidou.ybz.accountbook.mvp.entity.RequestBody;
+import com.beidou.ybz.accountbook.mvp.entity.YZMModel;
+import com.beidou.ybz.accountbook.mvp.entity.YZMResponseModel;
+import com.beidou.ybz.accountbook.mvp.other.MvpActivity;
+import com.beidou.ybz.accountbook.mvp.presenter.CommonPresenter;
+import com.beidou.ybz.accountbook.mvp.view.CommonView;
+import com.beidou.ybz.accountbook.mvp.view.GetPiccodeView;
+import com.beidou.ybz.accountbook.mvp.view.OtherView;
+import com.beidou.ybz.accountbook.mvp.view.ThirdLoginView;
+import com.beidou.ybz.accountbook.retrofit.ApiStores;
+import com.beidou.ybz.accountbook.util.ActivityUtils;
+import com.beidou.ybz.accountbook.util.DESedeUtil;
+import com.beidou.ybz.accountbook.util.IEditTextChangeListener;
+import com.beidou.ybz.accountbook.util.ImeUtil;
+import com.beidou.ybz.accountbook.util.Utils;
+import com.beidou.ybz.accountbook.util.WorksSizeCheckUtil;
+import com.beidou.ybz.accountbook.widget.ClearEditText;
+import com.bumptech.glide.Glide;
+import com.google.gson.Gson;
+
+import butterknife.Bind;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
+import de.hdodenhof.circleimageview.CircleImageView;
+
+public class BindActivity extends MvpActivity<CommonPresenter> implements CommonView<YZMResponseModel>, GetPiccodeView<GetPiccodeModel>,
+        OtherView<CheckPiccodeModel> ,ThirdLoginView<BindModel>{
+
+    @Bind(R.id.tv_title)
+    TextView tvTitle;
+    @Bind(R.id.toolbar)
+    Toolbar toolbar;
+    @Bind(R.id.iv_Touxiang)
+    CircleImageView ivTouxiang;
+    @Bind(R.id.tv_Nicheng)
+    TextView tvNicheng;
+    @Bind(R.id.et_phone)
+    ClearEditText etPhone;
+    @Bind(R.id.et_yzm)
+    EditText etYzm;
+    @Bind(R.id.btn_yzm)
+    Button btnYzm;
+    @Bind(R.id.btn_login)
+    Button btnLogin;
+
+    private String encMsg, signMsg;
+    AlertDialog dialog;
+    ImageView security_layout_close, security_layout_img;
+    TextView security_layout_sure;
+    EditText security_layout_edittext;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_bind);
+        ButterKnife.bind(this);
+
+        tvTitle.setText("首次登录");
+        tvTitle.setTextColor(getResources().getColor(R.color.txt_color));
+        toolbar.setBackgroundColor(getResources().getColor(R.color.colorWhite));
+        toolbar.setNavigationIcon(R.drawable.back_black);
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ActivityUtils.finishActivity(mActivity);
+            }
+        });
+
+        Glide.with(mActivity)
+                .load(spUtils.getPortraitUrl())
+                .into(ivTouxiang);
+        tvNicheng.setText(spUtils.getNickName());
+
+        btnLogin.setEnabled(false);
+        WorksSizeCheckUtil.textChangeListener textChangeListener = new WorksSizeCheckUtil.textChangeListener(btnLogin);
+        textChangeListener.addAllEditText(etPhone, etYzm);
+        WorksSizeCheckUtil.setChangeListener(new IEditTextChangeListener() {
+            @Override
+            public void textChange(boolean isHasContent) {
+                if (isHasContent) {
+                    btnLogin.setEnabled(true);
+                    btnLogin.setBackgroundResource(R.drawable.bg1);
+                } else {// TODO: 2017/12/21 只要有按钮里面有内容就高亮
+                    if (!etPhone.getText().toString().trim().equals("") || !etYzm.getText().toString().trim().equals("")) {
+                        btnLogin.setEnabled(true);
+                        btnLogin.setBackgroundResource(R.drawable.bg1);
+                    } else {
+                        btnLogin.setEnabled(false);
+                        btnLogin.setBackgroundResource(R.drawable.bg_unenabled);
+                    }
+
+                }
+            }
+        });
+
+        LayoutInflater inflater = LayoutInflater.from(this);
+        RelativeLayout layout = (RelativeLayout) inflater.inflate(R.layout.security_layout, null);
+        security_layout_close = (ImageView) layout.findViewById(R.id.security_layout_close);
+        security_layout_img = (ImageView) layout.findViewById(R.id.security_layout_img);
+        security_layout_sure = (TextView) layout.findViewById(R.id.security_layout_sure);
+        security_layout_edittext = (EditText) layout.findViewById(R.id.security_layout_edittext);
+        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        //通过setView设置我们自己的布局
+        builder.setView(layout);
+        dialog = builder.create();
+
+        security_layout_close.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (dialog != null & dialog.isShowing()) {
+                    dialog.dismiss();
+                }
+            }
+        });
+
+        security_layout_img.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                getPiccode();
+            }
+        });
+
+//        security_layout_sure.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                if (security_layout_edittext.getText().toString().trim().equals("")) {
+//                    toastShow("图形验证码不能为空!");
+//                } else {
+//                    checkpiccode();
+//                }
+//            }
+//        });
+        security_layout_sure.setOnClickListener(new Utils.OnMultiClickListener() {
+            @Override
+            public void onMultiClick(View v) {
+                if (security_layout_edittext.getText().toString().trim().equals("")) {
+                    toastShow("图形验证码不能为空!");
+                } else {
+                    checkpiccode();
+                }
+            }
+        });
+    }
+
+    @Override
+    protected CommonPresenter createPresenter() {
+        return new CommonPresenter(this, this);
+    }
+
+
+    /**
+     * 获取图形验证码
+     */
+    void getPiccode() {
+        RequestBody<AddOverseasRequestModel> changeMobileModelRequestBody = new RequestBody<AddOverseasRequestModel>();
+        RequestBody.HeaderBean headerBean1 = new RequestBody.HeaderBean(Utils.getIPAddress(mActivity), spUtils.getSecretKeyId());
+        AddOverseasRequestModel addOverseasRequestModel = new AddOverseasRequestModel();
+
+        //----添加手机号
+        addOverseasRequestModel.setMobile(etPhone.getText().toString().trim());
+
+        changeMobileModelRequestBody.setBody(addOverseasRequestModel);
+        changeMobileModelRequestBody.setHeader(headerBean1);
+
+        Gson gson1 = new Gson();
+        String json1 = gson1.toJson(changeMobileModelRequestBody);
+        try {
+            encMsg = DESedeUtil.getRequestAfter3DES(spUtils.getSecretKey(), spUtils.getSecretIv(), json1);
+            signMsg = DESedeUtil.getRequestAfterSign(encMsg);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        mvpPresenter.getpiccode(encMsg, signMsg, "2", spUtils.getSecretKeyId());
+    }
+
+
+    /**
+     * 校验图形验证码
+     */
+    void checkpiccode() {
+        RequestBody<AddOverseasRequestModel> changeMobileModelRequestBody = new RequestBody<AddOverseasRequestModel>();
+        RequestBody.HeaderBean headerBean1 = new RequestBody.HeaderBean(Utils.getIPAddress(mActivity), spUtils.getSecretKeyId());
+        AddOverseasRequestModel addOverseasRequestModel = new AddOverseasRequestModel();
+
+        addOverseasRequestModel.setPicCode(security_layout_edittext.getText().toString().trim());
+        addOverseasRequestModel.setMobile(etPhone.getText().toString().trim());
+
+        changeMobileModelRequestBody.setBody(addOverseasRequestModel);
+        changeMobileModelRequestBody.setHeader(headerBean1);
+        Gson gson1 = new Gson();
+        String json1 = gson1.toJson(changeMobileModelRequestBody);
+        try {
+            encMsg = DESedeUtil.getRequestAfter3DES(spUtils.getSecretKey(), spUtils.getSecretIv(), json1);
+            signMsg = DESedeUtil.getRequestAfterSign(encMsg);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        mvpPresenter.checkpiccode(encMsg, signMsg, "2", spUtils.getSecretKeyId());
+    }
+
+    private String codeFlag;
+
+    @Override
+    public void getDataSuccess(YZMResponseModel model) {
+        codeFlag = String.valueOf(model.getBody().getCodeFlag());
+        /*if (!String.valueOf(model.getBody().getCodeFlag()).equals("1")) {
+            toastShow("验证码获取成功");
+            SMSTimer.start();
+        }*/
+
+        if (codeFlag != null && !codeFlag.equals("1")) {
+            toastShow("验证码获取成功");
+            SMSTimer.start();
+        }
+
+        if (codeFlag != null && codeFlag.equals("1")) {
+            dialog.show();
+            etPhone.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    ImeUtil.showSoftKeyboard(security_layout_edittext);
+                }
+            },300);
+
+            getPiccode();
+        }
+    }
+
+    @Override
+    public void getDataFail(String msg) {
+        toastShow(msg);
+    }
+
+    @OnClick({R.id.btn_yzm, R.id.btn_login})
+    public void OnClick(View view) {
+        switch (view.getId()) {
+            case R.id.btn_yzm:
+                if (!Utils.isPhone(etPhone.getText().toString())) {
+                    toastShow("请输入正确的手机号");
+                } else if (etPhone.getText().toString().equals(spUtils.getPhone())) {
+                    toastShow("不能绑定原有手机号");
+                } else {
+                    sendValidcode();
+//                    if (codeFlag != null & codeFlag.equals("1")) {
+//                        dialog.show();
+//                        getPiccode();
+//                    } else {
+//                        sendValidcode();
+//                    }
+                }
+                break;
+            case R.id.btn_login:
+                if (!Utils.isPhone(etPhone.getText().toString())) {
+                    toastShow("请输入正确的手机号");
+                } else if (etYzm.getText().toString().trim().length() != 6) {
+                    toastShow("验证码输入错误");
+                } else {
+//                    modifyMobile();
+                    thirdbind();
+                }
+                break;
+        }
+    }
+
+    /**
+     * 获取验证码
+     */
+    void sendValidcode() {
+        RequestBody<YZMModel> yzmModelRequestBody = new RequestBody<YZMModel>();
+        RequestBody.HeaderBean headerBean2 = new RequestBody.HeaderBean(Utils.getIPAddress(mActivity), spUtils.getSecretKeyId());
+        YZMModel yzmModel = new YZMModel();
+        yzmModel.setValidType("1");//注册
+        yzmModel.setMobile(etPhone.getText().toString().trim());
+        yzmModelRequestBody.setBody(yzmModel);
+        yzmModelRequestBody.setHeader(headerBean2);
+
+        Gson gson2 = new Gson();
+        String json2 = gson2.toJson(yzmModelRequestBody);
+//
+        try {
+            encMsg = DESedeUtil.getRequestAfter3DES(spUtils.getSecretKey(), spUtils.getSecretIv(), json2);
+            signMsg = DESedeUtil.getRequestAfterSign(encMsg);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        mvpPresenter.sendValidcode(encMsg, signMsg, "2", spUtils.getSecretKeyId());
+    }
+
+    /**
+     * 获取短信的倒计时线程
+     */
+    private CountDownTimer SMSTimer = new CountDownTimer(60 * 1000, 1000) {
+        @Override
+        public void onTick(long millisUntilFinished) {
+//            btnYzm.setText("(" + (millisUntilFinished / 1000) + "s" + ")");
+//            btnYzm.setClickable(false);
+
+            btnYzm.setText((millisUntilFinished / 1000) +"秒后可重发");
+            btnYzm.setClickable(false);
+            btnYzm.setBackgroundResource(R.drawable.bg_unenabled);
+            btnYzm.setTextColor(getResources().getColor(R.color.detailColor));
+        }
+
+        @Override
+        public void onFinish() {
+//            btnYzm.setText("获取验证码");
+//            btnYzm.setClickable(true);
+
+            btnYzm.setText("获取验证码");
+            btnYzm.setClickable(true);
+            btnYzm.setBackgroundResource(R.drawable.bg_gold);
+            btnYzm.setTextColor(getResources().getColor(R.color.colorGold));
+        }
+    };
+
+
+    @Override
+    public void getPiccodeSuccess(GetPiccodeModel model) {
+        Glide.with(this)
+                .load(ApiStores.YZM_URL + model.getBody().getPicUrl())
+                .into(security_layout_img);
+    }
+
+    @Override
+    public void getPiccodeFail(String msg) {
+        toastShow(msg);
+    }
+
+    @Override
+    public void onSuccess(CheckPiccodeModel model) {
+        dialog.dismiss();
+        if (String.valueOf(model.getBody().getCheckFlag()).equals("1")) {
+            SMSTimer.start();
+        }
+        toastShow("验证成功");
+        security_layout_edittext.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                ImeUtil.hideSoftKeyboard(etPhone);
+            }
+        },300);
+
+    }
+
+    @Override
+    public void onFail(String model) {
+        toastShow("图形验证失败,请重新验证!");
+        security_layout_edittext.setText("");
+        getPiccode();
+    }
+
+
+    /**
+     * 绑定手机号
+     */
+    void thirdbind() {
+        RequestBody<AddOverseasRequestModel> changeMobileModelRequestBody = new RequestBody<AddOverseasRequestModel>();
+        RequestBody.HeaderBean headerBean1 = new RequestBody.HeaderBean(Utils.getIPAddress(mActivity), spUtils.getSecretKeyId());
+        AddOverseasRequestModel addOverseasRequestModel = new AddOverseasRequestModel();
+
+        addOverseasRequestModel.setAcctChannel(spUtils.getAcctChannel());
+        addOverseasRequestModel.setThirdAcctNo(spUtils.getThirdAcctNo());
+        addOverseasRequestModel.setMobile(etPhone.getText().toString());
+        addOverseasRequestModel.setMessageCode(etYzm.getText().toString());
+        addOverseasRequestModel.setNickname(spUtils.getNickName());
+        addOverseasRequestModel.setHeadImgUrl(spUtils.getPortraitUrl());
+
+        changeMobileModelRequestBody.setBody(addOverseasRequestModel);
+        changeMobileModelRequestBody.setHeader(headerBean1);
+        Gson gson1 = new Gson();
+        String json1 = gson1.toJson(changeMobileModelRequestBody);
+        try {
+            encMsg = DESedeUtil.getRequestAfter3DES(spUtils.getSecretKey(), spUtils.getSecretIv(), json1);
+            signMsg = DESedeUtil.getRequestAfterSign(encMsg);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        mvpPresenter.thirdbind(encMsg, signMsg, "2", spUtils.getSecretKeyId());
+    }
+
+    /**
+     * 绑定成功
+     * @param model
+     */
+    @Override
+    public void loginSuccess(BindModel model) {
+        spUtils.setUserId(model.getBody().getUserNo());
+        spUtils.setPhone(model.getBody().getMobile());
+        spUtils.setHidePhone(model.getBody().getHideMobile());
+        //----------用户号
+//        if (!model.getBody().getUserNo().equals("")){
+//            spUtils.setUserId(model.getBody().getUserNo());
+//        }else {
+//            spUtils.setUserId("");
+//        }
+        //----------手机号
+//        if (!model.getBody().getMobile().equals("")){
+//            spUtils.setPhone(model.getBody().getMobile());
+//        }else {
+//            spUtils.setPhone("");
+//        }
+        //---------隐藏的手机号
+//        if (!model.getBody().getHideMobile().equals("")){
+//            spUtils.setHidePhone(model.getBody().getHideMobile());
+//        }else {
+//            spUtils.setHidePhone("");
+//        }
+        //----------昵称
+        spUtils.setNickName(model.getBody().getNickName());
+        //----------头像
+        spUtils.setPortraitUrl(model.getBody().getPortraitUrl());
+        //----------登录类型
+        spUtils.setAcctChannel("1");//QQ
+
+
+        toastShow("绑定成功",R.drawable.gou_toast);
+        spUtils.setIsLogin(true);
+        ActivityUtils.finishActivity(mActivity);
+    }
+
+    @Override
+    public void loginFail(String model) {
+        toastShow(model);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        StatService.onPageStart(mActivity, "绑定手机页面");
+    }
+    @Override
+    protected void onPause() {
+        super.onPause();
+        StatService.onPageEnd(mActivity, "绑定手机页面");
+    }
+}

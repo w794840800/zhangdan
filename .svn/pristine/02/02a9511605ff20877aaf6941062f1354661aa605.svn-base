@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/colorWhite"
+    android:fitsSystemWindows="true"
+    android:orientation="vertical">
+
+    <include layout="@layout/toolbar" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@drawable/shadow" />
+    <!-- <android.support.v4.widget.SwipeRefreshLayout
+         android:id="@+id/swipeRefresh"
+         android:layout_width="match_parent"
+         android:layout_height="match_parent"
+         android:layout_above="@+id/llSave">-->
+    <LinearLayout
+        android:id="@+id/llAll"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/back_lightgreen"
+            android:paddingBottom="4dp"
+            android:paddingLeft="15dp"
+            android:paddingTop="4dp"
+            android:text="常用银行"
+            android:textColor="@color/detailColor" />
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/rvCommon"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="visible" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/back_lightgreen"
+            android:paddingBottom="4dp"
+            android:paddingLeft="15dp"
+            android:paddingTop="4dp"
+            android:text="其他银行"
+            android:textColor="@color/detailColor" />
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/rvOther"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="visible" />
+        <!-- </android.support.v4.widget.SwipeRefreshLayout>-->
+    </LinearLayout>
+    <include
+        layout="@layout/emptyview"
+        android:visibility="visible" />
+</LinearLayout>

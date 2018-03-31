@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:orientation="vertical">
+
+
+    <RelativeLayout
+        android:id="@+id/ll_constact"
+        android:layout_width="match_parent"
+        android:layout_height="50dp">
+
+        <TextView
+            android:id="@+id/title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_marginLeft="16.5dp"
+            android:ellipsize="end"
+            android:maxLength="20"
+            android:singleLine="true"
+            android:text="我是人名"
+            android:textColor="#ff262b36"
+            android:textSize="16dp" />
+
+      <!--  <LinearLayout
+            android:id="@+id/inviate"
+            android:layout_width="86dp"
+            android:layout_height="28dp"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:layout_marginRight="40dp"
+            android:background="@drawable/renmai_inviate"
+            android:gravity="center"
+            android:orientation="vertical">-->
+
+            <TextView
+                android:id="@+id/tvInviate"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="立即邀请"
+                android:textColor="#ff707889"
+                android:layout_alignParentRight="true"
+                android:layout_centerVertical="true"
+                android:layout_marginRight="40dp"
+                android:paddingLeft="25dp"
+                android:paddingRight="25dp"
+                android:paddingTop="6dp"
+                android:paddingBottom="6dp"
+                android:background="@drawable/renmai_inviate"
+                android:textSize="11sp" />
+
+
+    </RelativeLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="0.8dp"
+        android:background="@color/divider" />
+</LinearLayout>

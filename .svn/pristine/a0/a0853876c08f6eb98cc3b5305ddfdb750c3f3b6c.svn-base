@@ -1,0 +1,476 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#01000000"
+    android:fitsSystemWindows="true"
+    android:orientation="vertical">
+
+    <include layout="@layout/toolbar" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/divider" />
+
+    <android.support.v4.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true">
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#fff">
+
+        <android.support.v4.widget.NestedScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_above="@+id/btnSure"
+            >
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="28dp"
+                        android:layout_marginTop="20.5dp"
+                        android:text="留言"
+                        android:textColor="#ff262b36"
+                        android:textSize="16sp" />
+
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+                        <EditText
+                            android:id="@+id/etContent"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="28dp"
+                            android:layout_marginRight="21.5dp"
+                            android:layout_marginTop="13.5dp"
+                            android:background="@null"
+                            android:gravity="top|left"
+                            android:hint="好好照顾我的账户哦~"
+                            android:maxLength="100"
+                            android:minHeight="129dp"
+                            android:textColor="#ff262b36"
+                            android:textColorHint="#ffd3d6de"
+                            android:textSize="14sp" />
+
+                        <TextView
+                            android:id="@+id/tvXiabiao"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentRight="true"
+                            android:layout_below="@id/etContent"
+                            android:paddingBottom="9.5dp"
+                            android:paddingRight="21.5dp"
+                            android:text="0/100"
+                            android:textColor="#707889"
+                            android:textSize="14sp" />
+                    </RelativeLayout>
+
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="5dp"
+                    android:background="#fff7f9ff" />
+
+                <!--发送条件-->
+                <RelativeLayout
+                    android:id="@+id/rlSendCondition"
+                    android:layout_width="match_parent"
+                    android:layout_height="50dp">
+
+                    <TextView
+                        style="@style/blackbox_textstyle"
+                        android:layout_marginLeft="40dp"
+                        android:text="发送条件" />
+
+                    <TextView
+                        android:id="@+id/tvSendCondition"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_centerVertical="true"
+                        android:layout_marginLeft="114dp"
+                        android:layout_marginRight="47.5dp"
+                        android:background="@null"
+                        android:hint="请选择发送条件"
+                        android:textColor="#ff262b36"
+                        android:textColorHint="#ffd3d6de"
+                        android:textSize="14sp" />
+
+                    <ImageView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentRight="true"
+                        android:layout_centerVertical="true"
+                        android:layout_marginRight="15.45dp"
+                        android:background="@drawable/next" />
+
+                </RelativeLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="@drawable/shadow" />
+
+                <!--传承人1-->
+                <LinearLayout
+                    android:id="@+id/llInheritor1"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:layout_height="50dp">
+                        <ImageView
+                            android:id="@+id/ivDeleteInheritor1"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:padding="10dp"
+                            android:src="@drawable/del_chuancheng_hui" />
+
+                        <TextView
+                            style="@style/blackbox_textstyle"
+                            android:text="传承人" />
+
+                        <com.beidou.ybz.accountbook.widget.ClearEditText
+                            android:id="@+id/cetInheritor1"
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
+                            android:layout_height="match_parent"
+                            android:textSize="16sp"
+                            android:paddingLeft="20dp"
+                            android:textColor="@color/background"
+                            android:background="@null"
+                            android:inputType="phone" />
+                        <ImageView
+                            android:id="@+id/ivAddInheritor1"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:paddingLeft="10dp"
+                            android:paddingTop="10dp"
+                            android:paddingBottom="10dp"
+                            android:paddingRight="20dp"
+                            android:src="@drawable/tongxunlu_liang" />
+
+                    </LinearLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="@drawable/shadow" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/llInheritor2"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:orientation="vertical">
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:layout_height="50dp">
+                        <ImageView
+                            android:id="@+id/ivDeleteInheritor2"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:padding="10dp"
+                            android:src="@drawable/del_chuancheng_liang" />
+
+                        <TextView
+                            style="@style/blackbox_textstyle"
+                            android:text="传承人" />
+
+                        <com.beidou.ybz.accountbook.widget.ClearEditText
+                            android:id="@+id/cetInheritor2"
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
+                            android:paddingLeft="20dp"
+                            android:textSize="16sp"
+                            android:textColor="@color/background"
+                            android:layout_height="match_parent"
+                            android:background="@null"
+                            android:inputType="number" />
+                        <ImageView
+                            android:id="@+id/ivAddInheritor2"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:paddingLeft="10dp"
+                            android:paddingTop="10dp"
+                            android:paddingBottom="10dp"
+                            android:paddingRight="20dp"
+                            android:src="@drawable/tongxunlu_liang" />
+
+                    </LinearLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="@drawable/shadow" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/llInheritor3"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:orientation="vertical">
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:layout_height="50dp">
+                        <ImageView
+                            android:id="@+id/ivDeleteInheritor3"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:padding="10dp"
+                            android:src="@drawable/del_chuancheng_liang" />
+
+                        <TextView
+                            style="@style/blackbox_textstyle"
+                            android:text="传承人" />
+
+                        <com.beidou.ybz.accountbook.widget.ClearEditText
+                            android:id="@+id/cetInheritor3"
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
+                            android:layout_height="match_parent"
+                            android:background="@null"
+                            android:paddingLeft="20dp"
+                            android:textSize="16sp"
+                            android:textColor="@color/background"
+                            android:inputType="number" />
+                        <ImageView
+                            android:id="@+id/ivAddInheritor3"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:paddingLeft="10dp"
+                            android:paddingTop="10dp"
+                            android:paddingBottom="10dp"
+                            android:paddingRight="20dp"
+                            android:src="@drawable/tongxunlu_liang" />
+
+                    </LinearLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="@drawable/shadow" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/llInheritor4"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:orientation="vertical">
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:layout_height="50dp">
+                        <ImageView
+                            android:id="@+id/ivDeleteInheritor4"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:padding="10dp"
+                            android:src="@drawable/del_chuancheng_liang" />
+
+                        <TextView
+                            style="@style/blackbox_textstyle"
+                            android:text="传承人" />
+
+                        <com.beidou.ybz.accountbook.widget.ClearEditText
+                            android:id="@+id/cetInheritor4"
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
+                            android:layout_height="match_parent"
+                            android:paddingLeft="20dp"
+                            android:textSize="16sp"
+                            android:textColor="@color/background"
+                            android:background="@null"
+                            android:inputType="number" />
+                        <ImageView
+                            android:id="@+id/ivAddInheritor4"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:paddingLeft="10dp"
+                            android:paddingTop="10dp"
+                            android:paddingBottom="10dp"
+                            android:paddingRight="20dp"
+                            android:src="@drawable/tongxunlu_liang" />
+
+                    </LinearLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="@drawable/shadow" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/llInheritor5"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:orientation="vertical">
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:layout_height="50dp">
+                        <ImageView
+                            android:id="@+id/ivDeleteInheritor5"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:padding="10dp"
+                            android:src="@drawable/del_chuancheng_liang" />
+
+                        <TextView
+                            style="@style/blackbox_textstyle"
+                            android:text="传承人" />
+
+                        <com.beidou.ybz.accountbook.widget.ClearEditText
+                            android:id="@+id/cetInheritor5"
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
+                            android:layout_height="match_parent"
+                            android:background="@null"
+                            android:paddingLeft="20dp"
+                            android:textSize="16sp"
+                            android:textColor="@color/background"
+                            android:inputType="number" />
+                        <ImageView
+                            android:id="@+id/ivAddInheritor5"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:paddingLeft="10dp"
+                            android:paddingTop="10dp"
+                            android:paddingBottom="10dp"
+                            android:paddingRight="20dp"
+                            android:src="@drawable/tongxunlu_liang" />
+
+                    </LinearLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="@drawable/shadow" />
+
+                </LinearLayout>
+
+                <!--添加传承人-->
+                <LinearLayout
+                    android:id="@+id/llAddInheritor"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_height="50dp">
+                        <ImageView
+                            style="@style/blackbox_img1"
+                            android:src="@drawable/add_chuancheng_liang" />
+
+                        <TextView
+                            style="@style/blackbox_textstyle"
+                            android:text="添加传承人"
+                            android:textColor="#ff55bbff" />
+
+                    </LinearLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="@drawable/shadow" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="50dp">
+                        <TextView
+                            style="@style/blackbox_textstyle"
+                            android:layout_marginLeft="40dp"
+                            android:text="发送前短信通知我" />
+
+                        <com.beidou.ybz.accountbook.widget.SwitchButton
+                            android:id="@+id/sb_use_checked"
+                            style="@style/SwitchButtonStyleMD"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentRight="true"
+                            android:layout_centerVertical="true"
+                            android:layout_marginRight="18dp"
+                            android:focusable="false" />
+
+                    </RelativeLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="@drawable/shadow" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/llSendTime"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:orientation="vertical"
+                    >
+                    <TextView
+                        android:id="@+id/tvSendTime"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:paddingTop="8dp"
+                        android:textSize="16sp"
+                        android:gravity="center_vertical"
+                        android:textColor="@color/background"
+                        android:layout_marginLeft="40dp"
+                        android:text="2017-10-31发送" />
+
+                </LinearLayout>
+
+
+            </LinearLayout>
+
+        </android.support.v4.widget.NestedScrollView>
+
+        <Button
+            android:id="@+id/btnSure"
+            android:layout_width="match_parent"
+            android:layout_height="45dp"
+            android:background="@drawable/hxz_bg1"
+            android:layout_alignParentBottom="true"
+            android:enabled="false"
+            android:text="确认"
+            android:textColor="#ff707889"
+            android:textSize="17sp" />
+
+    </RelativeLayout>
+    </android.support.v4.widget.NestedScrollView>
+
+</LinearLayout>

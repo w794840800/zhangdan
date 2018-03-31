@@ -1,0 +1,103 @@
+package com.beidou.ybz.accountbook.mvp.entity;
+
+/**登录接口model
+ * Created by bob on 2017/9/7.
+ */
+public class LoginModel {
+
+    /**
+     * body : {"codeFlag":0,"mobile":"13918406140","userNo":"10051549"}
+     * header : {"code":"0000","desc":"成功","responseTime":"2017-12-11 15:39:03"}
+     */
+
+    private BodyBean body;
+    private HeaderBean header;
+
+    public BodyBean getBody() {
+        return body;
+    }
+
+    public void setBody(BodyBean body) {
+        this.body = body;
+    }
+
+    public HeaderBean getHeader() {
+        return header;
+    }
+
+    public void setHeader(HeaderBean header) {
+        this.header = header;
+    }
+
+    public static class BodyBean {
+        /**
+         * codeFlag : 0
+         * mobile : 13918406140
+         * userNo : 10051549
+         */
+
+        private int codeFlag;
+        private String mobile;
+        private String userNo;
+
+        public int getCodeFlag() {
+            return codeFlag;
+        }
+
+        public void setCodeFlag(int codeFlag) {
+            this.codeFlag = codeFlag;
+        }
+
+        public String getMobile() {
+            return mobile;
+        }
+
+        public void setMobile(String mobile) {
+            this.mobile = mobile;
+        }
+
+        public String getUserNo() {
+            return userNo;
+        }
+
+        public void setUserNo(String userNo) {
+            this.userNo = userNo;
+        }
+    }
+
+    public static class HeaderBean {
+        /**
+         * code : 0000
+         * desc : 成功
+         * responseTime : 2017-12-11 15:39:03
+         */
+
+        private String code;
+        private String desc;
+        private String responseTime;
+
+        public String getCode() {
+            return code;
+        }
+
+        public void setCode(String code) {
+            this.code = code;
+        }
+
+        public String getDesc() {
+            return desc;
+        }
+
+        public void setDesc(String desc) {
+            this.desc = desc;
+        }
+
+        public String getResponseTime() {
+            return responseTime;
+        }
+
+        public void setResponseTime(String responseTime) {
+            this.responseTime = responseTime;
+        }
+    }
+}

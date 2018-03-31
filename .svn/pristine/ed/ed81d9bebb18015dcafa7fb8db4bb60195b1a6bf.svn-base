@@ -1,0 +1,327 @@
+package com.beidou.ybz.accountbook.ui;
+
+import android.animation.ValueAnimator;
+import android.annotation.SuppressLint;
+import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.os.Build;
+import android.os.Bundle;
+import android.os.Environment;
+import android.os.Handler;
+import android.util.Log;
+import android.view.KeyEvent;
+import android.view.View;
+import android.view.animation.AccelerateDecelerateInterpolator;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.view.animation.LinearInterpolator;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
+import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import com.beidou.ybz.accountbook.R;
+import com.beidou.ybz.accountbook.mvp.entity.ShareModel;
+import com.beidou.ybz.accountbook.mvp.other.MvpActivity;
+import com.beidou.ybz.accountbook.mvp.presenter.CommonPresenter;
+import com.beidou.ybz.accountbook.retrofit.ApiStores;
+import com.beidou.ybz.accountbook.util.ActivityUtils;
+import com.beidou.ybz.accountbook.util.SimpleUtils;
+import com.beidou.ybz.accountbook.widget.ProgressWebView1;
+import com.beidou.ybz.accountbook.widget.morewindow.MoreWindow;
+import com.tencent.connect.share.QQShare;
+import com.tencent.mm.sdk.modelmsg.SendMessageToWX;
+import com.tencent.mm.sdk.modelmsg.WXImageObject;
+import com.tencent.mm.sdk.modelmsg.WXMediaMessage;
+import com.tencent.mm.sdk.openapi.IWXAPI;
+import com.tencent.mm.sdk.openapi.WXAPIFactory;
+import com.tencent.tauth.IUiListener;
+import com.tencent.tauth.Tencent;
+import com.tencent.tauth.UiError;
+import java.io.File;
+import java.util.Random;
+import butterknife.Bind;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
+
+import static com.taobao.accs.ACCSManager.mContext;
+
+public class HuizhangShareActivity extends BaseActivity {
+    ProgressWebView1 mWebView;
+    String url;
+    @Bind(R.id.relativelayout)
+    LinearLayout relativelayout;
+    @Bind(R.id.ib_back)
+    ImageButton ibBack;
+    @Bind(R.id.linear)
+    LinearLayout linear;
+    @Bind(R.id.tvTitle)
+    TextView tvTitle;
+    @Bind(R.id.llShare)
+    LinearLayout shareLinear;
+    @Bind(R.id.llwechat)
+    LinearLayout llwechat;
+    @Bind(R.id.llwechatmoment)
+    LinearLayout llwechatmoment;
+    @Bind(R.id.llqq)
+    LinearLayout llqq;
+    @Bind(R.id.llShareLoading)
+    LinearLayout llShareLoading;
+
+    private MoreWindow mMoreWindow;
+    private ShareModel shareModel;
+    private String fileName2;
+    private String path;
+    @Bind(R.id.xuanhzuan_img)
+    ImageView xuanhzuanImg;
+    @Bind(R.id.fenshu)
+    TextView fenshu;
+    ValueAnimator anim ;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_huizhang_share);
+        ActivityUtils.setStatusBar(mActivity);
+        ButterKnife.bind(this);
+        initView();
+        rotate();
+    }
+
+    private void rotate() {
+        //---旋转动画
+        Animation animation = AnimationUtils.loadAnimation(this, R.anim.tongbu_animation);
+        LinearInterpolator lin = new LinearInterpolator();//设置动画匀速运动
+        animation.setInterpolator(lin);
+        xuanhzuanImg.startAnimation(animation);
+
+        anim = ValueAnimator.ofInt(0, 98);
+        anim.setDuration(3000);
+        anim.setInterpolator(new AccelerateDecelerateInterpolator());
+        anim.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+                int currentValue = (int) animation.getAnimatedValue();
+                fenshu.setText(currentValue + "");
+            }
+        });
+        anim.start();
+
+    }
+
+
+    Handler handler = new Handler();
+
+    public class WebViewClient extends android.webkit.WebViewClient {
+        @Override
+        public boolean shouldOverrideUrlLoading(WebView view, String url) {
+            // 调用拨号程序
+            return true;
+        }
+
+        @Override
+        public void onPageFinished(WebView view, String url) {
+            super.onPageFinished(view, url);
+            handler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    Random random = new Random();
+                    fileName2 = String.valueOf(random.nextInt(Integer.MAX_VALUE));
+                    SimpleUtils.saveBitmapToSdCard1(mActivity, captureWebView(mWebView), fileName2);
+                    llShareLoading.animate().translationX(-2000f).setDuration(500).start();
+                    shareLinear.setVisibility(View.VISIBLE);
+                }
+            }, 3000);
+        }
+
+        @Override
+        public void onReceivedError(WebView view, int errorCode,
+                                    String description, String failingUrl) {
+            super.onReceivedError(view, errorCode, description, failingUrl);
+            view.loadUrl("file:///android_asset/error.html");
+        }
+    }
+
+
+    @SuppressLint("NewApi")
+    public void initView() {
+        api = WXAPIFactory.createWXAPI(this, ApiStores.WEIXIN_APP_ID, true);
+        mTencent = Tencent.createInstance(ApiStores.QQ_APPID, getApplicationContext());
+        if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
+            path = Environment.getExternalStorageDirectory().getPath() + "/images/";
+        } else {
+            path = Environment.getRootDirectory().getPath() + "/images";
+        }
+        mWebView.enableSlowWholeDocumentDraw();
+        mWebView = new ProgressWebView1(HuizhangShareActivity.this, null, null);//tvTitle
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT);
+
+        mWebView.setLayoutParams(lp);
+        mWebView.setWebViewClient(new WebViewClient());
+        relativelayout.addView(mWebView);
+        Intent intent = getIntent();
+        url = intent.getStringExtra("url");
+        if (url != null) {
+            mWebView.loadUrl(url);
+        }
+        shareModel = new ShareModel();
+//        mWebView.animate().alpha(0f).setDuration(10).start();
+        shareLinear.setVisibility(View.GONE);
+    }
+
+
+    @OnClick({R.id.ib_back, R.id.llqq, R.id.llwechat, R.id.llwechatmoment})
+    public void onClick(View view) {
+        switch (view.getId()) {
+            case R.id.ib_back:
+//                if (mMoreWindow != null) {
+//                    ActivityUtils.finishActivity(HuizhangShareActivity.this);
+//                }
+                ActivityUtils.finishActivity(HuizhangShareActivity.this);
+                break;
+            case R.id.llqq:
+                shareQQImage(path + fileName2 + ".jpg");
+                break;
+            case R.id.llwechat:
+                weiixnImage(path + fileName2 + ".jpg", 0);
+                break;
+            case R.id.llwechatmoment:
+                weiixnImage(path + fileName2 + ".jpg", 1);
+                break;
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (mWebView != null) {
+            mWebView.clearCache(true); //清空缓存
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                if (relativelayout != null) {
+                    relativelayout.removeView(mWebView);
+                }
+                mWebView.removeAllViews();
+                mWebView.destroy();
+            } else {
+                mWebView.removeAllViews();
+                mWebView.destroy();
+                if (relativelayout != null) {
+                    relativelayout.removeView(mWebView);
+                }
+            }
+            mWebView = null;
+        }
+    }
+
+    private void showMoreWindow(View view) {
+        if (null == mMoreWindow) {
+            mMoreWindow = new MoreWindow(mActivity, "img", shareModel);
+            mMoreWindow.init();
+        }
+        mMoreWindow.showMoreWindow(view, 100);
+    }
+
+    private static Bitmap captureWebView(WebView wv_capture) {
+        //获取webview缩放率
+        if (wv_capture != null) {
+            float scale = wv_capture.getScale();
+            //得到缩放后webview内容的高度
+            int webViewHeight = (int) (wv_capture.getContentHeight() * scale);
+            Bitmap bitmap = Bitmap.createBitmap(wv_capture.getWidth(), webViewHeight, Bitmap.Config.ARGB_8888);
+            Canvas canvas = new Canvas(bitmap);
+            //绘制
+            wv_capture.draw(canvas);
+            return bitmap;
+        }
+        return null;
+    }
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_BACK && event.getAction() == KeyEvent.ACTION_DOWN) {
+            if (mMoreWindow != null) {
+                return true;
+            }
+        }
+        return super.onKeyDown(keyCode, event);
+    }
+
+
+    /**
+     * 微信分享——纯图片分享
+     *
+     * @param path 图片本地路径
+     * @param sendtype (0:分享到微信好友，1：分享到微信朋友圈)
+     */
+    private IWXAPI api;
+
+    private void weiixnImage(String path, int sendtype) {
+        int THUMB_SIZE = 150;
+        File file = new File(path);
+        if (!file.exists()) {
+            Toast.makeText(mContext, "图片不存在", Toast.LENGTH_LONG).show();
+        }
+        WXImageObject imgObj = new WXImageObject();
+        imgObj.setImagePath(path);
+        WXMediaMessage msg = new WXMediaMessage();
+        msg.mediaObject = imgObj;
+        Bitmap bmp = BitmapFactory.decodeFile(path);
+        Bitmap thumbBmp = Bitmap.createScaledBitmap(bmp, THUMB_SIZE, (int) (THUMB_SIZE * 1.4), true);// int dstWidth, int dstHeight,
+        msg.setThumbImage(thumbBmp);
+        bmp.recycle();
+        SendMessageToWX.Req req = new SendMessageToWX.Req();
+        req.transaction = String.valueOf(System.currentTimeMillis());
+        req.message = msg;
+        req.scene = sendtype == 0 ? SendMessageToWX.Req.WXSceneSession : SendMessageToWX.Req.WXSceneTimeline;
+
+        api.sendReq(req);
+    }
+
+
+    /**
+     * QQ纯图片分享
+     *
+     * @param path 图片路径
+     */
+    private Tencent mTencent;
+
+    void shareQQImage(String path) {
+        Bundle shareParams = new Bundle();
+        shareParams.putInt(QQShare.SHARE_TO_QQ_KEY_TYPE,
+                QQShare.SHARE_TO_QQ_TYPE_IMAGE);
+        shareParams.putString(QQShare.SHARE_TO_QQ_IMAGE_LOCAL_URL, path);
+        shareParams.putString(QQShare.SHARE_TO_QQ_APP_NAME, "LPS CRM");
+        shareParams.putInt(QQShare.SHARE_TO_QQ_EXT_INT,
+                QQShare.SHARE_TO_QQ_FLAG_QZONE_ITEM_HIDE);
+        mTencent.shareToQQ(mActivity, shareParams, new BaseUiListener());
+    }
+
+    private class BaseUiListener implements IUiListener {
+
+        @Override
+        public void onCancel() {
+            Toast.makeText(mContext.getApplicationContext(), "onCancel", Toast.LENGTH_LONG).show();
+        }
+
+        @Override
+        public void onComplete(Object arg0) {
+            Toast.makeText(mContext.getApplicationContext(), "success", Toast.LENGTH_LONG).show();
+        }
+
+        @Override
+        public void onError(UiError arg0) {
+//            Toast.makeText(MainActivity.this, "发送失败", Toast.LENGTH_SHORT)
+//                    .show();
+//            Toast.makeText(getApplicationContext(), "onError", Toast.LENGTH_LONG).show();
+            Log.e("error", "onError: " + arg0.toString());
+        }
+    }
+
+
+}

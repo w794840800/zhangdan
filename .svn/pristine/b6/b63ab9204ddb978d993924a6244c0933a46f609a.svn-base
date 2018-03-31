@@ -1,0 +1,139 @@
+package com.beidou.ybz.accountbook.ui.fragment;
+
+import android.view.View;
+
+import com.beidou.ybz.accountbook.R;
+import com.beidou.ybz.accountbook.mvp.other.MvpFragment;
+import com.beidou.ybz.accountbook.mvp.presenter.CommonPresenter;
+import com.beidou.ybz.accountbook.mvp.view.CommonView;
+import com.beidou.ybz.accountbook.mvp.entity.IndexModel;
+import com.beidou.ybz.accountbook.mvp.entity.RequestBody2;
+import com.beidou.ybz.accountbook.ui.ArrearsassetActivity;
+import com.beidou.ybz.accountbook.ui.CreditActivity;
+import com.beidou.ybz.accountbook.ui.EquityActivity;
+import com.beidou.ybz.accountbook.util.ActivityUtils;
+import com.beidou.ybz.accountbook.util.DESedeUtil;
+import com.beidou.ybz.accountbook.util.LogUtils;
+import com.google.gson.Gson;
+import com.orhanobut.logger.Logger;
+
+import butterknife.OnClick;
+
+/**
+ * Author: Bob on 2017/10/30 15:16
+ * QQ:754444814
+ * E-mail:754444814@qq.com
+ */
+public class LoanFragment extends MvpFragment<CommonPresenter> implements CommonView<IndexModel> {
+    private String encMsg, signMsg;
+    private String secretKeyId;
+
+    @Override
+    public int getLayoutRes() {
+        return R.layout.fragment_loan;
+    }
+
+    @Override
+    public void initView() {
+
+    }
+
+
+    @OnClick({R.id.btnNext, R.id.btnNext1, R.id.btnNext2, R.id.btnNext3})
+    public void onClick(View view) {
+        switch (view.getId()) {
+            case R.id.btnNext3:
+//                ActivityUtils.startActivityRightIn(getActivity(), EquityActivity.class);
+                encMsg  = "G2N2WuvtOXwHpVR4SaxqbbE6fAywS/JCbCyZXglXhaa7RHzDFUX09muLqQNBOWbzRfKwXHx/2E4i140Ot8h4TXAUgcJ8Ig1F4jQIjCt5RdYf/M1DuUKw6CtU8vgPiSYDjrA+H8ZZvVFb7/9ZJVrDwzRFPg3KxpEYQWvQRvHrCXAaoGhXO9PZEDio76C2tFsLJ/v8aLkumWd6AhTv6vPImTkiiv45qbq11WIbPxkGQLVEzzDXTE6c0ai+FL+PgI+jFb0Lag0JNCXYc3GcuBjqRRTGo2Yuc9ZQjZBWYoAp6gVNbWZIiBI0VIMhLZ9JIeIw4GdraM1KxmbyJ8367EYfVnbIev3Vuzigla/IlA2HhLXP0rNFKWCneTO92m3LAnKnOvQkn0avvcqO9wrM2zptiw/0R41SeEOen4EhtgfzNz/hY8pKaGMAyowKLokOPjrCgEZxsjf01oVZc9blYHAYWow6Rk5nj/syNBy29PMfA6UER6jK0eaEegqYPcrEUrPPC+lK6tMb2/xQ42xodh12oJfqoLOgTQRjM8C7ALVSvIuG4DjWZOH/3De7HLSXmru2j1RmTobl1ENHFTlP9wXLMeUHmoup0yEnOtYn+hgEz5z74Z4fXQetS9iO5NDS/bHLV2qbYq6T9UQTzPzfnh2nlJnWJjUcOaYVLefBAFvIbqVOhJ6SHwP+UpUZOFiuEBrGIIn5wFMB3ttXCqaNFRkeVm998t6SXikJfuXeZgJ0tFZwy5tPY1lLUPfUga8MbDaosN2cRyY03PCoa0anbOXhOfNisjLVIydH6sRe4pZ8EatWnwaG5dt5GrHJLiD7giFK4Zxo3VxFRvuI16mWAUUMqM3yPQdn09hpDwp8bVZ5DIdOEJ5F/TgeGkDaYrs7hIgX2tTScnR6NOs3Id9YJKYBwsPivTcf9B31fuYXjQLw8Y7N80teecH2A/rUO/BwG7ALL/9V3sDb1ultbvPu0ddYAdoXhrx8QkCBtuUOSoaaXBVY23e4BJ2QKhw+1FfPdPE1GCjAqTdEYaV/daEiiSlmlYS8yDbShvWPl4OYZqG9LLIxFsuT5oQZrlrPlFDVOhDuhYU0IPs2Hy7lXheTtNN9Uf8Il8yzGMU++FUuBL2PLHW68qNLxFaPj9VwpFSAdjBrTWiI5WFLBTyBb+if4ClfjKhUyhdS+MP2xAweVUM4Oluddrza0eEmbgH4hSH1EN6EnLuwswE8DXceXAPiw8mnYjw1lSb+rEUU4LtLlbnX6qw3ffV3h562++oShqRzimCTLlmb6S7sQmNN4vkSqRb30tC977Xv79nJ5RpUyl7v2GLmGTyNxLGA7r1RqO2aGb3qyM0LKwUWXPIX5capZhbBOEsMl0Jkaos70Na9lVIApohz/GdQws9vFcOGModdYr18ZnFq2d6rxSsNK4K/HeEdBXCVuV2g2ZDSOiHgcPhFhpT5AbgKks2ZPPOS2Uwsl8Xk2Z+AHsdHR3LlCb/uEIdZJ0ZMY7PHOiU/kvhB5fyq7ppatcQ2TRVdwLcSNMQ67L/5fXwCkCiZtfq98JaAtFQnZJ1FJ4MQlbifidEa3EjnY2rOSWrIh3fk4DHE/57lHkiLidxxIiNhr3NF+DA5YyKhoc8brjcKOlNC6Amx4iDMxr4DEy9TcTXuz30yEkeb3ZuRPcyDY7O185ft68DLaC//gehy8/QsxGbR0UIKRLVaCDoOOsqCzuqfdpLOPZhmvsiTnf24nSUbUtX3dZVyP5swhw==";
+                String platext = null;
+                try {
+                    platext = DESedeUtil.decrypt(encMsg, spUtils.getSecretKey(), spUtils.getSecretIv());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                LogUtils.loge("解密后：" + platext);
+                break;
+            case R.id.btnNext2:
+
+                ActivityUtils.startActivityRightIn(getActivity(), CreditActivity.class);
+                /*RequestBody<UserNoModel> requestBody1 = new RequestBody<UserNoModel>();
+                RequestBody.HeaderBean headerBean1 = new RequestBody.HeaderBean(Utils.getIPAddress(mActivity), spUtils.getSecretKeyId());
+
+                UserNoModel userNoModel = new UserNoModel();
+                userNoModel.setUserNo("10051266");
+                requestBody1.setHeader(headerBean1);
+                requestBody1.setBody(userNoModel);
+
+                Gson gson1 = new Gson();
+                String json1 = gson1.toJson(requestBody1);
+
+                try {
+//                    encMsg = getRequestAfter3DES(json1);
+                    encMsg = DESedeUtil.getRequestAfter3DES(spUtils.getSecretKey(), spUtils.getSecretIv(), json1);
+                    signMsg = DESedeUtil.getRequestAfterSign(encMsg);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+                mvpPresenter.getAccountIndex(encMsg, signMsg, "2", spUtils.getSecretKeyId());*/
+
+                break;
+            case R.id.btnNext1://获取验证码
+
+                ActivityUtils.startActivityRightIn(getActivity(), ArrearsassetActivity.class);
+
+//                RequestBody<YZMModel> yzmModelRequestBody = new RequestBody<YZMModel>();
+//                RequestBody.HeaderBean headerBean2 = new RequestBody.HeaderBean(Utils.getIPAddress(mActivity), spUtils.getSecretKeyId());
+//                YZMModel yzmModel = new YZMModel();
+//                yzmModel.setValidType("1");//注册
+//                yzmModel.setMobile("13918406140");
+//                yzmModelRequestBody.setBody(yzmModel);
+//                yzmModelRequestBody.setHeader(headerBean2);
+//
+//                Gson gson2 = new Gson();
+//                String json2 = gson2.toJson(yzmModelRequestBody);
+////
+//                try {
+//                    encMsg = DESedeUtil.getRequestAfter3DES(spUtils.getSecretKey(), spUtils.getSecretIv(), json2);
+//                    signMsg = DESedeUtil.getRequestAfterSign(encMsg);
+//                } catch (Exception e) {
+//                    e.printStackTrace();
+//                }
+//
+//                mvpPresenter.sendValidcode(encMsg, signMsg, "2", spUtils.getSecretKeyId());
+                break;
+            case R.id.btnNext://获取SecretKeyId
+                RequestBody2 requestBody = new RequestBody2();
+                RequestBody2.HeaderBean headerBean = new RequestBody2.HeaderBean();
+                requestBody.setHeader(headerBean);
+                RequestBody2.BodyBean bodyBean = new RequestBody2.BodyBean();
+                requestBody.setBody(bodyBean);
+                Gson gson = new Gson();
+                String json = gson.toJson(requestBody);
+                Logger.e("aaaa:：" + json);
+                Logger.json(json);
+                mvpPresenter.getSecretkey(json);
+                break;
+        }
+    }
+
+
+    @Override
+    public void getDataSuccess(IndexModel model) {
+
+    }
+
+    @Override
+    public void getDataFail(String msg) {
+
+    }
+
+    @Override
+    protected CommonPresenter createPresenter() {
+        if (mActivity != null) {
+            return new CommonPresenter(mActivity, this);
+        } else {
+            return new CommonPresenter(getActivity(), this);
+        }
+    }
+}

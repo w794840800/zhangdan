@@ -1,0 +1,354 @@
+package com.beidou.ybz.accountbook.ui;
+
+import android.content.Intent;
+import android.os.Bundle;
+import android.support.design.widget.AppBarLayout;
+import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
+import android.view.KeyEvent;
+import android.view.View;
+import android.widget.ImageButton;
+import android.widget.TextView;
+
+import com.beidou.ybz.accountbook.R;
+import com.beidou.ybz.accountbook.adapter.AdapterOverseasList;
+import com.beidou.ybz.accountbook.mvp.entity.RequestBody;
+import com.beidou.ybz.accountbook.mvp.entity.SercetKeyOverdueModel;
+import com.beidou.ybz.accountbook.mvp.other.MvpActivity;
+import com.beidou.ybz.accountbook.mvp.presenter.CommonPresenter;
+import com.beidou.ybz.accountbook.mvp.view.CommonView;
+import com.beidou.ybz.accountbook.mvp.view.OtherView;
+import com.beidou.ybz.accountbook.util.AppBarStateChangeListener;
+import com.beidou.ybz.accountbook.util.DESedeUtil;
+import com.beidou.ybz.accountbook.util.DialogClickListener;
+import com.beidou.ybz.accountbook.util.LogUtils;
+import com.beidou.ybz.accountbook.util.Utils;
+import com.beidou.ybz.accountbook.widget.EmptyView;
+import com.beidou.ybz.accountbook.mvp.entity.AddOverseasRequestModel;
+import com.beidou.ybz.accountbook.mvp.entity.OverseasListModel;
+import com.beidou.ybz.accountbook.mvp.entity.UserNoModel;
+import com.beidou.ybz.accountbook.util.ActivityUtils;
+import com.beidou.ybz.accountbook.util.AlertDialogUtils;
+import com.chad.library.adapter.base.BaseQuickAdapter;
+import com.google.gson.Gson;
+
+import java.math.BigDecimal;
+import java.util.List;
+
+import butterknife.Bind;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
+
+/**
+ * Author: xu.yang on 2017/12/6
+ * QQ:754444814
+ * E-mail:754444814@qq.com
+ * module: 海外房产界面
+ */
+public class OverseasActivity extends MvpActivity<CommonPresenter> implements CommonView<OverseasListModel>, OtherView<SercetKeyOverdueModel> {
+    @Bind(R.id.bob_empty_view)
+    EmptyView mEmptyView;
+    @Bind(R.id.appbar)
+    AppBarLayout appbar;
+    @Bind(R.id.tv_title)
+    TextView tvTitle;
+    @Bind(R.id.tvAmount)
+    TextView tvAmount;
+    @Bind(R.id.tvAddAssets)
+    TextView tvAddAssets;
+    @Bind(R.id.toolbar)
+    Toolbar toolbar;
+    @Bind(R.id.ib_back)
+    ImageButton ibBack;
+    @Bind(R.id.swipeRefresh)
+    SwipeRefreshLayout mSwipeRefreshLayout;
+    @Bind(R.id.rv)
+    RecyclerView rv;
+    private String encMsg, signMsg;
+    AdapterOverseasList mAdapter;
+    private boolean isLoadMore;
+    private List<OverseasListModel.BodyBean.OverseasListBean> overseasListBeanList;
+    AlertDialogUtils alertDialogUtils;
+    private int mPosition;//删除的position
+    private int count = 0;
+    private String zzzj, from;
+    private boolean isFromAdd;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_overseas);
+        ButterKnife.bind(this);
+
+        tvAddAssets.setText("+  新建房产");
+        tvTitle.setText("房产");
+        tvTitle.setTextColor(getResources().getColor(R.color.txt_color));
+
+        alertDialogUtils = new AlertDialogUtils(mActivity);
+        mEmptyView.bindView(rv); // 设置bindView
+        mEmptyView.buttonClick(this, "request"); // 当button点击时调用哪个方法
+
+        handleIntent(getIntent());
+
+        //下拉刷新条的颜色
+        mSwipeRefreshLayout.setColorSchemeResources(R.color.colorGold);
+
+        mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                isLoadMore = false;
+                request();
+            }
+        });
+
+        rv.setLayoutManager(new LinearLayoutManager(this));
+
+        mAdapter = new AdapterOverseasList(R.layout.overseaslist_item, null);
+
+        rv.setAdapter(mAdapter);
+
+        mAdapter.setOnItemLongClickListener(new BaseQuickAdapter.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(BaseQuickAdapter adapter, View view, int position) {
+                alertDialogUtils.setMessage("确定要删除" + overseasListBeanList.get(position).getHomeName() + "？");
+                alertDialogUtils.setPosition(position);
+                alertDialogUtils.show();
+                return true;
+                //返回false时点击事件和长按事件会有冲突，设为true,事件拦截，冲突解除
+            }
+        });
+
+        mAdapter.setOnItemClickListener(new BaseQuickAdapter.OnItemClickListener() {
+            @Override
+            public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
+//                ActivityUtils.startActivityRightIn(mActivity,InsuranceDetailActivity.class);
+                Intent in = new Intent(mActivity, OverseasDetailActivity.class);
+                in.putExtra("id", overseasListBeanList.get(position).getId());
+                in.putExtra("name", overseasListBeanList.get(position).getHomeName());
+                startActivity(in);
+                overridePendingTransition(R.anim.left_in, 0);
+            }
+        });
+
+
+        alertDialogUtils.setOnDialogClickListener(new DialogClickListener() {
+            @Override
+            public void clickYes(int which) {
+                LogUtils.logd("which:" + which);
+                mPosition = which;
+                del(overseasListBeanList.get(which).getId());
+            }
+
+            @Override
+            public void clickNo() {
+            }
+        });
+
+
+        appbar.addOnOffsetChangedListener(new AppBarStateChangeListener() {
+            @Override
+            public void onOffset(AppBarLayout appBarLayout, int i) {
+                int totalOffset = appBarLayout.getTotalScrollRange();
+                float scale = (float) (totalOffset - i) / (float) totalOffset;//展开-1 收起-0
+                /**
+                 * 根据appbar收放改变字体颜色
+                 */
+                if (scale < 0.5) {
+                    tvTitle.setTextColor(getResources().getColor(R.color.colorBlack));
+                    tvTitle.setAlpha(1 - scale * 2);
+                    ibBack.setImageResource(R.drawable.back_black);
+                    ibBack.setAlpha(1 - scale * 2);
+                } else {
+                    tvTitle.setTextColor(getResources().getColor(R.color.colorWhite));
+                    tvTitle.setAlpha(2 * scale - 1);
+                    ibBack.setImageResource(R.drawable.back);
+                    ibBack.setAlpha(2 * scale - 1);
+                }
+            }
+
+            @Override
+            public void onStateChanged(AppBarLayout appBarLayout, State state) {
+                //判断appbar状态，防止与SwipeRefreshLayout下拉事件冲突
+                if (state == State.EXPANDED) {//展开状态
+                    mSwipeRefreshLayout.setEnabled(true);
+                } else if (state == State.COLLAPSED) {//折叠状态
+                    mSwipeRefreshLayout.setEnabled(false);
+                } else if (state == State.IDLE) {//折叠状态
+                    mSwipeRefreshLayout.setEnabled(false);
+                }
+            }
+        });
+
+//        request();
+    }
+
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        handleIntent(intent);
+    }
+
+    private void handleIntent(Intent in) {
+        if (in != null) {
+            from = in.getStringExtra("from");
+        }
+
+        if (from != null && from.equals("add")) {
+            isFromAdd = true;
+        } else {
+            isFromAdd = false;
+        }
+    }
+
+
+    void del(String id) {
+        RequestBody<AddOverseasRequestModel> requestBody = new RequestBody<>();
+        RequestBody.HeaderBean headerBean = new RequestBody.HeaderBean(Utils.getIPAddress(mActivity), spUtils.getSecretKeyId());
+        AddOverseasRequestModel requestModel = new AddOverseasRequestModel();
+        requestModel.setUserNo(spUtils.getUserId());
+        requestModel.setId(id);
+
+        requestBody.setBody(requestModel);
+        requestBody.setHeader(headerBean);
+
+        Gson gson = new Gson();
+        String json = gson.toJson(requestBody);
+
+        try {
+            encMsg = DESedeUtil.getRequestAfter3DES(spUtils.getSecretKey(), spUtils.getSecretIv(), json);
+            signMsg = DESedeUtil.getRequestAfterSign(encMsg);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        mvpPresenter.deloverseas(encMsg, signMsg, "2", spUtils.getSecretKeyId());
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        request();
+    }
+
+    void request() {
+        RequestBody<UserNoModel> requestBody = new RequestBody<>();
+        RequestBody.HeaderBean headerBean = new RequestBody.HeaderBean(Utils.getIPAddress(mActivity), spUtils.getSecretKeyId());
+        UserNoModel requestModel = new UserNoModel();
+        requestModel.setUserNo(spUtils.getUserId());
+
+        requestBody.setBody(requestModel);
+        requestBody.setHeader(headerBean);
+
+        Gson gson2 = new Gson();
+        String json2 = gson2.toJson(requestBody);
+
+        try {
+            encMsg = DESedeUtil.getRequestAfter3DES(spUtils.getSecretKey(), spUtils.getSecretIv(), json2);
+            signMsg = DESedeUtil.getRequestAfterSign(encMsg);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        mvpPresenter.getoverseaslist(encMsg, signMsg, "2", spUtils.getSecretKeyId());
+        if (count == 0) {
+            mEmptyView.loading();
+        }
+    }
+
+    @Override
+    protected CommonPresenter createPresenter() {
+        return new CommonPresenter(this, this);
+    }
+
+    @OnClick({R.id.ib_back, R.id.tvAddAssets})
+    public void onViewClicked(View view) {
+        switch (view.getId()) {
+            case R.id.ib_back:
+//                if(isFromAdd){//如果从添加页跳转过来，点击返回直接跳到首页
+                ActivityUtils.startActivity(mActivity, MainActivity.class);
+                ActivityUtils.finishActivity(mActivity);
+//                }else {
+//                    ActivityUtils.finishActivity(mActivity);
+//                }
+                break;
+            case R.id.tvAddAssets:
+//                if(isFromAdd){
+//                    ActivityUtils.finishActivity(mActivity);
+//                }else {
+//                ActivityUtils.startActivityRightIn(mActivity, AddOverseasAssets.class);
+                Intent in = new Intent(mActivity, AddOverseasAssets.class);
+                in.putExtra("from", "list");
+                startActivity(in);
+                overridePendingTransition(R.anim.left_in, 0);
+//                }
+                break;
+        }
+    }
+
+    @Override
+    public void getDataSuccess(OverseasListModel model) {
+        try {
+            mSwipeRefreshLayout.setRefreshing(false);
+            count++;
+            overseasListBeanList = model.getBody().getOverseasList();
+
+            zzzj = model.getBody().getZsz();
+            tvAmount.setText(Utils.addCommaContainsPoint(zzzj));
+            if (overseasListBeanList.size() < 1) {
+                mEmptyView.setEmptyText("还没有房产产品哦～");
+                mEmptyView.empty();
+            } else {
+                mEmptyView.success();
+                if (isLoadMore) {
+                    mAdapter.addData(overseasListBeanList);
+                } else {
+                    mAdapter.setNewData(overseasListBeanList);//下拉刷新时
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    @Override
+    public void getDataFail(String msg) {
+        mSwipeRefreshLayout.setRefreshing(false);
+        toastShow(msg);
+        mEmptyView.loadfail();
+    }
+
+    @Override
+    public void onSuccess(SercetKeyOverdueModel model) {
+        toastShow("删除成功", R.drawable.gou_toast);
+        try {
+            zzzj = String.valueOf(new BigDecimal(Double.parseDouble(zzzj) - Double.parseDouble(overseasListBeanList.get(mPosition).getAmount())));
+            tvAmount.setText(Utils.addCommaContainsPoint(zzzj));
+            overseasListBeanList.remove(mPosition);
+            mAdapter.notifyItemRemoved(mPosition);//推荐用这个
+            if (mAdapter.getItemCount() == 0) {
+                mEmptyView.setEmptyText("还没有房产产品哦～");
+                mEmptyView.empty();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void onFail(String model) {
+        toastShow(model);
+    }
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_BACK
+                && event.getAction() == KeyEvent.ACTION_DOWN) {
+            ActivityUtils.startActivity(mActivity, MainActivity.class);
+            ActivityUtils.finishActivity(mActivity);
+            return true;
+        }
+        return super.onKeyDown(keyCode, event);
+    }
+}

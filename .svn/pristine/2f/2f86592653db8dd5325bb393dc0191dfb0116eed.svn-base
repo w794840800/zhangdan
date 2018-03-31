@@ -1,0 +1,182 @@
+package com.beidou.ybz.accountbook.ui;
+
+import android.content.Intent;
+import android.os.Bundle;
+import android.support.v7.widget.Toolbar;
+import android.view.MotionEvent;
+import android.view.View;
+import android.widget.CompoundButton;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
+
+import com.baidu.mobstat.StatService;
+import com.beidou.ybz.accountbook.R;
+import com.beidou.ybz.accountbook.mvp.other.MvpActivity;
+import com.beidou.ybz.accountbook.mvp.presenter.CommonPresenter;
+import com.beidou.ybz.accountbook.util.ActivityUtils;
+import com.beidou.ybz.accountbook.util.AlertDialogUtils;
+import com.beidou.ybz.accountbook.util.DialogClickListener;
+import com.beidou.ybz.accountbook.util.ImeUtil;
+import com.beidou.ybz.accountbook.util.LogUtils;
+import com.beidou.ybz.accountbook.widget.SwitchButton;
+
+import butterknife.Bind;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
+
+/**
+ * Author: Bob on 2017/11/3 9:31
+ * QQ:754444814
+ * E-mail:754444814@qq.com
+ * purpose:设置
+ */
+public class SettingActivity extends MvpActivity<CommonPresenter> implements CompoundButton.OnCheckedChangeListener {
+    @Bind(R.id.tv_title)
+    TextView tvTitle;
+    @Bind(R.id.toolbar)
+    Toolbar toolbar;
+    @Bind(R.id.sb_use_checked)
+    SwitchButton mSwitchButton;
+    @Bind(R.id.tvLogOut)
+    TextView tvLogOut;
+    @Bind(R.id.rl_shoushiupdate)
+    RelativeLayout rlShoushiupdate;
+
+    //    @Bind(R.id.calendar)
+//    @Bind(R.id.calendar)
+    //    @Bind(R.id.calendar)
+//    CalendarView calendar;
+    AlertDialogUtils alertDialogUtils;
+    boolean isTrue = false;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_set);
+        ButterKnife.bind(this);
+
+
+        tvTitle.setText("设置");
+        tvTitle.setTextColor(getResources().getColor(R.color.txt_color));
+        toolbar.setNavigationIcon(R.drawable.back_black);
+        toolbar.setBackgroundColor(getResources().getColor(R.color.colorWhite));
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ImeUtil.hideSoftKeyboard(v);
+                ActivityUtils.finishActivity(mActivity);
+            }
+        });
+
+        mSwitchButton.setOnCheckedChangeListener(this);
+
+        alertDialogUtils = new AlertDialogUtils(mActivity);
+        alertDialogUtils.setOnDialogClickListener(new DialogClickListener() {
+            @Override
+            public void clickYes(int which) {
+                spUtils.setUserId("");
+                spUtils.setPhone("");
+                spUtils.setIsLogin(false);
+                spUtils.setIsGesture(false);//清空手势密码
+                // TODO: 2018/1/6 新增清除某些缓存
+                spUtils.setNickName("");
+                spUtils.setPortraitUrl("");
+                spUtils.setHidePhone("");
+                spUtils.setName("");
+                spUtils.setThirdAcctNo("");
+                spUtils.setAcctChannel("");
+                spUtils.setAccountbindWechat("");
+                ActivityUtils.finishActivity(mActivity);
+            }
+
+            @Override
+            public void clickNo() {
+            }
+        });
+
+    }
+
+    View.OnTouchListener ontouchTrue = new View.OnTouchListener() {
+        @Override
+        public boolean onTouch(View v, MotionEvent event) {
+            return false;
+        }
+    };
+    View.OnTouchListener ontouchfalse = new View.OnTouchListener() {
+        @Override
+        public boolean onTouch(View v, MotionEvent event) {
+            toastShow("未填写");
+            return true;
+        }
+    };
+
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        StatService.onPageStart(mActivity,"设置页面");
+        LogUtils.logd("getIsGesture::" + spUtils.getIsGesture());
+        if (spUtils.getIsGesture()) {
+            mSwitchButton.setOnCheckedChangeListener(null);
+            mSwitchButton.setChecked(true);
+            mSwitchButton.setOnCheckedChangeListener(this);
+//            ignoreChange = false;
+            rlShoushiupdate.setVisibility(View.VISIBLE);
+//            ignoreChange = true;
+        } else {
+            mSwitchButton.setOnCheckedChangeListener(null);
+            mSwitchButton.setChecked(false);
+            mSwitchButton.setOnCheckedChangeListener(this);
+//            ignoreChange = false;
+            rlShoushiupdate.setVisibility(View.GONE);
+        }
+
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        StatService.onPageEnd(mActivity,"设置页面");
+    }
+
+    @Override
+    protected CommonPresenter createPresenter() {
+        return null;
+    }
+
+    @Override
+    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+        Intent in = null;
+        if (isChecked) {
+            in = new Intent(SettingActivity.this, GestureEditActivity.class);
+            in.putExtra("flag", "set");
+        } else {
+            in = new Intent(SettingActivity.this, GestureValidActivity.class);
+            in.putExtra("flag", "close");
+        }
+        startActivity(in);
+        overridePendingTransition(R.anim.left_in, 0);
+
+
+    }
+
+
+    @OnClick({R.id.tvLogOut, R.id.rl_shoushiupdate,R.id.rlfeedBack})
+    public void onViewClicked(View view) {
+        switch (view.getId()) {
+            case R.id.tvLogOut:
+                alertDialogUtils.setMessage("您确定想退出吗？");
+                alertDialogUtils.show();
+                break;
+            case R.id.rl_shoushiupdate:
+                Intent in = new Intent(SettingActivity.this, GestureValidActivity.class);
+                in.putExtra("flag", "alter");
+                startActivity(in);
+                overridePendingTransition(R.anim.left_in, 0);
+                break;
+            case R.id.rlfeedBack:
+                ActivityUtils.startActivityRightIn(mActivity,FeedBackActivity.class);
+                break;
+        }
+    }
+}

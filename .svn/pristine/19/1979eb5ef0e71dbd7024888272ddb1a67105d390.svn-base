@@ -1,0 +1,294 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.beidou.ybz.accountbook">
+
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.READ_CONTACTS" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_CONTACTS" />
+    <!-- share SDK分享 -->
+    <uses-permission android:name="android.permission.GET_TASKS" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+    <uses-permission android:name="android.permission.MANAGE_ACCOUNTS" />
+    <uses-permission android:name="android.permission.GET_ACCOUNTS" />
+    <uses-permission android:name="android.permission.BLUETOOTH" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+    <!-- ShareSDK新加权限 -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+
+    <application
+        android:name=".ui.BaseApplication"
+        android:allowBackup="true"
+        android:icon="@mipmap/icon"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme">
+        <activity android:name=".ui.StartUpActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <!-- 适配android 7.0 -->
+        <provider
+            android:name="android.support.v4.content.FileProvider"
+            android:authorities="com.beidou.ybz.accountbook.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+
+        <activity
+            android:name=".ui.MainActivity"
+            android:launchMode="singleTask" >
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="openybzapp" android:host="financial" />
+            </intent-filter>
+        </activity>
+        <activity android:name=".ui.AddCustom" />
+        <activity android:name=".ui.AddDomin" />
+        <activity android:name=".ui.AddGame" />
+        <activity
+            android:name=".ui.AddInternetAccount"
+           />
+        <activity
+            android:name=".ui.AddCredit"
+            />
+        <activity android:name=".ui.AddReimbursement" />
+        <activity android:name=".ui.AddArrears" />
+        <activity android:name=".ui.AddLoan" />
+        <activity android:name=".ui.AddBankCard" />
+        <activity android:name=".ui.AddCurrentFinancial" />
+        <activity android:name=".ui.AddPrivateOfferingFund" />
+        <activity android:name=".ui.AddInsuranceAssets" />
+        <activity
+            android:name=".ui.AddFixedIncome" />
+        <activity
+            android:name=".ui.AddEquityAssets"
+            android:launchMode="singleTask" />
+        <activity android:name=".ui.AddOverseasAssets" />
+        <activity android:name=".ui.AddStockAssets" />
+        <activity android:name=".ui.AddFundAssets" />
+        <activity
+            android:name=".ui.AddAssetsActivity"
+            android:launchMode="singleTask" />
+        <activity
+            android:name=".ui.SettingActivity"
+            android:launchMode="singleTask" />
+        <activity
+            android:name=".ui.LoginActivity"
+            android:launchMode="singleTask" />
+        <activity
+            android:name=".ui.AlterPasswordActivity"
+            android:launchMode="singleTask" />
+        <activity
+            android:name=".ui.RegisterActivity"
+            android:launchMode="singleTask" />
+        <activity
+            android:name=".ui.StockActivity"
+            android:launchMode="singleTask" />
+        <activity
+            android:name=".ui.InsuranceActivity"
+            android:launchMode="singleTask" />
+        <activity
+            android:name=".ui.OverseasActivity"
+            android:launchMode="singleTask" />
+        <activity
+            android:name=".ui.CurrentFinancialActivity"
+            android:launchMode="singleTask" />
+        <activity
+            android:name=".ui.BankCardActivity"
+            android:launchMode="singleTask" />
+        <activity
+            android:name=".ui.FundActivity"
+            android:launchMode="singleTask" />
+        <activity android:name=".ui.PersonalInfoActivity" />
+        <activity
+            android:name=".ui.EditUserInfoActivity"
+            android:launchMode="singleTask" />
+        <activity
+            android:name=".ui.VerifyOldPhoneActivity"
+            android:launchMode="singleTask"
+            android:theme="@style/Theme.Swipe.Back" />
+        <activity
+            android:name=".ui.ChangePhoneActivity"
+            android:launchMode="singleTask" />
+        <activity
+            android:name=".ui.GestureEditActivity"
+            android:launchMode="singleTask" />
+        <activity
+            android:name=".ui.GestureValidActivity"
+            android:launchMode="singleTask" />
+        <activity
+            android:name=".ui.AboutUsActivity"
+            android:launchMode="singleTask" />
+        <activity
+            android:name=".ui.TestCsActivity"
+            android:launchMode="singleTask" />
+        <activity
+            android:name=".ui.InsuranceDetailActivity"
+            android:launchMode="singleTask" />
+        <activity
+            android:name=".ui.OverseasDetailActivity"
+            android:launchMode="singleTask" />
+        <activity
+            android:name=".ui.CurrentFinancialDetailActivity"
+            android:launchMode="singleTask" />
+        <activity
+            android:name=".ui.OperationRecordActivity"
+            android:launchMode="singleTask" />
+        <activity
+            android:name=".ui.BankcardDetailActivity"
+            android:launchMode="singleTask" />
+        <activity
+            android:name=".ui.SupportBankActivity"
+            android:launchMode="singleTask" />
+        <activity
+            android:name=".ui.SupportCurrencyActivity"
+            android:launchMode="singleTask" />
+        <activity
+            android:name=".ui.WebActivity"
+            android:launchMode="singleTask" />
+
+        <activity android:name=".ui.HuiZhangActivity">
+        <intent-filter>
+            <action android:name="android.intent.action.VIEW"/>
+            <category android:name="android.intent.category.DEFAULT" />
+            <category android:name="android.intent.category.BROWSABLE" />
+            <data android:scheme="openybzapp" android:host="badge" />
+        </intent-filter>
+        </activity>
+        <activity
+            android:name=".ui.StockOperationRecordActivity"
+            android:launchMode="singleTask" />
+        <activity
+            android:name=".ui.CaishangListActivity"
+            android:launchMode="singleTask" />
+        <activity
+            android:name=".ui.CaishangDetailActivity"
+            android:launchMode="singleTask" />
+        <activity
+            android:name=".ui.CaishangVedioActivity"
+            android:launchMode="singleTask" />
+        <activity
+            android:name=".ui.StockSearchMoreActivity"
+            android:launchMode="singleTask" />
+        <activity
+            android:name=".ui.HuodongDetailActivity"
+            android:launchMode="singleTask" />
+        <activity
+            android:name=".ui.BlackboxUnsettingActivity"
+            android:launchMode="singleTask" />
+        <activity android:name=".ui.PasswordLoginActivity" />
+        <activity android:name=".ui.RenmaiActivity" />
+        <activity android:name=".ui.TongbuActivity" />
+        <activity
+            android:name=".ui.ArrearsassetActivity"
+            android:launchMode="singleTask" />
+        <activity android:name=".ui.CreditActivity" android:launchMode="singleTask"/>
+        <activity android:name=".ui.EquityActivity" android:launchMode="singleTask"/>
+        <activity android:name=".ui.EquityDetailActivity" />
+        <activity android:name=".ui.ArrearsDetailActivity" />
+        <activity android:name=".ui.MyBlackboxActivity" />
+        <activity android:name=".ui.CreditDetailActivity" />
+        <activity android:name=".ui.InternetActivity" android:launchMode="singleTask"/>
+        <activity android:name=".ui.InternetDetailActivity" />
+        <activity
+            android:name=".ui.FixedIncomeActivity"
+            android:launchMode="singleTask" />
+        <activity android:name=".ui.FixedIncomeDetailActivity" />
+        <activity android:name=".ui.BlackboxDetailActivity" />
+        <activity
+            android:name=".ui.PrepaidActivity"
+            android:launchMode="singleTask" />
+        <activity android:name=".ui.AddPrepaidCard" />
+        <activity android:name=".ui.PrepaidDetailActivity" />
+        <activity
+            android:name=".ui.ReimbursementActivity"
+            android:launchMode="singleTask" />
+        <activity android:name=".ui.ReimbursementDetailActivity" />
+        <activity
+            android:name=".ui.GameActivity"
+            android:launchMode="singleTask" />
+        <activity
+            android:name=".ui.LoanActivity"
+            android:launchMode="singleTask" />
+        <activity android:name=".ui.LoanDetailActivity" />
+        <activity
+            android:name=".ui.CustomActivity"
+            android:launchMode="singleTask" />
+        <activity android:name=".ui.CustomDetailActivity" />
+        <activity
+            android:name=".ui.DominActivity"
+            android:launchMode="singleTask" />
+        <activity android:name=".ui.DominDetailActivity" />
+        <activity android:name=".ui.HuodongListActivity" />
+        <activity android:name=".ui.MessageListActivity" />
+        -
+        <activity
+            android:name="com.tencent.tauth.AuthActivity"
+            android:launchMode="singleTask"
+            android:noHistory="true">-
+            <intent-filter><action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <!-- 这里可以换成你在开放平台申请的appID(tencent+appid) -->
+                <data android:scheme="tencent101448247" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name="com.tencent.connect.common.AssistActivity"
+            android:configChanges="orientation|keyboardHidden"
+            android:screenOrientation="behind"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+        <activity
+            android:name=".wxapi.WXEntryActivity"
+            android:exported="true"
+            android:theme="@style/AppThemeTranslucent" />
+        <activity android:name=".ui.GameDetailActivity" />
+        <activity android:name=".ui.PrepaidCardOperationRecordActivity" />
+        <activity
+            android:name=".ui.PrivateOfferingActivity"
+            android:launchMode="singleTask" />
+        <activity android:name=".ui.SimuOperationRecordActivity" />
+        <activity android:name=".ui.FeedBackActivity" />
+        <activity android:name=".ui.HuiZhangDetailActivity" />
+        <!-- <activity android:name="com.mob.tools.MobUIShell" android:configChanges="keyboardHidden|orientation|screenSize" android:screenOrientation="portrait" android:theme="@android:style/Theme.Translucent.NoTitleBar" android:windowSoftInputMode="stateHidden|adjustResize"> &lt;!&ndash; QQ和QQ空间分享 QQ登录的回调必须要配置的 &ndash;&gt; &lt;!&ndash; <intent-filter> <data android:scheme="tencent101448247" /> <action android:name="android.intent.action.VIEW" /> <category android:name="android.intent.category.BROWSABLE" /> <category android:name="android.intent.category.DEFAULT" /> </intent-filter> &ndash;&gt; </activity> <meta-data android:name="Mob-AppKey" android:value="23825f8163da0" /> <meta-data android:name="Mob-AppSecret" android:value="a7bac039226637eee27d7abd057495a0" /> <activity android:name="cn.sharesdk.tencent.qq.ReceiveActivity" android:launchMode="singleTask" android:noHistory="true"> <intent-filter> <action android:name="android.intent.action.VIEW" /> <category android:name="android.intent.category.DEFAULT" /> <category android:name="android.intent.category.BROWSABLE" /> <data android:scheme="tencent101448247" /> </intent-filter> </activity>-->
+        <activity android:name=".ui.CourseShareActivity" />
+        <activity android:name=".ui.CompileBlackboxActivity" />
+        <activity android:name=".ui.BindActivity" />
+        <activity android:name=".ui.ReleaseBindActivity" />
+        <activity android:name=".ui.TestResultActivity" />
+        <!--推送SDK-->
+        <meta-data
+            android:name="UMENG_APPKEY"
+            android:value="5a5329f7f43e4874ae000051" />
+        <meta-data
+            android:name="UMENG_CHANNEL"
+            android:value="android_ybz" />
+        <meta-data
+            android:name="UMENG_MESSAGE_SECRET"
+            android:value="ec58caa2b0ac2cfed241ebb9e21d424c" />
+        <!-- 推送的服务 -->
+        <service android:name=".util.MyPushIntentService" />
+
+        <activity android:name=".ui.XieyiActivity" />
+        <activity android:name=".ui.CurrencySearchActivity" />
+        <activity android:name=".ui.MessageDetailActivity" />
+    </application>
+</manifest>

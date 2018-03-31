@@ -1,0 +1,326 @@
+package com.beidou.ybz.accountbook.ui;
+
+import android.content.Intent;
+import android.os.Bundle;
+import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.view.View;
+
+import com.baidu.mobstat.StatService;
+import com.beidou.ybz.accountbook.R;
+import com.beidou.ybz.accountbook.adapter.AdapterCurrency;
+import com.beidou.ybz.accountbook.mvp.entity.CurrencyModel;
+import com.beidou.ybz.accountbook.mvp.entity.RequestBody;
+import com.beidou.ybz.accountbook.mvp.entity.UserNoModel;
+import com.beidou.ybz.accountbook.mvp.other.MvpActivity;
+import com.beidou.ybz.accountbook.mvp.presenter.CommonPresenter;
+import com.beidou.ybz.accountbook.mvp.view.CommonView;
+import com.beidou.ybz.accountbook.util.ActivityUtils;
+import com.beidou.ybz.accountbook.util.AlertDialogUtils;
+import com.beidou.ybz.accountbook.util.ChineseFirstLetterUtil;
+import com.beidou.ybz.accountbook.util.DESedeUtil;
+import com.beidou.ybz.accountbook.util.ImeUtil;
+import com.beidou.ybz.accountbook.util.LogUtils;
+import com.beidou.ybz.accountbook.util.Utils;
+import com.beidou.ybz.accountbook.widget.EmptyView;
+import com.beidou.ybz.accountbook.widget.StickyRecyclerHeader.PinyinComparator;
+import com.beidou.ybz.accountbook.widget.StickyRecyclerHeader.StickyRecyclerHeadersDecoration;
+import com.bigkoo.quicksidebar.QuickSideBarTipsView;
+import com.bigkoo.quicksidebar.QuickSideBarView;
+import com.bigkoo.quicksidebar.listener.OnQuickSideBarTouchListener;
+import com.chad.library.adapter.base.BaseQuickAdapter;
+import com.google.gson.Gson;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+
+import butterknife.Bind;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
+
+/**
+ * Author: xu.yang on 2017/12/16 周六
+ * QQ:754444814
+ * E-mail:754444814@qq.com
+ * module: 支持的货币界面
+ */
+public class SupportCurrencyActivity extends MvpActivity<CommonPresenter> implements CommonView<CurrencyModel>, OnQuickSideBarTouchListener {
+    @Bind(R.id.bob_empty_view)
+    EmptyView mEmptyView;
+    @Bind(R.id.swipeRefresh)
+    SwipeRefreshLayout mSwipeRefreshLayout;
+    @Bind(R.id.rv)
+    RecyclerView rv;
+    @Bind(R.id.quickSideBarTipsView)
+    QuickSideBarTipsView quickSideBarTipsView;
+    @Bind(R.id.quickSideBarView)
+    QuickSideBarView quickSideBarView;
+    private String encMsg, signMsg;
+    private AdapterCurrency mAdapter;
+    private List<CurrencyModel.BodyBean.CurrencyListBean> currencyListBeanList;
+    private List<CurrencyModel.BodyBean.CurrencyListBean> mMembers = new ArrayList<>();
+    private ArrayList<CurrencyModel.BodyBean.CurrencyListBean> mAllLists = new ArrayList<>();
+    AlertDialogUtils alertDialogUtils;
+    private int mPosition;//删除的position
+    private int count;
+    int position = 0;//首字母位置信息
+    ArrayList<String> customLetters = new ArrayList<>();//首字母集合
+    HashMap<String, Integer> letters = new HashMap<>();
+    PinyinComparator pinyinComparator;
+    private final int requestCodeCoin = 23;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_supportcurrency);
+        ButterKnife.bind(this);
+
+        pinyinComparator = new PinyinComparator();
+        mEmptyView.bindView(rv); // 设置bindView
+        mEmptyView.buttonClick(this, "request"); // 当button点击时调用哪个方法
+        //下拉刷新条的颜色
+        mSwipeRefreshLayout.setColorSchemeResources(R.color.colorGold);
+
+        rv.setLayoutManager(new LinearLayoutManager(this));
+        mAdapter = new AdapterCurrency(R.layout.currency_item, null);
+
+        final StickyRecyclerHeadersDecoration headersDecor = new StickyRecyclerHeadersDecoration(mAdapter);
+        rv.addItemDecoration(headersDecor);
+
+        rv.setOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+                LinearLayoutManager layoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
+                int position = layoutManager.findFirstVisibleItemPosition();
+                int pos = customLetters.indexOf(mAdapter.getItem(position).getInitials());
+                quickSideBarView.setPosition(pos);
+
+            }
+        });
+
+//        rv.addItemDecoration(new DividerDecoration(this));
+
+
+        rv.setAdapter(mAdapter);
+
+        mAdapter.registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
+            @Override
+            public void onChanged() {
+                headersDecor.invalidateHeaders();
+            }
+        });
+
+        mAdapter.setOnItemClickListener(new BaseQuickAdapter.OnItemClickListener() {
+            @Override
+            public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
+                Intent intent = new Intent();
+                intent.putExtra("info", mAllLists.get(position).getCurrencyNo());//currencyNo
+                setResult(RESULT_OK, intent);
+                ActivityUtils.finishActivity(mActivity);
+            }
+        });
+
+        mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                request();
+            }
+        });
+        request();
+        initView();
+    }
+
+    void initView() {
+        //设置监听
+        quickSideBarView.setOnQuickSideBarTouchListener(this);
+
+
+//        //不自定义则默认26个字母
+//        quickSideBarView.setLetters(customLetters);
+    }
+
+    void request() {
+        RequestBody<UserNoModel> requestBody = new RequestBody<>();
+        RequestBody.HeaderBean headerBean = new RequestBody.HeaderBean(Utils.getIPAddress(mActivity), spUtils.getSecretKeyId());
+        UserNoModel requestModel = new UserNoModel();
+//        requestModel.setUserNo(spUtils.getUserId());
+        requestBody.setBody(requestModel);
+        requestBody.setHeader(headerBean);
+        Gson gson2 = new Gson();
+        String json2 = gson2.toJson(requestBody);
+        LogUtils.logd("参数：" + json2);
+        try {
+            encMsg = DESedeUtil.getRequestAfter3DES(spUtils.getSecretKey(), spUtils.getSecretIv(), json2);
+            signMsg = DESedeUtil.getRequestAfterSign(encMsg);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        mvpPresenter.getCurrencylist(encMsg, signMsg, "2", spUtils.getSecretKeyId());
+        if (count == 0) {
+            mEmptyView.loading();
+        }
+
+    }
+
+    @Override
+    protected CommonPresenter createPresenter() {
+        return new CommonPresenter(this, this);
+    }
+
+
+    @Override
+    public void getDataSuccess(CurrencyModel model) {
+        mSwipeRefreshLayout.setRefreshing(false);
+        count++;
+        currencyListBeanList = model.getBody().getCurrencyList();
+        if (currencyListBeanList != null && currencyListBeanList.size() > 0) {
+            mEmptyView.success();
+            seperateLists(currencyListBeanList);
+            mAdapter.setNewData(mAllLists);
+        } else {
+            mEmptyView.setEmptyText("还没有货币数据哦～");
+            mEmptyView.empty();
+        }
+    }
+
+    @Override
+    public void getDataFail(String msg) {
+        mSwipeRefreshLayout.setRefreshing(false);
+        toastShow(msg);
+        mEmptyView.loadfail();
+    }
+
+    /**
+     * 按首字母对城市数据进行排序
+     *
+     * @param mModel
+     */
+    void seperateLists(List<CurrencyModel.BodyBean.CurrencyListBean> mModel) {
+        mMembers.clear();
+        mAllLists.clear();
+        customLetters.clear();
+        letters.clear();
+        position = 0;
+        if (mModel != null && mModel.size() > 0) {
+            for (int i = 0; i < mModel.size(); i++) {
+                CurrencyModel.BodyBean.CurrencyListBean entity = new CurrencyModel.BodyBean.CurrencyListBean();
+                entity.setCurrencyName(mModel.get(i).getCurrencyName());
+                entity.setCurrencyNo(mModel.get(i).getCurrencyNo());
+                String sortString = ChineseFirstLetterUtil.getFirstLetter(mModel.get(i).getCurrencyName()).toUpperCase().substring(0, 1);
+//                entity.setInitials(sortString);
+                LogUtils.loge(sortString);
+
+                if (sortString.matches("[A-Z]")) {
+                    LogUtils.loge("sortString.matches\"[A-Z]\"");
+                    entity.setInitials(sortString.toUpperCase());
+//                    customLetters.add(sortString.toUpperCase());
+//                    mSideBar.setSlideBarLetter(sortString);
+                } else {
+                    entity.setInitials("#");
+                }
+                mMembers.add(entity);
+                mMembers.add(entity);
+                mMembers.add(entity);
+
+            }
+
+            //重新排序
+            Collections.sort(mMembers, pinyinComparator);
+
+            for (CurrencyModel.BodyBean.CurrencyListBean mMember : mMembers) {
+                if (!letters.containsKey(mMember.getInitials())) {
+                    letters.put(mMember.getInitials(), position);
+                    customLetters.add(mMember.getInitials());
+                }
+                LogUtils.loge("letters.size:" + letters.size());
+                position++;
+            }
+            LogUtils.loge("customLetters.size:" + customLetters.size());
+            //不自定义则默认26个字母
+            quickSideBarView.setLetters(customLetters);
+            mAllLists.addAll(mMembers);
+            quickSideBarView.animate().alpha(1.0f).setDuration(400);
+        }
+    }
+
+
+    @Override
+    public void onLetterChanged(String letter, int position, float y) {
+        quickSideBarTipsView.setText(letter, position, y);
+        //有此key则获取位置并滚动到该位置
+        LogUtils.loge("letters.containsKey(letter):" + (letters.containsKey(letter)));
+        LogUtils.loge("letters.get(letter):" + letters.get(letter));
+        if (letters.containsKey(letter)) {
+            LogUtils.loge("letters.containsKey:" + (letters.containsKey(letter)));
+            LogUtils.loge("letters.get:" + letters.get(letter));
+            rv.getLayoutManager().scrollToPosition(letters.get(letter));
+            rv.scrollToPosition(letters.get(letter));
+        }
+    }
+
+    @Override
+    public void onLetterTouching(boolean touching) {
+        //可以自己加入动画效果渐显渐隐
+        quickSideBarTipsView.setVisibility(touching ? View.VISIBLE : View.INVISIBLE);
+    }
+
+
+    /**
+     * startActForResult
+     *
+     * @param requestCode
+     */
+    void startActForResult(int requestCode) {
+        Intent in = new Intent(this, CurrencySearchActivity.class);
+//        in.putExtra(tag, value);
+//        in.putExtra("tag", tag);
+        in.putParcelableArrayListExtra("mAllLists", mAllLists);
+        startActivityForResult(in, requestCode);
+        overridePendingTransition(R.anim.left_in, 0);
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        String info;
+        if (resultCode == RESULT_OK) {
+            info = data.getStringExtra("info");
+            LogUtils.logd("支持的" + info);
+            if (requestCode == requestCodeCoin) {
+                Intent intent = new Intent();
+                intent.putExtra("info", info);//currencyNo
+                setResult(RESULT_OK, intent);
+                ActivityUtils.finishActivity(mActivity);
+            }
+        }
+    }
+
+
+    @OnClick({R.id.ivClose, R.id.llSearch})
+    public void onViewClicked(View view) {
+        switch (view.getId()) {
+            case R.id.ivClose:
+                ActivityUtils.finishActivity(mActivity);
+                break;
+            case R.id.llSearch:
+                startActForResult(requestCodeCoin);
+                break;
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        StatService.onPageStart(mActivity,"货币列表页面");
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        StatService.onPageEnd(mActivity,"货币列表页面");
+    }
+}

@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#3F51B5</color>
+    <color name="colorPrimaryDark">#303F9F</color>
+    <color name="colorAccent">#FF4081</color>
+    <color name="colorGold">#C8A663</color>
+    <color name="colorBlack">#000000</color>
+    <color name="orange">#FF5001</color>
+    <color name="colorWhite">#ffffff</color>
+    <color name="bottombarcolor">#F7F7F8</color>
+    <color name="detailColor">#949AA7</color>
+    <color name="colorddd">#ddd</color>
+    <color name="textcheck">#C8A663</color>
+    <color name="E2E6EF">#E2E6EF</color>
+    <color name="textuncheck">#4C566C</color>
+    <color name="toolbar">#425A99</color>
+    <color name="color333">#333333</color>
+    <color name="color3d">#3d3d3d</color>
+    <color name="color444">#444444</color>
+    <color name="color666">#666666</color>
+    <color name="color777">#777777</color>
+    <color name="color9A">#9A9A9A</color>
+    <color name="color999">#999999</color>
+    <color name="bgcolor">#F5F5F5</color>
+    <color name="bgcolordark">#EFEFEF</color>
+    <color name="color4f">#4f4f4f</color>
+    <color name="color4a">#4A4A4A</color>
+    <color name="FC5D5D">#FC5D5D</color>
+    <color name="FC9C7A">#FC9C7A</color>
+    <color name="colorP">#292836</color>
+    <color name="txt_color">#48495F</color>
+    <color name="et_unfocus_color">#ddd</color>
+    <color name="et_focus_color">#ddd</color>
+    <color name="B4">#B4B4B4</color>
+    <color name="gray">#8c8c8c</color> <!-- 灰色 -->
+    <color name="divider">#E5E5E5</color>
+    <color name="success">#62C8D6</color>
+    <color name="pin_normal">#6B767E</color>
+    <color name="FE903C">#FE903C</color>
+    <color name="background">#262B36</color>
+    <color name="button_enable">#C8A663</color>
+    <color name="button_unable">#d3d6de</color>
+    <color name="button_text_enable">#ffffff</color>
+    <color name="button_text_unable">#707889</color>
+
+    <color name="back_lightgreen">#F7F9FF</color>
+    <color name="card_shadow">#10000000</color>
+    <color name="card_background">#ffffff</color>
+    <color name="window_background">#00000000</color>
+    <color name="stock_red">#FA5553</color>
+    <color name="stock_green">#2DCC70</color>
+    <color name="stock_gray">#707889</color>
+
+    <color name="statusColor">#88CECFCE</color>
+    <color name="ksw_md_solid_shadow">#33000000</color>
+    <color name="ksw_md_solid_checked_disable">#aaaaaa</color>
+    <color name="ksw_md_solid_disable">#FFFFFF</color>
+    <color name="ksw_md_ripple_checked">#33C8A663</color>
+    <color name="ksw_md_solid_checked">@color/colorGold</color>
+    <color name="ksw_md_ripple_normal">#1E000000</color>
+    <color name="ksw_md_solid_normal">#ECECEC</color>
+
+    <color name="gray_color">#ffe8ecef</color>
+    <color name="bg_sort_color">#EDEDED</color>
+    <color name="red">#ff0000</color>
+    <color name="xiabiao">#707889</color>
+</resources>

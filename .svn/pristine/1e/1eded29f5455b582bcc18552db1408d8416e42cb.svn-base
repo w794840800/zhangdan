@@ -1,0 +1,129 @@
+package com.beidou.ybz.accountbook.ui.fragment;
+
+import android.view.View;
+
+import com.beidou.ybz.accountbook.R;
+import com.beidou.ybz.accountbook.mvp.other.MvpFragment;
+import com.beidou.ybz.accountbook.mvp.presenter.CommonPresenter;
+import com.beidou.ybz.accountbook.mvp.view.CommonView;
+import com.beidou.ybz.accountbook.mvp.entity.IndexModel;
+import com.beidou.ybz.accountbook.mvp.entity.RequestBody2;
+import com.beidou.ybz.accountbook.ui.ArrearsassetActivity;
+import com.beidou.ybz.accountbook.ui.CreditActivity;
+import com.beidou.ybz.accountbook.ui.EquityActivity;
+import com.beidou.ybz.accountbook.util.ActivityUtils;
+import com.google.gson.Gson;
+import com.orhanobut.logger.Logger;
+
+import butterknife.OnClick;
+
+/**
+ * Author: Bob on 2017/10/30 15:16
+ * QQ:754444814
+ * E-mail:754444814@qq.com
+ */
+public class LoanFragment extends MvpFragment<CommonPresenter> implements CommonView<IndexModel> {
+    private String encMsg, signMsg;
+    private String secretKeyId;
+
+    @Override
+    public int getLayoutRes() {
+        return R.layout.fragment_loan;
+    }
+
+    @Override
+    public void initView() {
+
+    }
+
+
+    @OnClick({R.id.btnNext, R.id.btnNext1, R.id.btnNext2, R.id.btnNext3})
+    public void onClick(View view) {
+        switch (view.getId()) {
+            case R.id.btnNext3:
+                ActivityUtils.startActivityRightIn(getActivity(), EquityActivity.class);
+                break;
+            case R.id.btnNext2:
+
+                ActivityUtils.startActivityRightIn(getActivity(), CreditActivity.class);
+                /*RequestBody<UserNoModel> requestBody1 = new RequestBody<UserNoModel>();
+                RequestBody.HeaderBean headerBean1 = new RequestBody.HeaderBean(Utils.getIPAddress(mActivity), spUtils.getSecretKeyId());
+
+                UserNoModel userNoModel = new UserNoModel();
+                userNoModel.setUserNo("10051266");
+                requestBody1.setHeader(headerBean1);
+                requestBody1.setBody(userNoModel);
+
+                Gson gson1 = new Gson();
+                String json1 = gson1.toJson(requestBody1);
+
+                try {
+//                    encMsg = getRequestAfter3DES(json1);
+                    encMsg = DESedeUtil.getRequestAfter3DES(spUtils.getSecretKey(), spUtils.getSecretIv(), json1);
+                    signMsg = DESedeUtil.getRequestAfterSign(encMsg);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+                mvpPresenter.getAccountIndex(encMsg, signMsg, "2", spUtils.getSecretKeyId());*/
+
+                break;
+            case R.id.btnNext1://获取验证码
+
+                ActivityUtils.startActivityRightIn(getActivity(), ArrearsassetActivity.class);
+
+//                RequestBody<YZMModel> yzmModelRequestBody = new RequestBody<YZMModel>();
+//                RequestBody.HeaderBean headerBean2 = new RequestBody.HeaderBean(Utils.getIPAddress(mActivity), spUtils.getSecretKeyId());
+//                YZMModel yzmModel = new YZMModel();
+//                yzmModel.setValidType("1");//注册
+//                yzmModel.setMobile("13918406140");
+//                yzmModelRequestBody.setBody(yzmModel);
+//                yzmModelRequestBody.setHeader(headerBean2);
+//
+//                Gson gson2 = new Gson();
+//                String json2 = gson2.toJson(yzmModelRequestBody);
+////
+//                try {
+//                    encMsg = DESedeUtil.getRequestAfter3DES(spUtils.getSecretKey(), spUtils.getSecretIv(), json2);
+//                    signMsg = DESedeUtil.getRequestAfterSign(encMsg);
+//                } catch (Exception e) {
+//                    e.printStackTrace();
+//                }
+//
+//                mvpPresenter.sendValidcode(encMsg, signMsg, "2", spUtils.getSecretKeyId());
+                break;
+            case R.id.btnNext://获取SecretKeyId
+                RequestBody2 requestBody = new RequestBody2();
+                RequestBody2.HeaderBean headerBean = new RequestBody2.HeaderBean();
+                requestBody.setHeader(headerBean);
+                RequestBody2.BodyBean bodyBean = new RequestBody2.BodyBean();
+                requestBody.setBody(bodyBean);
+                Gson gson = new Gson();
+                String json = gson.toJson(requestBody);
+                Logger.e("aaaa:：" + json);
+                Logger.json(json);
+                mvpPresenter.getSecretkey(json);
+                break;
+        }
+    }
+
+
+    @Override
+    public void getDataSuccess(IndexModel model) {
+
+    }
+
+    @Override
+    public void getDataFail(String msg) {
+
+    }
+
+    @Override
+    protected CommonPresenter createPresenter() {
+        if (mActivity != null) {
+            return new CommonPresenter(mActivity, this);
+        } else {
+            return new CommonPresenter(getActivity(), this);
+        }
+    }
+}

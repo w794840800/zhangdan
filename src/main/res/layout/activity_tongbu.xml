@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@drawable/tongbu_background"
+    android:fitsSystemWindows="true"
+    tools:context="com.beidou.ybz.accountbook.ui.TongbuActivity">
+
+    <include layout="@layout/toolbar" />
+
+    <android.support.v4.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+            <!--未同步-->
+            <LinearLayout
+                android:id="@+id/linear1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="visible">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="成功从来不是一场独行，"
+                    android:textColor="#fff"
+                    android:textSize="19sp"
+                    android:layout_marginTop="26.05dp"
+                    android:layout_gravity="center_horizontal"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="立即同步通讯录"
+                    android:textColor="#fff"
+                    android:textSize="36sp"
+                    android:layout_marginTop="19.5dp"
+                    android:layout_gravity="center_horizontal"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="拓展人脉吧！"
+                    android:textColor="#fff"
+                    android:textSize="36sp"
+                    android:layout_marginTop="9.5dp"
+                    android:layout_gravity="center_horizontal"/>
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/tongbu"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginTop="57.9dp"/>
+
+                <Button
+                    android:id="@+id/btn_login"
+                    android:layout_width="match_parent"
+                    android:layout_height="40dp"
+                    android:layout_marginLeft="27dp"
+                    android:layout_marginRight="27dp"
+                    android:layout_marginTop="59.85dp"
+                    android:layout_marginBottom="81dp"
+                    android:background="@drawable/bg1"
+                    android:enabled="true"
+                    android:text="立即同步"
+                    android:textColor="@color/colorWhite"
+                    android:textSize="14sp" />
+
+            </LinearLayout>
+
+            <!--立即同步-->
+            <LinearLayout
+                android:id="@+id/linear2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="46.55dp"
+                    android:layout_marginLeft="57dp"
+                    android:layout_marginRight="53.5dp"
+                    >
+
+                    <ImageView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:src="@drawable/tongbu_guding"
+                        android:layout_gravity="center"/>
+
+                    <ImageView
+                        android:id="@+id/xuanhzuan_img"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:src="@drawable/tongbu_xuanzhuan"
+                        android:layout_gravity="center"/>
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_gravity="center">
+
+                        <TextView
+                            android:id="@+id/fenshu"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="0"
+                            android:textColor="#fff7f9ff"
+                            android:textSize="80sp"
+                            />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="%"
+                            android:textColor="#fff7f9ff"
+                            android:textSize="36sp"
+                            />
+
+                    </LinearLayout>
+
+                </FrameLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="当前正在同步通讯录"
+                    android:textColor="#ffffffff"
+                    android:textSize="16sp"
+                    android:layout_marginTop="113dp"
+                    android:layout_marginBottom="117.5dp"
+                    android:singleLine="true"
+                    android:layout_gravity="center_horizontal"/>
+
+            </LinearLayout>
+
+            <!--同步失败-->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/tongbu_defeat"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginTop="103.45dp"
+                    android:layout_marginLeft="94.85dp"
+                    android:layout_marginRight="94.6dp"
+                    android:layout_marginBottom="132.05dp"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="很抱歉同步失败，请重新同步"
+                    android:textColor="#ffffffff"
+                    android:textSize="16dp"
+                    android:layout_gravity="center_horizontal"/>
+
+                <Button
+                    android:id="@+id/btn_login1"
+                    android:layout_width="match_parent"
+                    android:layout_height="40dp"
+                    android:layout_marginLeft="27dp"
+                    android:layout_marginRight="27dp"
+                    android:layout_marginTop="56.5dp"
+                    android:layout_marginBottom="80dp"
+                    android:background="@drawable/bg1"
+                    android:enabled="true"
+                    android:text="立即同步"
+                    android:textColor="@color/colorWhite"
+                    android:textSize="14sp" />
+
+            </LinearLayout>
+
+
+
+        </LinearLayout>
+    </android.support.v4.widget.NestedScrollView>
+
+</LinearLayout>

@@ -1,0 +1,541 @@
+package com.beidou.ybz.accountbook.ui;
+
+import android.animation.ValueAnimator;
+import android.content.Intent;
+import android.os.Bundle;
+import android.support.v4.util.ArrayMap;
+import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.StaggeredGridLayoutManager;
+import android.support.v7.widget.Toolbar;
+import android.text.TextUtils;
+import android.util.Log;
+import android.util.TypedValue;
+import android.view.View;
+import android.widget.Button;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+
+import com.beidou.ybz.accountbook.R;
+import com.beidou.ybz.accountbook.mvp.main.TextWatchView;
+import com.beidou.ybz.accountbook.mvp.presenter.CommonPresenter;
+import com.beidou.ybz.accountbook.mvp.view.CommonView;
+import com.beidou.ybz.accountbook.util.DESedeUtil;
+import com.beidou.ybz.accountbook.util.LogUtils;
+import com.beidou.ybz.accountbook.widget.ClearEditText;
+import com.beidou.ybz.accountbook.adapter.AdapterCurrentClass;
+import com.beidou.ybz.accountbook.mvp.entity.AddOverseasRequestModel;
+import com.beidou.ybz.accountbook.mvp.entity.CurrentFinancialModel;
+import com.beidou.ybz.accountbook.mvp.entity.RequestBody;
+import com.beidou.ybz.accountbook.mvp.entity.SercetKeyOverdueModel;
+import com.beidou.ybz.accountbook.mvp.other.MvpActivity;
+import com.beidou.ybz.accountbook.util.ActivityUtils;
+import com.beidou.ybz.accountbook.util.ImeUtil;
+import com.beidou.ybz.accountbook.util.Utils;
+import com.beidou.ybz.accountbook.widget.EdtCheckEntity;
+import com.beidou.ybz.accountbook.widget.NewWatcher;
+import com.chad.library.adapter.base.BaseQuickAdapter;
+import com.google.gson.Gson;
+import com.jakewharton.rxbinding.widget.RxTextView;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import butterknife.Bind;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
+import rx.Observable;
+import rx.functions.Action1;
+import rx.functions.Func2;
+import rx.functions.Func4;
+
+/**
+ * Author: xu.yang on 2017/12/1
+ * QQ:754444814
+ * E-mail:754444814@qq.com
+ * module: 添加活期理财
+ */
+public class AddCurrentFinancial extends MvpActivity<CommonPresenter> implements CommonView<SercetKeyOverdueModel>, TextWatchView {
+    @Bind(R.id.tv_title)
+    TextView tvTitle;
+    @Bind(R.id.toolbar)
+    Toolbar toolbar;
+    @Bind(R.id.llMore)
+    LinearLayout llMore;
+    @Bind(R.id.tvSave)
+    TextView tvSave;
+    @Bind(R.id.llZhifubao)
+    LinearLayout llZhifubao;
+    @Bind(R.id.llLicaitong)
+    LinearLayout llLicaitong;
+    @Bind(R.id.llWeizhong)
+    LinearLayout llWeizhong;
+    @Bind(R.id.llJindongjinku)
+    LinearLayout llJindongjinku;
+    @Bind(R.id.llQita)
+    LinearLayout llQita;
+    @Bind(R.id.cetProductName)
+    ClearEditText cetProductName;
+    @Bind(R.id.cetAmount)
+    ClearEditText cetAmount;
+    @Bind(R.id.btnSave)
+    Button btnSave;
+    @Bind(R.id.ll1)
+    LinearLayout ll1;
+    @Bind(R.id.ll2)
+    LinearLayout ll2;
+    @Bind(R.id.rvCurrent)
+    RecyclerView rvCurrent;
+    private boolean isMoreShow;
+    private int height;
+    private ValueAnimator valueAnimatorShow, valueAnimatorHide;
+    private String encMsg, signMsg, productName;
+    private String amount, flag, id, currentType, from;
+    private boolean isEdit;
+    private boolean isFromList;
+    private ArrayList<String> currentTypeList;//保存已添加的活期理财种类
+    private int currentTypeListSize;
+    private List<CurrentFinancialModel> currentFinancialModelList;
+    private AdapterCurrentClass adapterCurrentClass;
+    ArrayMap<String, CurrentFinancialModel> tempMap = new ArrayMap<>();
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_addcurrentfinancial);
+        ButterKnife.bind(this);
+
+        tvTitle.setTextColor(getResources().getColor(R.color.txt_color));
+        toolbar.setBackgroundColor(getResources().getColor(R.color.colorWhite));
+        toolbar.setNavigationIcon(R.drawable.back_black);
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ActivityUtils.finishActivity(mActivity);
+                ImeUtil.hideSoftKeyboard(cetProductName);
+            }
+        });
+
+        initView();
+        handleIntent(getIntent());
+
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        handleIntent(intent);
+
+    }
+
+    private void handleIntent(Intent in) {
+        if (in != null) {
+            amount = in.getStringExtra("amount");
+            flag = in.getStringExtra("flag");
+            id = in.getStringExtra("id");
+            currentType = in.getStringExtra("currentType");
+            productName = in.getStringExtra("productName");
+            from = in.getStringExtra("from");
+            currentTypeList = in.getStringArrayListExtra("currentTypeList");
+        }
+        if (flag != null && flag.equals("edit")) {//详情页过来
+            isEdit = true;
+            rvCurrent.setVisibility(View.GONE);
+        } else {
+            isEdit = false;
+            rvCurrent.setVisibility(View.VISIBLE);
+        }
+
+        if (isEdit) {
+            tvTitle.setText("编辑活期理财");
+        } else {
+            tvTitle.setText("添加活期理财");
+        }
+
+        if (from != null && from.equals("list")) {
+            isFromList = true;
+        } else {
+            isFromList = false;
+        }
+
+        if(amount != null){
+            cetAmount.setText(amount);
+        }
+        LogUtils.loge("productName:"+productName);
+        cetProductName.setText(productName);
+
+        try {
+            if (currentTypeList != null && currentTypeList.size() > 0) {
+                currentTypeListSize = currentTypeList.size();
+                for (int i = 0; i < currentTypeListSize; i++) {
+                    if (currentTypeList.get(i).equals("5")) {//如果是其他类型，跳过继续往下判断（其他类型一直显示）
+                        continue;
+                    }
+                    tempMap.remove(currentTypeList.get(i));
+                }
+                currentFinancialModelList.clear();
+                for (String key : tempMap.keySet()) {
+                    currentFinancialModelList.add(tempMap.get(key));
+                }
+
+                if(currentFinancialModelList != null && currentFinancialModelList.size() == 1){//只剩最后一个，默认展开
+                    if (!isMoreShow) {
+                        cetAmount.postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                valueAnimatorShow.start();
+                                isMoreShow = true;
+                            }
+                        },300);
+
+                    }
+                }
+                adapterCurrentClass.setNewData(currentFinancialModelList);
+
+
+                LogUtils.logd("1111"+productName);
+                if(productName == null) {
+                    productName = currentFinancialModelList.get(0).getName();
+                    currentType = currentFinancialModelList.get(0).getCurrentType();
+                }
+                LogUtils.logd("22222"+productName);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+
+
+
+
+    void initView() {
+        bindViewByRxBinding();
+
+        currentFinancialModelList = new ArrayList<>();
+
+        CurrentFinancialModel currentFinancialModel1 = new CurrentFinancialModel("支付宝", R.drawable.zhifubao, "1");
+        CurrentFinancialModel currentFinancialModel2 = new CurrentFinancialModel("理财通", R.drawable.licaitong, "2");
+        CurrentFinancialModel currentFinancialModel3 = new CurrentFinancialModel("微众银行", R.drawable.weizhong, "3");
+        CurrentFinancialModel currentFinancialModel4 = new CurrentFinancialModel("京东小金库", R.drawable.jingdongjinku, "4");
+        CurrentFinancialModel currentFinancialModel5 = new CurrentFinancialModel("其他", R.drawable.qita, "5");
+
+        tempMap.put("1", currentFinancialModel1);
+        tempMap.put("2", currentFinancialModel2);
+        tempMap.put("3", currentFinancialModel3);
+        tempMap.put("4", currentFinancialModel4);
+        tempMap.put("5", currentFinancialModel5);
+
+        for (String key : tempMap.keySet()) {
+            currentFinancialModelList.add(tempMap.get(key));
+        }
+
+
+        rvCurrent.setLayoutManager(new StaggeredGridLayoutManager(3, StaggeredGridLayoutManager.VERTICAL));
+        adapterCurrentClass = new AdapterCurrentClass(R.layout.currentclass_item, null);
+        rvCurrent.setAdapter(adapterCurrentClass);
+
+        adapterCurrentClass.setNewData(currentFinancialModelList);
+        productName = currentFinancialModelList.get(0).getName();
+        currentType = currentFinancialModelList.get(0).getCurrentType();
+
+        LogUtils.logd("3333"+productName+"  "+currentType);
+
+        adapterCurrentClass.setOnItemClickListener(new BaseQuickAdapter.OnItemClickListener() {
+            @Override
+            public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
+                adapterCurrentClass.setCurrentPosition(position);
+                currentType = currentFinancialModelList.get(position).getCurrentType();
+                productName = currentFinancialModelList.get(position).getName();
+                LogUtils.logd("currentType::" + currentType);
+                if (currentType != null && !currentType.equals("5")) {
+                    if (isMoreShow) {
+                        valueAnimatorHide.start();
+                        isMoreShow = false;
+                    }
+                    cetProductName.setText("");
+                } else if (currentType != null && currentType.equals("5")) {
+                    if (!isMoreShow) {
+                        valueAnimatorShow.start();
+                        isMoreShow = true;
+                    }
+                }
+            }
+        });
+
+        LogUtils.logd("444444"+productName+"  "+currentType);
+        if (currentType == null || TextUtils.isEmpty(currentType)) {
+            currentType = "1";
+        }
+        if (productName == null || TextUtils.isEmpty(productName)) {
+            productName = "支付宝";
+        }
+        LogUtils.logd("555555"+productName+"  "+currentType);
+        cetAmount.setText(amount);
+
+        if (currentType != null && currentType.equals("5")) {
+            cetProductName.setText(productName);
+        }
+
+        if (amount != null && amount.length() > 0) {
+            cetAmount.setSelection(amount.length());
+        }
+
+        if (!TextUtils.isEmpty(cetAmount.getText().toString())) {
+            cetAmount.setTextSize(TypedValue.COMPLEX_UNIT_SP, 30);
+        }
+
+        //计算llMore的高度
+        int w = View.MeasureSpec.makeMeasureSpec(0,
+                View.MeasureSpec.UNSPECIFIED);
+        int h = View.MeasureSpec.makeMeasureSpec(0,
+                View.MeasureSpec.UNSPECIFIED);
+        llMore.measure(w, h);
+        height = llMore.getMeasuredHeight();
+        Log.e("height", "initView: " + height);
+
+        initAnimator();
+
+        /**
+         * 添加监听，在hint时和text时切换字体大小
+         */
+        Utils.textChangedListener(cetAmount);
+    }
+
+    private void bindViewByRxBinding(){
+        Observable<CharSequence> ObservableName = RxTextView.textChanges(cetProductName);
+        Observable<CharSequence> ObservableAmount = RxTextView.textChanges(cetAmount);
+
+        Observable.combineLatest(ObservableName,ObservableAmount, new Func2<CharSequence, CharSequence, Boolean>() {
+            @Override
+            public Boolean call(CharSequence name, CharSequence amount ) {
+                return !Utils.isTextEmpty(name.toString()) || !Utils.isTextEmpty(amount.toString());
+            }
+        }).subscribe(new Action1<Boolean>() {
+            @Override
+            public void call(Boolean verify) {
+                if (verify) {
+                    btnSave.setEnabled(true);
+                    btnSave.setBackgroundResource(R.drawable.bg1);
+                } else {
+                    btnSave.setEnabled(false);
+                    btnSave.setBackgroundResource(R.drawable.bg_unenabled);
+                }
+            }
+        });
+    }
+
+    void sava() {
+        RequestBody<AddOverseasRequestModel> loginRequestModel = new RequestBody<>();
+        RequestBody.HeaderBean headerBean = new RequestBody.HeaderBean(Utils.getIPAddress(mActivity), spUtils.getSecretKeyId());
+        AddOverseasRequestModel requestModel = new AddOverseasRequestModel();
+        requestModel.setUserNo(spUtils.getUserId());
+        requestModel.setId(id);
+        if (currentType != null && currentType.equals("5")) {
+            productName = cetProductName.getText().toString();
+        }
+        LogUtils.logd("66666"+productName+"--"+currentType);
+        if(productName == null) {
+            productName = currentFinancialModelList.get(0).getName();
+            currentType = currentFinancialModelList.get(0).getCurrentType();
+        }
+
+        requestModel.setProductName(productName);
+        requestModel.setAmount(cetAmount.getText().toString());
+        requestModel.setCurrentType(currentType);
+
+        LogUtils.logd("77777"+productName+"--"+currentType);
+        loginRequestModel.setBody(requestModel);
+        loginRequestModel.setHeader(headerBean);
+
+        Gson gson2 = new Gson();
+        String json2 = gson2.toJson(loginRequestModel);
+        LogUtils.loge("请求参数：" + json2);
+        try {
+            encMsg = DESedeUtil.getRequestAfter3DES(spUtils.getSecretKey(), spUtils.getSecretIv(), json2);
+            signMsg = DESedeUtil.getRequestAfterSign(encMsg);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        if (isEdit) {
+            mvpPresenter.updatecurfin(encMsg, signMsg, "2", spUtils.getSecretKeyId());
+        } else {
+            mvpPresenter.addcurfin(encMsg, signMsg, "2", spUtils.getSecretKeyId());
+        }
+    }
+
+    /**
+     * 布局展开/隐藏动画
+     * 属性动画-动态改变布局高度
+     */
+    void initAnimator() {
+        final ValueAnimator.AnimatorUpdateListener ani = new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+                int h = (Integer) animation.getAnimatedValue();
+                //动态更新view的高度
+                llMore.getLayoutParams().height = h;
+                llMore.requestLayout();
+            }
+        };
+
+        valueAnimatorHide = ValueAnimator.ofInt(height, 0);
+        valueAnimatorShow = ValueAnimator.ofInt(0, height);
+
+        valueAnimatorHide.addUpdateListener(ani);
+        valueAnimatorShow.addUpdateListener(ani);
+
+        valueAnimatorShow.setDuration(400);
+        valueAnimatorHide.setDuration(400);
+
+    }
+
+    @Override
+    public void getDataSuccess(SercetKeyOverdueModel model) {
+        if (isEdit) {
+            toastShow("编辑成功", R.drawable.gou_toast);
+            ActivityUtils.startActivity(mActivity, CurrentFinancialActivity.class);//从详情页跳转过来编辑成功后，回到列表页
+            ActivityUtils.finishActivity(mActivity);
+        } else {
+            toastShow("添加成功", R.drawable.gou_toast);
+            if (isFromList) {
+                ActivityUtils.finishActivity(mActivity);
+            } else {
+                Intent in = new Intent(mActivity, CurrentFinancialActivity.class);
+                in.putExtra("from", "add");
+                startActivity(in);
+                overridePendingTransition(R.anim.left_in, 0);
+            }
+        }
+    }
+
+    @Override
+    public void getDataFail(String msg) {
+        toastShow(msg);
+    }
+
+    @Override
+    protected CommonPresenter createPresenter() {
+        return new CommonPresenter(this, this);
+    }
+
+    void resetBackground() {
+        llZhifubao.setBackgroundResource(R.drawable.bgcurrent_un);
+        llLicaitong.setBackgroundResource(R.drawable.bgcurrent_un);
+        llWeizhong.setBackgroundResource(R.drawable.bgcurrent_un);
+        llJindongjinku.setBackgroundResource(R.drawable.bgcurrent_un);
+        llQita.setBackgroundResource(R.drawable.bgcurrent_un);
+    }
+
+
+    @OnClick({R.id.btnSave})
+    public void onViewClicked(View view) {
+        switch (view.getId()) {
+            /*case R.id.llZhifubao:
+                currentType = "1";
+                productName = "支付宝";
+                resetBackground();
+                llZhifubao.setBackgroundResource(R.drawable.bgcurrent_en);
+                if (isMoreShow) {
+                    valueAnimatorHide.start();
+                    isMoreShow = false;
+                }
+                EdtCheckEntity.checkNum = 0;
+                cetProductName.setText("");
+
+                break;
+            case R.id.llLicaitong:
+                productName = "理财通";
+                currentType = "2";
+                resetBackground();
+                llLicaitong.setBackgroundResource(R.drawable.bgcurrent_en);
+                if (isMoreShow) {
+                    valueAnimatorHide.start();
+                    isMoreShow = false;
+                }
+                EdtCheckEntity.checkNum = 0;
+                cetProductName.setText("");
+                break;
+            case R.id.llWeizhong:
+                productName = "微众银行";
+                currentType = "3";
+                resetBackground();
+                llWeizhong.setBackgroundResource(R.drawable.bgcurrent_en);
+                if (isMoreShow) {
+                    valueAnimatorHide.start();
+                    isMoreShow = false;
+                }
+                EdtCheckEntity.checkNum = 0;
+                cetProductName.setText("");
+                break;
+            case R.id.llJindongjinku:
+                productName = "京东小金库";
+                currentType = "4";
+                resetBackground();
+                llJindongjinku.setBackgroundResource(R.drawable.bgcurrent_en);
+                if (isMoreShow) {
+                    valueAnimatorHide.start();
+                    isMoreShow = false;
+                }
+                EdtCheckEntity.checkNum = 0;
+                cetProductName.setText("");
+                break;
+            case R.id.llQita:
+                currentType = "5";
+                resetBackground();
+                llQita.setBackgroundResource(R.drawable.bgcurrent_en);
+                if (!isMoreShow) {
+                    valueAnimatorShow.start();
+                    isMoreShow = true;
+                }
+                break;*/
+            case R.id.btnSave:
+                if (valid()) {
+                    sava();
+                }
+                break;
+        }
+    }
+
+    /**
+     * 提交前判断输入是否为空
+     *
+     * @return
+     */
+    boolean valid() {
+        if (currentType != null && currentType.equals("5")) {//其他
+            if (TextUtils.isEmpty(cetAmount.getText().toString()) || TextUtils.isEmpty(cetProductName.getText().toString())) {
+                toastShow("请输入产品名称");
+                return false;
+            } else {
+                return true;
+            }
+        } else {
+            if (TextUtils.isEmpty(cetAmount.getText().toString())) {
+                toastShow("请输入金额");
+                return false;
+            } else {
+                return true;
+            }
+        }
+
+
+    }
+
+    @Override
+    public void enable() {
+        btnSave.setEnabled(true);
+        btnSave.setBackgroundResource(R.drawable.bg1);
+    }
+
+    @Override
+    public void unable() {
+        btnSave.setEnabled(false);
+        btnSave.setBackgroundResource(R.drawable.bg_unenabled);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        ImeUtil.hideSoftKeyboard(cetProductName);
+    }
+}

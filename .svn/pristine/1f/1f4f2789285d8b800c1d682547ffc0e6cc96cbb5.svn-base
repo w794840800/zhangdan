@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/rvSecondClass"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/bg_huizhangsecond"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp"
+        android:overScrollMode="never"
+        android:paddingBottom="0dp"/>
+
+
+
+</LinearLayout>

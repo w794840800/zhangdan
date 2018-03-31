@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/ll"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/colorWhite"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:minHeight="60dp"
+        android:paddingBottom="10dp"
+        android:paddingLeft="15dp"
+        android:paddingRight="19dp"
+        android:paddingTop="10dp">
+
+        <ImageView
+            android:id="@+id/iv"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:layout_marginRight="19dp"
+            android:adjustViewBounds="true"
+            android:scaleType="fitXY"
+            android:src="@drawable/gupiao"/>
+
+            <TextView
+                android:id="@+id/tv_title"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:lineSpacingMultiplier="1.1"
+                android:maxLines="2"
+                android:text="股票"
+                android:textColor="#262B36"
+                android:textSize="17sp" />
+
+        <TextView
+            android:id="@+id/tv_syrs"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:lineSpacingMultiplier="1.1"
+            android:maxLines="2"
+            android:text="1000人已添加"
+            android:textColor="#707889"
+            android:textSize="14sp" />
+    </LinearLayout>
+    <View
+        android:id="@+id/viewCaifubao"
+        android:layout_width="match_parent"
+        android:layout_height="0.5dp"
+        android:layout_marginTop="0dp"
+        android:layout_marginLeft="63dp"
+        android:background="@color/bgcolordark" />
+    <LinearLayout
+        android:id="@+id/llCaufubao"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="63dp"
+        android:minHeight="45dp"
+        android:paddingRight="19dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:lineSpacingMultiplier="1.1"
+            android:maxLines="2"
+            android:text="财富宝"
+            android:textColor="#4C566C"
+            android:textSize="17sp" />
+        <View
+            android:layout_width="1dp"
+            android:layout_height="10dp"
+            android:layout_marginLeft="5dp"
+            android:layout_marginRight="5dp"
+            android:background="#ddd"/>
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:lineSpacingMultiplier="1.1"
+            android:maxLines="2"
+            android:text="随存随取"
+            android:textColor="#4C566C"
+            android:textSize="12sp" />
+        <TextView
+            android:id="@+id/tvNh7r"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="4.5%"
+            android:textColor="#FA5553"
+            android:textSize="18sp" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="7日年化收益"
+            android:layout_marginLeft="5dp"
+            android:textColor="#ff707889"
+            android:textSize="12sp"
+            />
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="0.5dp"
+        android:layout_marginTop="0dp"
+        android:background="@color/bgcolordark" />
+
+
+</LinearLayout>

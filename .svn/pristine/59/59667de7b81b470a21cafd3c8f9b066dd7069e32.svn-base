@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/colorWhite"
+    android:fitsSystemWindows="true"
+    android:orientation="vertical">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="什么是成就值"
+        android:textColor="@color/colorGold"
+        android:textSize="18sp" />
+
+    <View
+        android:layout_width="80dp"
+        android:layout_height="0.8dp"
+        android:layout_gravity="center"
+        android:layout_marginTop="14dp"
+        android:background="@drawable/goldline_background" />
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:layout_marginTop="20dp"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="12dp"
+            android:background="@drawable/bg_round"
+            android:gravity="center"
+            android:text="1"
+            android:textColor="#C8A663"
+            android:textSize="10sp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="徽章是什么："
+            android:textStyle="bold"
+            android:textColor="@color/background"
+            android:textSize="12sp" />
+    </LinearLayout>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_marginLeft="26dp"
+        android:text="徽章是有本帐app给平台做出贡献的用户的嘉奖，是用户在有本帐平台成长历程的纪念。"
+        android:textColor="#4C566C"
+        android:textSize="12sp" />
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="12dp"
+            android:background="@drawable/bg_round"
+            android:gravity="center"
+            android:text="2"
+            android:textColor="#C8A663"
+            android:textSize="10sp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="成就值是什么："
+            android:textStyle="bold"
+            android:textColor="@color/background"
+            android:textSize="12sp" />
+    </LinearLayout>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="成就值是有本帐平台上用于区分会员等级的分值。"
+        android:layout_marginLeft="26dp"
+        android:textColor="#4C566C"
+        android:textSize="12sp" />
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="12dp"
+            android:background="@drawable/bg_round"
+            android:gravity="center"
+            android:text="3"
+            android:textColor="#C8A663"
+            android:textSize="10sp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="如何获得成就值："
+            android:textStyle="bold"
+            android:textColor="@color/background"
+            android:textSize="12sp" />
+    </LinearLayout>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="每个徽章都对应一定的成就值。用户可以通过完成特定行为来获得徽章，通过徽章获取成就值。"
+        android:textColor="#4C566C"
+        android:layout_marginLeft="26dp"
+        android:textSize="12sp" />
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="12dp"
+            android:background="@drawable/bg_round"
+            android:gravity="center"
+            android:text="4"
+            android:textColor="#C8A663"
+            android:textSize="10sp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="成就值有什么用："
+            android:textColor="@color/background"
+            android:textStyle="bold"
+            android:textSize="12sp" />
+    </LinearLayout>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="成就值与会员等级相关，想要提升会员等级必须获得一定的成就值。越高的会员等级可以享受越多的会员权益。"
+        android:layout_marginLeft="26dp"
+        android:textColor="#4C566C"
+        android:textSize="12sp" />
+
+</LinearLayout>

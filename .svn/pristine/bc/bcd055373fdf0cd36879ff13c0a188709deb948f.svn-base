@@ -1,0 +1,307 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.flipboard.bottomsheet.BottomSheetLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/ll"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/colorWhite"
+    android:orientation="vertical"
+    tools:context="com.beidou.ybz.accountbook.ui.BlackboxDetailActivity">
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fitsSystemWindows="true"
+        android:orientation="vertical">
+
+        <include layout="@layout/toolbar" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@drawable/shadow" />
+
+        <android.support.v4.widget.NestedScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                app:layout_behavior="android.support.design.widget.BottomSheetBehavior">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="12dp"
+                    android:layout_marginRight="12.5dp"
+                    android:layout_marginTop="14.5dp"
+                    android:background="@drawable/blackbox_detail_top"
+                    android:minHeight="189dp"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_horizontal"
+                        android:layout_marginTop="23.5dp"
+                        android:text="预计2017.10.11发送"
+                        android:textColor="#ffffffff"
+                        android:textSize="14sp" />
+
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="20dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center"
+                            android:orientation="horizontal">
+
+                            <View
+                                android:layout_width="40dp"
+                                android:layout_height="1dp"
+                                android:background="#ff394151" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginLeft="5dp"
+                                android:layout_marginRight="5dp"
+                                android:text="净资产(元)"
+                                android:textColor="#ff707889"
+                                android:textSize="14sp" />
+
+                            <View
+                                android:layout_width="40dp"
+                                android:layout_height="1dp"
+                                android:background="#ff394151" />
+
+                        </LinearLayout>
+
+                        <ImageView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentRight="true"
+                            android:layout_marginRight="65.05dp"
+                            android:src="@drawable/visible" />
+
+                    </RelativeLayout>
+
+                    <TextView
+                        android:id="@+id/userDayAssetJzc"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_horizontal"
+                        android:layout_marginTop="12dp"
+                        android:text="1,487,773.32"
+                        android:textColor="#ffc8a663"
+                        android:textSize="30sp" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="60.05dp"
+                        android:layout_marginTop="18dp"
+                        android:background="#ff222730"
+                        android:orientation="horizontal">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="总资产(元)"
+                                android:textColor="#ff707889"
+                                android:textSize="14sp" />
+
+                            <TextView
+                                android:id="@+id/userDayAssetZzc"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="9dp"
+                                android:text="1,487,773.32"
+                                android:textColor="#ffffffff"
+                                android:textSize="14sp" />
+
+                        </LinearLayout>
+
+                        <View
+                            android:layout_width="1dp"
+                            android:layout_height="match_parent"
+                            android:layout_marginBottom="13.5dp"
+                            android:layout_marginTop="13dp"
+                            android:background="#ff394151" />
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="总负债(元)"
+                                android:textColor="#ff707889"
+                                android:textSize="14sp" />
+
+                            <TextView
+                                android:id="@+id/userDayAssetZqk"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="9dp"
+                                android:text="0.00"
+                                android:textColor="#ffffffff"
+                                android:textSize="14sp" />
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8.5dp"
+                    android:layout_marginLeft="12dp"
+                    android:layout_marginRight="12.5dp"
+                    android:background="@drawable/blackbox_detail_mid"
+                    android:elevation="3dp"
+                    android:minHeight="178dp"
+                    android:orientation="vertical">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="18.5dp"
+                        android:gravity="center"
+                        android:orientation="horizontal">
+
+                        <View
+                            android:layout_width="40dp"
+                            android:layout_height="1dp"
+                            android:background="#ffd3d6de" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="5dp"
+                            android:layout_marginRight="5dp"
+                            android:text="留言"
+                            android:textColor="#ff949aa7"
+                            android:textSize="15dp" />
+
+                        <View
+                            android:layout_width="40dp"
+                            android:layout_height="1dp"
+                            android:background="#ffd3d6de" />
+
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/message"
+                        android:layout_width="310dp"
+                        android:layout_height="107dp"
+                        android:layout_gravity="center"
+                        android:layout_marginBottom="23.5dp"
+                        android:layout_marginTop="15dp"
+                        android:text="内德·兰塞姆是法国里昂最著名的牧师，一生中1万多次走到临终者的床前，聆听临终者的忏悔。他的献身精神不知感化过多少人，无论是在富人区还是在贫民区都享有极高的威望。兰塞姆到了84岁的时候，尽管仍然很想走近需要他的"
+                        android:textColor="#ff707889"
+                        android:textSize="14sp" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="21dp"
+                    android:layout_marginLeft="12dp"
+                    android:layout_marginRight="12.5dp"
+                    android:layout_marginTop="8.5dp"
+                    android:background="@drawable/blackbox_detail_bot"
+                    android:elevation="8dp"
+                    android:minHeight="183dp"
+                    android:orientation="vertical">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="18.5dp"
+                        android:gravity="center"
+                        android:orientation="horizontal">
+
+                        <View
+                            android:layout_width="40dp"
+                            android:layout_height="1dp"
+                            android:background="#ffd3d6de" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="5dp"
+                            android:layout_marginRight="5dp"
+                            android:text="我的传承人"
+                            android:textColor="#ff949aa7"
+                            android:textSize="15dp" />
+
+                        <View
+                            android:layout_width="40dp"
+                            android:layout_height="1dp"
+                            android:background="#ffd3d6de" />
+
+                    </LinearLayout>
+
+                    <!--                    <LinearLayout
+                                            android:layout_width="match_parent"
+                                            android:layout_height="wrap_content"
+                                            android:layout_marginTop="27.5dp"
+                                            android:orientation="horizontal"
+                                            android:paddingLeft="18dp"
+                                            android:paddingRight="18dp">
+
+                                            <TextView
+                                                android:layout_width="0dp"
+                                                android:layout_weight="1"
+                                                android:layout_height="wrap_content"
+                                                android:text="我的名字"
+                                                android:textColor="#ff262b36"/>
+
+                                            <TextView
+                                                android:layout_width="0dp"
+                                                android:layout_weight="1"
+                                                android:layout_height="wrap_content"
+                                                android:text="我的名字"
+                                                android:textColor="#ff262b36"/>
+
+                                        </LinearLayout>-->
+                    <android.support.v7.widget.RecyclerView
+                        android:id="@+id/recyclerview"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="27.5dp"
+                        android:paddingLeft="18dp"
+                        android:paddingRight="18dp" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+        </android.support.v4.widget.NestedScrollView>
+
+    </LinearLayout>
+
+
+</com.flipboard.bottomsheet.BottomSheetLayout>

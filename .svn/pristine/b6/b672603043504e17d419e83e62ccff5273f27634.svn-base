@@ -1,0 +1,246 @@
+package com.beidou.ybz.accountbook.widget;
+
+import android.annotation.SuppressLint;
+import android.app.Activity;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.graphics.drawable.Drawable;
+import android.net.Uri;
+import android.os.Build;
+import android.os.Handler;
+import android.os.Looper;
+import android.support.v7.app.AlertDialog;
+import android.util.AttributeSet;
+import android.util.Log;
+import android.view.View;
+import android.webkit.JavascriptInterface;
+import android.webkit.WebSettings;
+import android.webkit.WebView;
+import android.widget.ProgressBar;
+import android.widget.TextView;
+
+import com.beidou.ybz.accountbook.R;
+import com.beidou.ybz.accountbook.util.LogUtils;
+import com.beidou.ybz.accountbook.ui.OperationRecordActivity;
+import com.beidou.ybz.accountbook.util.ActivityUtils;
+import com.orhanobut.logger.Logger;
+
+/**
+ * Created by Administrator on 2016/8/5.
+ */
+public class ProgressWebView extends WebView {
+    private ProgressBar progressbar;
+    boolean blockLoadingNetworkImage = false;
+    private String mFailingUrl, mHtml;
+    public TextView tv;
+    private Activity activity;
+    private AlertDialog alertDialog;
+    OnContentListener onContentListener;
+
+    @SuppressLint("JavascriptInterface")
+    public ProgressWebView(Activity context, AttributeSet attrs, TextView tvTitle) {
+        super(context, attrs);
+        activity = context;
+        progressbar = new ProgressBar(context, null,
+                android.R.attr.progressBarStyleHorizontal);
+        progressbar.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT,
+                4, 0, 0));
+        tv = tvTitle;
+//        onContentListener = (OnContentListener) context;
+        Drawable drawable = context.getResources().getDrawable(R.drawable.progress_bar_states);
+        progressbar.setProgressDrawable(drawable);
+        progressbar.setMax(100);
+        addView(progressbar);
+//        setWebViewClient(new WebViewClient());
+        setWebChromeClient(new WebChromeClient());
+        //是否可以缩放
+        getSettings().setSupportZoom(true);
+        getSettings().setBuiltInZoomControls(true);
+        //不显示webview缩放按钮
+        getSettings().setDisplayZoomControls(false);
+        getSettings().setBlockNetworkImage(true);
+        getSettings().setJavaScriptEnabled(true);
+        getSettings().setUseWideViewPort(true);// 设置此属性，可任意比例缩放
+        getSettings().setLoadWithOverviewMode(true);//适配
+        getSettings().setAppCacheEnabled(true);//开启 Application Caches 功能
+
+        if (Build.VERSION.SDK_INT >= 21) {
+            getSettings().setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
+        }
+
+        blockLoadingNetworkImage = true;
+
+//        addJavascriptInterface(new JsInterface(), "InJavaScriptLocalObj");
+        addJavascriptInterface(new InJavaScriptLocalObj(), "local_obj");
+
+        alertDialog = new AlertDialog.Builder(activity)
+                .setTitle("拨号")
+                .setNegativeButton("取消", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        dialogInterface.dismiss();
+                    }
+                })
+                .setPositiveButton("呼叫", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        alertDialog.dismiss();
+                        String url = "tel:" + "4008161233";
+                        Intent in = new Intent(Intent.ACTION_DIAL, Uri.parse(url));
+                        activity.startActivity(in);
+                    }
+                })
+                .setMessage("400-816-1233")
+                .setCancelable(false)
+                .create();
+        alertDialog.getWindow().setWindowAnimations(R.style.dialogAnimation);
+
+    }
+
+    /**
+     * js互调，刷新页面
+     */
+//    class JsInterface {
+//        @JavascriptInterface
+//        public void errorReload() {
+//            Logger.i("reload");
+//
+//            new Handler(Looper.getMainLooper()).post(new Runnable() {
+//
+//                @Override
+//                public void run() {
+//                    if (mFailingUrl != null) {
+//                        loadUrl(mFailingUrl);
+//                    }
+//                }
+//            });
+//        }
+//
+//        public void showSource(String html) {
+////            Log.d("HTML", html);
+//            LogUtils.logi("html内容:"+html);
+//        }
+//
+//    }
+
+    final public class InJavaScriptLocalObj {
+        @JavascriptInterface
+        public void showSource(String html) {
+            LogUtils.logi("html内容:" + html);
+            onContentListener.setContent(html);
+        }
+
+        @JavascriptInterface
+        public void errorReload() {
+            Logger.i("reload:"+mFailingUrl);
+
+            new Handler(Looper.getMainLooper()).post(new Runnable() {
+                @Override
+                public void run() {
+                    if (mFailingUrl != null) {
+                        LogUtils.logd("mFailingUrl:"+mFailingUrl);
+                        loadUrl(mFailingUrl);
+                    }
+                }
+            });
+        }
+    }
+
+
+    public class WebChromeClient extends android.webkit.WebChromeClient {
+
+        @Override
+        public void onProgressChanged(WebView view, int newProgress) {
+            Logger.e(newProgress + "==");
+
+            progressbar.setProgress(newProgress);
+            progressbar.postInvalidate();
+            if (newProgress >= 80) {
+                progressbar.setVisibility(View.GONE);
+            } else {
+                progressbar.setVisibility(View.VISIBLE);
+            }
+            if (newProgress > 70) {
+                if (blockLoadingNetworkImage) {
+                    getSettings().setBlockNetworkImage(false);
+                    blockLoadingNetworkImage = false;
+                }
+            }
+            super.onProgressChanged(view, newProgress);
+        }
+
+        @Override
+        public void onReceivedTitle(WebView view, String title) {
+            super.onReceivedTitle(view, title);
+            LogUtils.logd("title:"+title);
+            tv.setText(title);
+//            onContentListener.setTitle(title);
+        }
+
+    }
+
+
+    public class WebViewClient extends android.webkit.WebViewClient {
+        @Override
+        public boolean shouldOverrideUrlLoading(WebView view, String url) {
+            LogUtils.logd("跳转url："+url);
+            // 调用拨号程序
+            if (url.startsWith("geo:") || url.startsWith("tel:")) {//继续充值
+                Logger.e("拨号");
+                alertDialog.show();
+                return true;
+            } else if (url.startsWith("en://StockRecord?id=50")) {
+                ActivityUtils.startActivityRightInWithFrom(activity, OperationRecordActivity.class,"stock");
+            } else {
+                view.loadUrl(url);
+                LogUtils.loge("哈哈哈哈哈或或或：：：：：" + url);
+            }
+
+            return true;
+        }
+
+        @Override
+        public void onPageFinished(WebView view, String url) {
+            super.onPageFinished(view, url);
+            tv.setText(view.getTitle());
+
+            Log.d("WebView", "onPageFinished ");
+//            view.loadUrl("javascript:window.local_obj.showSource('<head>'+" +
+//                    "document.getElementsByTagName('p')[0].innerText+'</head>');");
+
+            view.loadUrl("javascript:window.local_obj.showSource(" +
+                    "document.getElementById('js_content').innerText);");
+
+        }
+
+        @Override
+        public void onReceivedError(WebView view, int errorCode,
+                                    String description, String failingUrl) {
+            super.onReceivedError(view, errorCode, description, failingUrl);
+            mFailingUrl = failingUrl;
+            Logger.d(failingUrl);
+            LogUtils.logd("failingUrl:"+failingUrl);
+            //加载出错的自定义界面
+            view.loadUrl("file:///android_asset/error.html");
+        }
+
+
+    }
+
+    @Override
+    protected void onScrollChanged(int l, int t, int oldl, int oldt) {
+        LayoutParams lp = (LayoutParams) progressbar.getLayoutParams();
+        lp.x = l;
+        lp.y = t;
+        progressbar.setLayoutParams(lp);
+        super.onScrollChanged(l, t, oldl, oldt);
+    }
+
+    public interface OnContentListener {
+        void setContent(String content);
+
+        void setTitle(String title);
+    }
+
+
+}

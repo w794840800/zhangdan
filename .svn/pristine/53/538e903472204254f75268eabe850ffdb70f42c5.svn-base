@@ -1,0 +1,207 @@
+package com.beidou.ybz.accountbook.ui;
+
+import android.content.Intent;
+import android.os.Bundle;
+import android.support.v4.widget.SwipeRefreshLayout;
+import android.text.TextUtils;
+import android.view.View;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+
+import com.baidu.mobstat.StatService;
+import com.beidou.ybz.accountbook.R;
+import com.beidou.ybz.accountbook.mvp.presenter.CommonPresenter;
+import com.beidou.ybz.accountbook.mvp.view.CommonView;
+import com.beidou.ybz.accountbook.mvp.entity.AddOverseasRequestModel;
+import com.beidou.ybz.accountbook.mvp.entity.CreditDetailModel;
+import com.beidou.ybz.accountbook.mvp.entity.InsuranceListModel;
+import com.beidou.ybz.accountbook.mvp.entity.RequestBody;
+import com.beidou.ybz.accountbook.mvp.other.MvpActivity;
+import com.beidou.ybz.accountbook.util.ActivityUtils;
+import com.beidou.ybz.accountbook.util.AlertDialogUtils;
+import com.beidou.ybz.accountbook.util.DESedeUtil;
+import com.beidou.ybz.accountbook.util.Utils;
+import com.google.gson.Gson;
+
+import java.util.List;
+
+import butterknife.Bind;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
+
+/**
+ * Author: xu.yang on 2017/12/6
+ * QQ:754444814
+ * E-mail:754444814@qq.com
+ * module: 贷款详情界面
+ */
+public class CreditDetailActivity extends MvpActivity<CommonPresenter> implements CommonView<CreditDetailModel> {
+    @Bind(R.id.tv_title)
+    TextView tvTitle;
+    @Bind(R.id.tv_subtitle)
+    TextView tvSubtitle;
+    @Bind(R.id.swipeRefresh)
+    SwipeRefreshLayout mSwipeRefreshLayout;
+    @Bind(R.id.tvAmount)
+    TextView tvAmount;
+    @Bind(R.id.tvMemo)
+    TextView tvMemo;
+    @Bind(R.id.llMemo)
+    LinearLayout llMemo;
+    @Bind(R.id.tvPeriod)
+    TextView tvPeriod;
+    @Bind(R.id.llPeriod)
+    LinearLayout llPeriod;
+    private String encMsg, signMsg;
+    private List<InsuranceListModel.BodyBean.ProListBean> proListBeanlist;
+    AlertDialogUtils alertDialogUtils;
+    private String id, name, memo, amount, interest,periods;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_creditdetail);
+        ButterKnife.bind(this);
+
+        handlerIntent(getIntent());
+
+
+        alertDialogUtils = new AlertDialogUtils(mActivity);
+        tvTitle.setText(name);
+        tvTitle.setTextColor(getResources().getColor(R.color.txt_color));
+
+        //下拉刷新条的颜色
+        mSwipeRefreshLayout.setColorSchemeResources(R.color.colorGold);
+
+        mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                request(id);
+            }
+        });
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        handlerIntent(intent);
+    }
+
+    void handlerIntent(Intent in){
+        if (in != null) {
+            id = in.getStringExtra("id");
+            name = in.getStringExtra("name");
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        request(id);
+        StatService.onPageStart(mActivity, "贷款详情页面");
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        StatService.onPageEnd(mActivity, "贷款详情页面");
+    }
+
+    @Override
+    protected CommonPresenter createPresenter() {
+        return new CommonPresenter(this, this);
+    }
+
+    void request(String id) {
+        RequestBody<AddOverseasRequestModel> requestBody = new RequestBody<>();
+        RequestBody.HeaderBean headerBean = new RequestBody.HeaderBean(Utils.getIPAddress(mActivity), spUtils.getSecretKeyId());
+        AddOverseasRequestModel requestModel = new AddOverseasRequestModel();
+        requestModel.setUserNo(spUtils.getUserId());
+        requestModel.setId(id);
+
+        requestBody.setBody(requestModel);
+        requestBody.setHeader(headerBean);
+
+        Gson gson = new Gson();
+        String json = gson.toJson(requestBody);
+
+        try {
+            encMsg = DESedeUtil.getRequestAfter3DES(spUtils.getSecretKey(), spUtils.getSecretIv(), json);
+            signMsg = DESedeUtil.getRequestAfterSign(encMsg);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        mvpPresenter.getcreditasset(encMsg, signMsg, "2", spUtils.getSecretKeyId());
+    }
+
+
+    @OnClick({R.id.ib_back, R.id.tvEdit})
+    public void onViewClicked(View view) {
+        switch (view.getId()) {
+            case R.id.ib_back:
+                ActivityUtils.finishActivity(mActivity);
+                break;
+            case R.id.tvEdit:
+                Intent in = new Intent(mActivity, AddCredit.class);
+                in.putExtra("id", id);
+                in.putExtra("name", name);
+                in.putExtra("interest", interest);
+                in.putExtra("periods", periods);
+                in.putExtra("memo", memo);
+                in.putExtra("amount", amount);
+                startActivity(in);
+                overridePendingTransition(R.anim.left_in, 0);
+                break;
+        }
+    }
+
+    @Override
+    public void getDataSuccess(CreditDetailModel model) {
+        mSwipeRefreshLayout.setRefreshing(false);
+        try {
+
+            amount = model.getBody().getInfoDto().getAmount();
+            tvAmount.setText(Utils.addCommaContainsPoint(amount));
+            memo = model.getBody().getInfoDto().getMemo();
+            interest = model.getBody().getInfoDto().getInterest();
+            periods = model.getBody().getInfoDto().getPeriods();//期限
+
+            tvPeriod.setText(periods);
+
+
+            if (memo == null || TextUtils.isEmpty(memo)) {
+                llMemo.setVisibility(View.GONE);
+            } else {
+                llMemo.setVisibility(View.VISIBLE);
+            }
+
+
+            if (periods == null || TextUtils.isEmpty(periods)) {
+                llPeriod.setVisibility(View.INVISIBLE);
+            } else {
+                llPeriod.setVisibility(View.VISIBLE);
+            }
+
+            tvSubtitle.setText("利息" + interest + "%");
+            if (interest == null || TextUtils.isEmpty(interest)) {
+                tvSubtitle.setVisibility(View.GONE);
+            } else {
+                tvSubtitle.setVisibility(View.VISIBLE);
+            }
+
+
+            tvMemo.setText(memo);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void getDataFail(String msg) {
+        mSwipeRefreshLayout.setRefreshing(false);
+        toastShow(msg);
+    }
+
+
+}

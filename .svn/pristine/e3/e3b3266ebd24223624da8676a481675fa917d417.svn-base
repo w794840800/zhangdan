@@ -1,0 +1,133 @@
+package com.beidou.ybz.accountbook.util;
+
+import android.text.TextUtils;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+/**
+ * Created by Administrator on 2016/9/9.
+ */
+public class TimeUtils {
+    public static String getStrTime2(String time) {
+        String re_StrTime = null;
+        SimpleDateFormat sdf = null;
+        if (time.equals("")) {
+            return "";
+        }
+        sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        long loc_time = Long.valueOf(time);
+        re_StrTime = sdf.format(new Date(loc_time));
+        return re_StrTime;
+    }
+
+    public static String getStrTime3(String time) {
+        String re_StrTime = null;
+        SimpleDateFormat sdf = null;
+        if (time.equals("")) {
+            return "";
+        }
+        sdf = new SimpleDateFormat("yyyy-MM-dd");
+        long loc_time = Long.valueOf(time);
+        re_StrTime = sdf.format(new Date(loc_time));
+        return re_StrTime;
+    }
+
+    public static String getStrTime4(String time) {
+        if(TextUtils.isEmpty(time)){
+            return "";
+        }
+        String re_StrTime = null;
+        SimpleDateFormat sdf = null;
+        if (time.equals("")) {
+            return "";
+        }
+        sdf = new SimpleDateFormat("yyyy.MM.dd");
+        long loc_time = Long.valueOf(time);
+        re_StrTime = sdf.format(new Date(loc_time * 1000L));
+        return re_StrTime;
+    }
+
+    public static String getStrTime5(Long ts) {
+        if (ts == null) {
+            return "";
+        }
+        //当时间不为空时进行转化
+//        SimpleDateFormat sdf = new SimpleDateFormat("yyyy年MM月dd日HH:mm:ss");
+        SimpleDateFormat sdf = new SimpleDateFormat("MM月dd日");
+        String result = sdf.format(new Date(ts));
+        return result;
+    }
+
+    /**
+     * 将时间戳转为代表"距现在多久之前"的字符串
+     * @param timeStr   时间戳
+     * @return
+     */
+    public static String getStandardDate(String timeStr) {
+
+        StringBuffer sb = new StringBuffer();
+
+        long t = Long.parseLong(timeStr);
+        long time = System.currentTimeMillis() - (t*1000);
+        long mill = (long) Math.ceil(time /1000);//秒前
+
+        long minute = (long) Math.ceil(time/60/1000.0f);// 分钟前
+
+        long hour = (long) Math.ceil(time/60/60/1000.0f);// 小时
+
+        long day = (long) Math.ceil(time/24/60/60/1000.0f);// 天前
+
+        if (day - 1 > 0) {
+            sb.append(day-1 + "天");
+        } else if (hour - 1 > 0) {
+            if (hour >= 24) {
+                sb.append("1天");
+            } else {
+                sb.append(hour-1 + "小时");
+            }
+        } else if (minute - 1 > 0) {
+            if (minute == 60) {
+                sb.append("1小时");
+            } else {
+                sb.append(minute-1 + "分钟");
+            }
+        } else if (mill - 60 > 0) {
+            if (mill == 60) {
+                sb.append("1分钟");
+            } else {
+                sb.append(mill + "秒");
+            }
+        } else {
+            sb.append("刚刚");
+        }
+        if (!sb.toString().equals("刚刚")) {
+            sb.append("前");
+        }
+        return sb.toString();
+    }
+
+
+    /**
+     * 判断是否在30天之内
+     * @param timeStr
+     * @return
+     */
+    public static boolean isInAMonth(String timeStr) {
+
+        StringBuffer sb = new StringBuffer();
+
+        long t = Long.parseLong(timeStr);
+        long time = System.currentTimeMillis() - (t*1000);
+
+        long day = (long) Math.ceil(time/24/60/60/1000.0f);// 天前
+
+        if (day -1 > 30) {
+            return false;
+        }
+
+        return true;
+    }
+
+
+}

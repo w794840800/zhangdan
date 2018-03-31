@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/colorWhite"
+    android:orientation="vertical">
+    <android.support.v4.widget.SwipeRefreshLayout
+        android:id="@+id/swipeRefresh"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@+id/llSave">
+        <android.support.design.widget.CoordinatorLayout
+            android:id="@+id/main_content"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@color/colorWhite">
+            <android.support.design.widget.AppBarLayout
+                android:id="@+id/appbar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+                >
+                <!--app:layout_behavior="@string/appbar_spring_behavior"-->
+
+                <android.support.design.widget.CollapsingToolbarLayout
+                    android:id="@+id/collapsing_toolbar"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    app:contentScrim="?attr/colorPrimary"
+                    app:expandedTitleMarginStart="48dp"
+                    app:expandedTitleTextAppearance="@style/transText"
+                    app:layout_scrollFlags="scroll|exitUntilCollapsed">
+
+                    <RelativeLayout
+                        android:id="@+id/relativelayout"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        app:layout_collapseMode="parallax"
+                        app:layout_collapseParallaxMultiplier="0.7">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:paddingTop="75dp"
+                            android:gravity="center_horizontal"
+                            android:orientation="vertical"
+                            android:background="@color/background">
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_centerInParent="true"
+                                    android:gravity="center"
+                                    android:orientation="horizontal">
+                                    <View
+                                        android:layout_width="40dp"
+                                        android:layout_height="0.8dp"
+                                        android:background="#394151" />
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:layout_marginLeft="15dp"
+                                        android:layout_marginRight="15dp"
+                                        android:gravity="center"
+                                        android:text="当前市值(元)"
+                                        android:textColor="@color/button_text_unable"
+                                        android:textSize="14sp" />
+                                    <View
+                                        android:layout_width="40dp"
+                                        android:layout_height="0.8dp"
+                                        android:background="#394151" />
+                                </LinearLayout>
+
+
+                            <TextView
+                                android:id="@+id/tvDqsz"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="20dp"
+                                android:layout_marginBottom="17dp"
+                                android:text="0.00"
+                                android:textColor="@color/colorGold"
+                                android:textSize="28sp"/>
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:minHeight="58dp"
+                                android:orientation="horizontal"
+                                android:paddingTop="11dp"
+                                android:paddingBottom="12dp"
+                                android:layout_alignParentBottom="true"
+                                android:gravity="center"
+                                android:background="#222730">
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="最新收益(元)"
+                                    android:textColor="#ff707889"
+                                    android:textSize="14sp"
+                                    />
+                                <TextView
+                                    android:id="@+id/tvZrzd"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginLeft="18dp"
+                                    android:text="0.00"
+                                    android:textColor="#fffefefe"
+                                    android:textSize="15dp"
+                                    />
+                                <TextView
+                                    android:id="@+id/tvZrzdf"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginLeft="18dp"
+                                    android:text="0.00"
+                                    android:textColor="#fffefefe"
+                                    android:textSize="15dp"
+                                    />
+                            </LinearLayout>
+                        </LinearLayout>
+                    </RelativeLayout>
+
+                    <android.support.v7.widget.Toolbar
+                        android:id="@+id/toolbar"
+                        android:layout_width="match_parent"
+                        android:layout_height="60dp"
+                        app:layout_collapseMode="pin"
+                        app:theme="@style/AppTheme">
+                        <RelativeLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="14dp"
+                            >
+                            <ImageButton
+                                android:id="@+id/ib_back"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_centerVertical="true"
+                                android:background="@null"
+                                android:padding="4dp"
+                                android:src="@drawable/back"
+                                android:visibility="visible"/>
+
+                            <TextView
+                                android:id="@+id/tv_title"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:layout_gravity="center"
+                                android:paddingRight="20dp"
+                                android:layout_centerInParent="true"
+                                android:gravity="center"
+                                android:paddingTop="0dp"
+                                android:singleLine="true"
+                                android:text=""
+                                android:textColor="#fff"
+                                android:textSize="16sp"
+                                android:visibility="visible"/>
+                        </RelativeLayout>
+
+                    </android.support.v7.widget.Toolbar>
+
+                </android.support.design.widget.CollapsingToolbarLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="0.8dp"
+                    android:background="@color/divider"/>
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minHeight="35dp"
+                    android:paddingLeft="15dp"
+                    android:paddingRight="19dp"
+                    android:orientation="horizontal"
+                    >
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_weight="1.6"
+                        android:layout_height="match_parent"
+                        android:gravity="center_vertical"
+                        android:layout_marginRight="20dp"
+                        android:text="基金名称"
+                        android:textSize="12sp"
+                        android:textColor="@color/detailColor"/>
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_weight="0.8"
+                        android:gravity="center_vertical|right"
+                        android:layout_height="match_parent"
+                        android:text="最新收益"
+                        android:textSize="12sp"
+                        android:textColor="@color/detailColor"/>
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="match_parent"
+                        android:gravity="center_vertical|right"
+                        android:text="当前市值"
+                        android:textSize="12sp"
+                        android:textColor="@color/detailColor"/>
+                </LinearLayout>
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="0.6dp"
+                    android:background="@color/divider"/>
+
+            </android.support.design.widget.AppBarLayout>
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+                <android.support.v7.widget.RecyclerView
+                    android:id="@+id/rv"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:visibility="visible" />
+
+                <include layout="@layout/emptyview"
+                    android:visibility="visible" />
+            </RelativeLayout>
+        </android.support.design.widget.CoordinatorLayout>
+    </android.support.v4.widget.SwipeRefreshLayout>
+    <include layout="@layout/addassets"/>
+</RelativeLayout>

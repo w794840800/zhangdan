@@ -1,0 +1,81 @@
+package com.beidou.ybz.accountbook.retrofit;
+
+
+import android.content.Context;
+import android.widget.Toast;
+
+import com.beidou.ybz.accountbook.util.LogUtils;
+import com.beidou.ybz.accountbook.util.Utils;
+
+import java.net.UnknownHostException;
+
+import retrofit2.adapter.rxjava.HttpException;
+import rx.Subscriber;
+
+/**
+ * Created by WuXiaolong on 2016/9/22.
+ * github:https://github.com/WuXiaolong/
+ * 微信公众号：吴小龙同学
+ * 个人博客：http://wuxiaolong.me/
+ */
+public abstract class ApiCallback<M> extends Subscriber<M> {
+    private Context context;
+
+    public ApiCallback(Context context) {
+        this.context = context;
+    }
+    public abstract void onSuccess(M model);
+
+    public abstract void onFailure(String msg);
+
+    public abstract void onFinish();
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        LogUtils.loge("onStart() ");
+        if(!Utils.isNetworkAvailable(context)){
+            Toast.makeText(context, "当前网络不可用，请检查网络情况", Toast.LENGTH_SHORT).show();
+            // 一定好主动调用下面这一句
+            onCompleted();
+
+            return;
+        }
+    }
+
+    @Override
+    public void onError(Throwable e) {
+        e.printStackTrace();
+        if (e instanceof HttpException) {
+            HttpException httpException = (HttpException) e;
+            int code = httpException.code();
+            String msg = httpException.getMessage();
+            if (code == 504) {
+                msg = "网络不给力";
+            }
+            if (code == 502 || code == 404) {
+                msg = "服务器异常，请稍后再试";
+            }
+            onFailure(msg);
+        }else if (e instanceof UnknownHostException) {
+            UnknownHostException httpException = (UnknownHostException) e;
+            String msg = httpException.getMessage();
+            msg = "网络不给力";
+            onFailure(msg);
+        } else {
+            onFailure(e.getMessage());
+        }
+        onFinish();
+    }
+
+    @Override
+    public void onNext(M model) {
+        onSuccess(model);
+
+    }
+
+    @Override
+    public void onCompleted() {
+        onFinish();
+    }
+}

@@ -1,0 +1,138 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/rll"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#b0403d3d">
+
+    <!--<ImageView
+        android:id="@+id/iv_top"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginLeft="50dp"
+        android:layout_marginRight="50dp"
+        android:scaleType="centerInside"
+        android:layout_marginBottom="60dp"/>-->
+
+    <TextView
+        android:id="@+id/tv_wechat"
+        android:layout_width="80dp"
+        android:layout_toLeftOf="@+id/tv_shareCircle"
+        android:layout_height="wrap_content"
+        android:layout_marginRight="30dip"
+        android:layout_alignBaseline="@id/tv_shareCircle"
+        android:clickable="true"
+        android:drawableTop="@drawable/wechat_share"
+        android:drawablePadding="12dp"
+        android:gravity="center_horizontal"
+        android:textColor="@color/B4"
+        android:paddingBottom="12dp"
+        android:text="微信" />
+
+    <TextView
+        android:id="@+id/tv_shareCircle"
+        android:layout_width="80dp"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/tv_shareQQQ"
+        android:layout_alignStart="@+id/tv_shareQQQ"
+        android:clickable="true"
+        android:drawablePadding="12dp"
+        android:drawableTop="@drawable/wechatmoments_share"
+        android:gravity="center_horizontal"
+        android:paddingBottom="12dp"
+        android:text="朋友圈"
+        android:textColor="@color/B4"
+        android:visibility="visible" />
+
+    <TextView
+        android:id="@+id/tv_shareQQ"
+        android:layout_width="80dp"
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@id/tv_shareCircle"
+        android:layout_alignBaseline="@id/tv_shareCircle"
+        android:clickable="true"
+        android:layout_marginLeft="30dp"
+        android:drawableTop="@drawable/qq_share"
+        android:layout_centerHorizontal="true"
+        android:drawablePadding="12dp"
+        android:gravity="center_horizontal"
+        android:paddingBottom="12dp"
+        android:textColor="@color/B4"
+        android:visibility="visible"
+        android:text="QQ"/>
+
+    <!--<TextView
+        android:id="@+id/tv_qzone"
+        android:layout_width="80dp"
+        android:layout_height="wrap_content"
+        android:layout_marginRight="30dip"
+        android:clickable="true"
+        android:layout_toLeftOf="@+id/tv_sina"
+        android:layout_alignBaseline="@+id/tv_sina"
+        android:drawableTop="@drawable/weixinlogin"
+        android:layout_centerVertical="true"
+        android:drawablePadding="12dp"
+        android:gravity="center_horizontal"
+        android:paddingBottom="12dp"
+        android:layout_marginTop="20dp"
+        android:visibility="invisible"
+        android:textColor="@color/B4"
+        android:text="QQ空间"/>-->
+
+    <TextView
+        android:id="@+id/tv_shareQQQ"
+        android:layout_width="80dp"
+        android:layout_height="1dp"
+        android:clickable="true"
+        android:layout_centerInParent="true"
+        android:gravity="center_horizontal"
+        android:paddingBottom="12dp"
+        android:drawablePadding="6dp"
+        android:visibility="visible"
+        android:textColor="@color/B4"
+        android:text="center"/>
+
+    <!--<TextView
+        android:id="@+id/tv_sina"
+        android:layout_width="80dp"
+        android:layout_height="wrap_content"
+        android:layout_marginRight="30dip"
+        android:clickable="true"
+       android:layout_below="@id/tv_shareQQQ"
+        android:layout_alignLeft="@id/tv_shareQQQ"
+        android:drawableTop="@drawable/weixinlogin"
+        android:gravity="center_horizontal"
+        android:paddingBottom="12dp"
+        android:drawablePadding="12dp"
+        android:layout_marginTop="20dp"
+        android:textColor="@color/B4"
+        android:visibility="invisible"
+        android:text="微博"/>
+
+    <TextView
+        android:id="@+id/tv_message"
+        android:layout_width="80dp"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/tv_sina"
+        android:layout_alignBottom="@+id/tv_sina"
+        android:layout_toEndOf="@+id/tv_sina"
+        android:clickable="true"
+        android:drawablePadding="12dp"
+        android:drawableTop="@drawable/weixinlogin"
+        android:gravity="center_horizontal"
+        android:paddingBottom="12dp"
+        android:text="短信"
+        android:textColor="@color/B4"
+        android:visibility="invisible" />-->
+
+    <ImageView
+        android:id="@+id/iv_close"
+        android:layout_width="66dp"
+        android:layout_height="66dp"
+        android:padding="20dp"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="40dp"
+        android:src="@drawable/huizhang_close"/>
+
+</RelativeLayout>

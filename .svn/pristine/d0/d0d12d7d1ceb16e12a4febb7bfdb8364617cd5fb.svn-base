@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="300dp"
+    android:layout_height="wrap_content"
+    android:background="@drawable/security_drawable">
+
+    <ImageView
+        android:id="@+id/security_layout_close"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:padding="10dp"
+        android:layout_alignParentRight="true"
+        android:layout_marginRight="14.5dp"
+        android:layout_marginTop="10.45dp"
+        android:src="@drawable/security_close" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="18dp"
+        android:gravity="center_horizontal"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="安全验证"
+            android:textColor="#ff262b36"
+            android:textSize="17sp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="40.5dp"
+            android:layout_marginRight="48.5dp"
+            android:layout_marginTop="10.5dp"
+            android:gravity="center"
+            android:text="请输入图片中的字符，不区分大小写； 点击图片可换一张图片"
+            android:textColor="#ff262b36"
+            android:textSize="13sp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="36dp"
+            android:layout_marginBottom="14dp"
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="20dp"
+            android:layout_marginTop="14dp"
+            android:orientation="horizontal">
+
+            <EditText
+                android:id="@+id/security_layout_edittext"
+                android:layout_width="158dp"
+                android:layout_height="36dp"
+                android:layout_marginRight="5dp"
+                android:singleLine="true"
+                android:background="@drawable/drawable_ifa" />
+
+            <ImageView
+                android:id="@+id/security_layout_img"
+                android:layout_width="92dp"
+                android:layout_height="36dp"
+                android:layout_marginLeft="5dp" />
+
+        </LinearLayout>
+
+        <View
+            android:layout_width="300dp"
+            android:layout_height="0.5dp"
+            android:background="#ffd3d6de" />
+
+        <TextView
+            android:id="@+id/security_layout_sure"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="40dp"
+            android:text="确定"
+            android:textColor="#ffa68f55"
+            android:textSize="17sp"
+            android:gravity="center"/>
+
+    </LinearLayout>
+
+
+</RelativeLayout>

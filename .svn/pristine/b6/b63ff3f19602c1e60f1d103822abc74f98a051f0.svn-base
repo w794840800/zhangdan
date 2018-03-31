@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<<<<<<< .mine
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/colorWhite"
+    android:orientation="vertical">
+||||||| .r30761
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:background="@color/colorWhite"
+              android:orientation="vertical">
+=======
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/colorWhite"
+    android:orientation="vertical"
+    android:visibility="gone">
+>>>>>>> .r30907
+
+<<<<<<< .mine
+    <RelativeLayout
+        android:id="@+id/top"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="50dp">
+||||||| .r30761
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_marginBottom="20dp"
+            android:paddingLeft="20dp"
+            android:paddingRight="20dp"
+            android:background="@color/colorWhite"
+            android:layout_marginTop="1dp"
+            android:orientation="horizontal">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:text="身份证号"/>
+=======
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_marginBottom="20dp"
+        android:layout_marginTop="1dp"
+        android:background="@color/colorWhite"
+        android:orientation="horizontal"
+        android:paddingLeft="20dp"
+        android:paddingRight="20dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:text="身份证号" />
+
+        <com.beidou.ybz.accountbook.widget.ClearEditText
+            android:id="@+id/cetIDNumber"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginLeft="10dp"
+            android:background="@null" />
+    </LinearLayout>
+>>>>>>> .r30907
+
+<<<<<<< .mine
+        <ImageButton
+            android:id="@+id/ib_back"
+            android:layout_width="55.0dip"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:background="@null"
+            android:onClick="onback"
+            android:src="@drawable/back_black"
+            android:visibility="gone"
+            tools:ignore="OnClick" />
+||||||| .r30761
+            <com.beidou.ybz.accountbook.widget.ClearEditText
+                android:id="@+id/cetIDNumber"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginLeft="10dp"
+                android:background="@null"/>
+        </LinearLayout>
+=======
+    <Button
+        android:id="@+id/btnNext"
+        style="@style/button"
+        android:text="获取SecretKeyId" />
+>>>>>>> .r30907
+
+<<<<<<< .mine
+        <TextView
+            android:id="@+id/tvTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_centerVertical="true"
+            android:text="---"
+            android:textColor="#ff4c566c"
+            android:textSize="17sp" />
+||||||| .r30761
+        <Button
+            android:id="@+id/btnNext"
+            style="@style/button"
+            android:text="获取SecretKeyId"/>
+        <Button
+            android:id="@+id/btnNext1"
+            style="@style/button"
+            android:layout_marginTop="10dp"
+            android:text="借款"/>
+        <Button
+            android:id="@+id/btnNext2"
+            style="@style/button"
+            android:layout_marginTop="10dp"
+            android:text="贷款"/>
+    <Button
+        android:id="@+id/btnNext3"
+        style="@style/button"
+        android:layout_marginTop="10dp"
+        android:text="股权"/>
+=======
+    <Button
+        android:id="@+id/btnNext1"
+        style="@style/button"
+        android:layout_marginTop="10dp"
+        android:text="借款" />
+
+    <Button
+        android:id="@+id/btnNext2"
+        style="@style/button"
+        android:layout_marginTop="10dp"
+        android:text="贷款" />
+
+    <Button
+        android:id="@+id/btnNext3"
+        style="@style/button"
+        android:layout_marginTop="10dp"
+        android:text="股权" />
+>>>>>>> .r30907
+
+    </RelativeLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="0.8dp"
+        android:background="@color/divider" />
+
+    <LinearLayout
+        android:id="@+id/relativelayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical" />
+
+</LinearLayout>

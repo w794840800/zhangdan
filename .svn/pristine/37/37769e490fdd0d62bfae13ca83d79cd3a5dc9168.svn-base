@@ -1,0 +1,203 @@
+package com.beidou.ybz.accountbook.ui;
+
+import android.animation.ObjectAnimator;
+import android.animation.ValueAnimator;
+import android.os.Bundle;
+import android.support.v7.widget.Toolbar;
+import android.util.Log;
+import android.view.View;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
+
+import com.baidu.mobstat.StatService;
+import com.beidou.ybz.accountbook.R;
+import com.beidou.ybz.accountbook.util.ActivityUtils;
+
+import butterknife.Bind;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
+
+/**
+ * Author: xu.yang on 2017/12/21
+ * QQ:754444814
+ * E-mail:754444814@qq.com
+ * module:黑匣子引导界面
+ */
+public class BlackboxGuideActivity extends BaseActivity {
+    @Bind(R.id.toolbar)
+    Toolbar toolbar;
+    @Bind(R.id.set_btn)
+    TextView setBtn;
+    @Bind(R.id.linear)
+    LinearLayout linear;
+    @Bind(R.id.rel)
+    RelativeLayout rel;
+    @Bind(R.id.ivBankcard)
+    ImageView ivBankcard;
+    @Bind(R.id.llIm)
+    LinearLayout llIm;
+    @Bind(R.id.ivText)
+    ImageView ivText;
+    @Bind(R.id.llText)
+    LinearLayout llText;
+    private int height,height2;
+    private ValueAnimator valueAnimatorShow, valueAnimatorHide, valueAnimatorShow1, valueAnimatorHide1;
+    private boolean isMoreShow, isMoreShow1;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_blackbox_guide);
+        ButterKnife.bind(this);
+
+        toolbar.setNavigationIcon(R.drawable.back_black);
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ActivityUtils.finishActivity(mActivity);
+            }
+        });
+
+
+        //计算llMore的高度
+        int w = View.MeasureSpec.makeMeasureSpec(0,
+                View.MeasureSpec.UNSPECIFIED);
+        int h = View.MeasureSpec.makeMeasureSpec(0,
+                View.MeasureSpec.UNSPECIFIED);
+        linear.measure(w, h);
+        height = linear.getMeasuredHeight();
+        Log.e("height", "initView: " + height);
+
+        llText.measure(w,h);
+        height2 = llText.getMeasuredHeight();
+
+        initAnimator();
+
+        rel.animate().alpha(1.0f).setDuration(2000).start();
+        rel.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                valueAnimatorShow1.start();
+            }
+        },1600);
+        rel.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                valueAnimatorShow.start();
+            }
+        },2200);
+    }
+
+    /**
+     * 布局展开/隐藏动画
+     * 属性动画-动态改变布局高度
+     */
+    void initAnimator() {
+        final ValueAnimator.AnimatorUpdateListener ani = new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+                int h = (Integer) animation.getAnimatedValue();
+                //动态更新view的高度
+                linear.getLayoutParams().height = h;
+                linear.requestLayout();
+            }
+        };
+
+        valueAnimatorHide = ValueAnimator.ofInt(height, 0);
+        valueAnimatorShow = ValueAnimator.ofInt(0, height);
+
+        valueAnimatorHide.addUpdateListener(ani);
+        valueAnimatorShow.addUpdateListener(ani);
+
+        valueAnimatorShow.setDuration(700);
+        valueAnimatorHide.setDuration(700);
+
+
+        final ValueAnimator.AnimatorUpdateListener ani1 = new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+                int h = (Integer) animation.getAnimatedValue();
+                //动态更新view的高度
+                llText.getLayoutParams().height = h;
+                llText.requestLayout();
+            }
+        };
+
+        valueAnimatorHide1 = ValueAnimator.ofInt(height2, 0);
+        valueAnimatorShow1 = ValueAnimator.ofInt(0, height2);
+
+        valueAnimatorHide1.addUpdateListener(ani1);
+        valueAnimatorShow1.addUpdateListener(ani1);
+
+        valueAnimatorShow1.setDuration(800);
+        valueAnimatorHide1.setDuration(800);
+    }
+
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        StatService.onPageStart(mActivity, "黑匣子引导页面");
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        StatService.onPageEnd(mActivity, "黑匣子引导页面");
+    }
+
+    @OnClick({R.id.btn1, R.id.btn2, R.id.linear})
+    public void onViewClicked(View view) {
+        switch (view.getId()) {
+            case R.id.btn1:
+                ViewWrapper wrapper = new ViewWrapper(ivText);
+                wrapper.setHeight(ivText.getHeight());
+                ObjectAnimator anim1 = ObjectAnimator.ofInt(wrapper, "height", 0,ivText.getMeasuredHeight());
+
+                anim1.setDuration(2000);
+                anim1.start();
+                /*if (!isMoreShow) {
+                    isMoreShow = true;
+                    valueAnimatorShow.start();
+                } else {
+                    valueAnimatorHide.start();
+                    isMoreShow = false;
+                }*/
+                break;
+            case R.id.btn2:
+                if (!isMoreShow1) {
+                    isMoreShow1 = true;
+                    valueAnimatorShow1.start();
+                } else {
+                    valueAnimatorHide1.start();
+                    isMoreShow1 = false;
+                }
+                break;
+            case R.id.linear:
+                ActivityUtils.startActivityRightIn(BlackboxGuideActivity.this, MyBlackboxActivity.class);
+                break;
+        }
+    }
+
+
+
+
+    private static class ViewWrapper {
+        private View mTarget;
+
+        public ViewWrapper(View target) {
+            mTarget = target;
+        }
+
+        public int getHeight() {
+            return mTarget.getLayoutParams().height;
+        }
+
+        public void setHeight(int height) {
+            mTarget.getLayoutParams().height = height;
+            mTarget.requestLayout();
+        }
+    }
+}

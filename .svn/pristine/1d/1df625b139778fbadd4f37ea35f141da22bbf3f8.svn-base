@@ -1,0 +1,148 @@
+package com.beidou.ybz.accountbook.ui;
+
+import android.os.Bundle;
+import android.support.v7.widget.Toolbar;
+import android.view.View;
+import android.widget.Button;
+import android.widget.TextView;
+
+import com.baidu.mobstat.StatService;
+import com.beidou.ybz.accountbook.R;
+import com.beidou.ybz.accountbook.mvp.entity.AddOverseasRequestModel;
+import com.beidou.ybz.accountbook.mvp.entity.RequestBody;
+import com.beidou.ybz.accountbook.mvp.entity.SercetKeyOverdueModel;
+import com.beidou.ybz.accountbook.mvp.other.MvpActivity;
+import com.beidou.ybz.accountbook.mvp.presenter.CommonPresenter;
+import com.beidou.ybz.accountbook.mvp.view.CommonView;
+import com.beidou.ybz.accountbook.util.ActivityUtils;
+import com.beidou.ybz.accountbook.util.DESedeUtil;
+import com.beidou.ybz.accountbook.util.LogUtils;
+import com.beidou.ybz.accountbook.util.Utils;
+import com.bumptech.glide.Glide;
+import com.google.gson.Gson;
+
+import butterknife.Bind;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
+import de.hdodenhof.circleimageview.CircleImageView;
+
+public class ReleaseBindActivity extends MvpActivity<CommonPresenter> implements CommonView<SercetKeyOverdueModel> {
+
+    @Bind(R.id.tv_title)
+    TextView tvTitle;
+    @Bind(R.id.toolbar)
+    Toolbar toolbar;
+    @Bind(R.id.iv_Touxiang)
+    CircleImageView ivTouxiang;
+    @Bind(R.id.tv_Nicheng)
+    TextView tvNicheng;
+    @Bind(R.id.btn_login)
+    Button btnLogin;
+
+    String thirdAcctChannel;
+    private String encMsg, signMsg;
+
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_release_bind);
+        ButterKnife.bind(this);
+
+        thirdAcctChannel = getIntent().getStringExtra("thirdAcctChannel");
+        switch (thirdAcctChannel){
+            case "1":
+                tvTitle.setText("微信解绑");
+                break;
+            case "2":
+                tvTitle.setText("QQ解绑");
+                break;
+        }
+        tvTitle.setTextColor(getResources().getColor(R.color.txt_color));
+        toolbar.setBackgroundColor(getResources().getColor(R.color.colorWhite));
+        toolbar.setNavigationIcon(R.drawable.back_black);
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ActivityUtils.finishActivity(mActivity);
+            }
+        });
+        tvNicheng.setText(spUtils.getNickName());
+        LogUtils.loge("------spUtils-------"+spUtils.getPortraitUrl());
+        Glide.with(mActivity)
+                .load(spUtils.getPortraitUrl())
+//                .placeholder(R.drawable.defaultavatar)
+                .error(R.drawable.defaultavatar)
+                .into(ivTouxiang);
+    }
+
+    @Override
+    protected CommonPresenter createPresenter() {
+        return new CommonPresenter(this,this);
+    }
+
+
+    /**
+     * 解除绑定
+     */
+    void releasebind() {
+        RequestBody<AddOverseasRequestModel> changeMobileModelRequestBody = new RequestBody<AddOverseasRequestModel>();
+        RequestBody.HeaderBean headerBean1 = new RequestBody.HeaderBean(Utils.getIPAddress(mActivity), spUtils.getSecretKeyId());
+        AddOverseasRequestModel addOverseasRequestModel = new AddOverseasRequestModel();
+        addOverseasRequestModel.setThirdAcctChannel(thirdAcctChannel);
+        addOverseasRequestModel.setThirdAcctType("3");
+        addOverseasRequestModel.setUserNo(spUtils.getUserId());
+        changeMobileModelRequestBody.setBody(addOverseasRequestModel);
+        changeMobileModelRequestBody.setHeader(headerBean1);
+
+        Gson gson1 = new Gson();
+        String json1 = gson1.toJson(changeMobileModelRequestBody);
+        try {
+            encMsg = DESedeUtil.getRequestAfter3DES(spUtils.getSecretKey(), spUtils.getSecretIv(), json1);
+            signMsg = DESedeUtil.getRequestAfterSign(encMsg);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        mvpPresenter.releasebind(encMsg, signMsg, "2", spUtils.getSecretKeyId());
+    }
+
+    @OnClick(R.id.btn_login)
+    public void onViewClicked(View view) {
+        switch (view.getId()){
+            case R.id.btn_login:
+                if (thirdAcctChannel.equals("1")){//微信
+                    if (Utils.isWeChatAppInstalled(mActivity)){
+                        releasebind();
+                    }else {
+                        toastShow("本设备未安装微信，无法使用微信解绑功能");
+                    }
+                }else if (thirdAcctChannel.equals("2")) {//qq
+                    releasebind();
+                }
+                break;
+        }
+    }
+
+    @Override
+    public void getDataSuccess(SercetKeyOverdueModel model) {
+        toastShow("解绑成功",R.drawable.gou_toast);
+        ActivityUtils.finishActivity(mActivity);
+    }
+
+    @Override
+    public void getDataFail(String msg) {
+        toastShow(msg);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        StatService.onPageStart(mActivity,"微信QQ解绑页面");
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        StatService.onPageEnd(mActivity,"微信QQ解绑页面");
+    }
+}

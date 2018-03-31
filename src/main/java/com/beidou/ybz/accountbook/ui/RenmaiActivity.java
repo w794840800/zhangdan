@@ -1,0 +1,376 @@
+package com.beidou.ybz.accountbook.ui;
+
+import android.content.Intent;
+import android.net.Uri;
+import android.os.Bundle;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.text.TextUtils;
+import android.view.Gravity;
+import android.view.KeyEvent;
+import android.view.View;
+import android.view.WindowManager;
+import android.widget.ImageView;
+import android.widget.TextView;
+
+import com.baidu.mobstat.StatService;
+import com.beidou.ybz.accountbook.R;
+import com.beidou.ybz.accountbook.adapter.AdapterContacts;
+import com.beidou.ybz.accountbook.mvp.entity.AddOverseasRequestModel;
+import com.beidou.ybz.accountbook.mvp.entity.ContactsModel;
+import com.beidou.ybz.accountbook.mvp.entity.InviteModel;
+import com.beidou.ybz.accountbook.mvp.entity.RequestBody;
+import com.beidou.ybz.accountbook.mvp.entity.ShortUrlModel;
+import com.beidou.ybz.accountbook.mvp.other.MvpActivity;
+import com.beidou.ybz.accountbook.mvp.presenter.CommonPresenter;
+import com.beidou.ybz.accountbook.mvp.view.CommonView;
+import com.beidou.ybz.accountbook.mvp.view.OtherView;
+import com.beidou.ybz.accountbook.util.ActivityUtils;
+import com.beidou.ybz.accountbook.util.ChineseFirstLetterUtil;
+import com.beidou.ybz.accountbook.util.DESedeUtil;
+import com.beidou.ybz.accountbook.util.GsonTools;
+import com.beidou.ybz.accountbook.util.ImeUtil;
+import com.beidou.ybz.accountbook.util.LogUtils;
+import com.beidou.ybz.accountbook.util.TimeUtils;
+import com.beidou.ybz.accountbook.util.Utils;
+import com.beidou.ybz.accountbook.widget.ClearEditText;
+import com.beidou.ybz.accountbook.widget.StickyRecyclerHeader.PinyinComparatorContacts;
+import com.beidou.ybz.accountbook.widget.StickyRecyclerHeader.StickyRecyclerHeadersDecoration;
+import com.beidou.ybz.accountbook.widget.sidebar.CharacterParser;
+import com.bigkoo.quicksidebar.QuickSideBarTipsView;
+import com.bigkoo.quicksidebar.QuickSideBarView;
+import com.bigkoo.quicksidebar.listener.OnQuickSideBarTouchListener;
+import com.chad.library.adapter.base.BaseQuickAdapter;
+import com.google.gson.Gson;
+import com.jakewharton.rxbinding.widget.RxTextView;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+
+import butterknife.Bind;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
+import rx.functions.Action1;
+
+public class RenmaiActivity extends MvpActivity<CommonPresenter> implements CommonView<InviteModel>,OtherView<ShortUrlModel>, OnQuickSideBarTouchListener {
+    @Bind(R.id.rv)
+    RecyclerView rv;
+    @Bind(R.id.quickSideBarTipsView)
+    QuickSideBarTipsView quickSideBarTipsView;
+    @Bind(R.id.quickSideBarView)
+    QuickSideBarView quickSideBarView;
+    @Bind(R.id.edittext)
+    ClearEditText edittext;
+    @Bind(R.id.iv_back)
+    ImageView ivBack;
+    @Bind(R.id.tvDate)
+    TextView tvDate;
+    private CharacterParser characterParser;
+    private String mContacts;//数据集合json串
+    private List<ContactsModel> mMembers = new ArrayList<>();
+    private ArrayList<ContactsModel> mAllLists = new ArrayList<>();
+    private ArrayList<ContactsModel> mSearchResult = new ArrayList<>();
+    ArrayList<String> customLetters = new ArrayList<>();//首字母集合
+    HashMap<String, Integer> letters = new HashMap<>();
+    PinyinComparatorContacts pinyinComparator;
+    AdapterContacts mAdapter;
+    @Bind(R.id.tvSearchFail)
+    TextView tvSearchFail;
+    int position = 0;//首字母位置信息
+    private int inviteClickPosition;//点击立即邀请对应的position
+    private String encMsg, signMsg;
+    private String shortUrl;
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN | WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN);
+        setContentView(R.layout.activity_renmai);
+        ButterKnife.bind(this);
+        setSwipeBackEnable(false);
+        initData();
+    }
+
+    private void initData() {
+        //设置监听
+        quickSideBarView.setOnQuickSideBarTouchListener(this);
+        rv.setLayoutManager(new LinearLayoutManager(this));
+        mAdapter = new AdapterContacts(R.layout.phone_constacts_item, null);
+
+        final StickyRecyclerHeadersDecoration headersDecor = new StickyRecyclerHeadersDecoration(mAdapter);
+        rv.addItemDecoration(headersDecor);
+
+        mAdapter.setOnItemChildClickListener(new BaseQuickAdapter.OnItemChildClickListener() {
+            @Override
+            public void onItemChildClick(BaseQuickAdapter adapter, View view, int position) {
+                StatService.onEvent(mActivity, "人脉页面点击立即邀请", "[人脉邀请使用情况]",1);
+                LogUtils.loge("-------shj-----"+mSearchResult.get(position).getPhone());
+                inviteClickPosition = position;
+                if (Utils.isPhone(mSearchResult.get(position).getPhone().replaceAll(" ","").replaceAll("-",""))){
+                    if(!TextUtils.isEmpty(spUtils.getShortUrl())){
+                        Intent intent = new Intent(Intent.ACTION_SENDTO, Uri.parse("smsto:" + mSearchResult.get(position).getPhone()));
+                        // 如果需要将内容传过去增加如下代码
+                        intent.putExtra("sms_body", "欢迎使用有本账APP "+spUtils.getShortUrl());
+                        startActivity(intent);
+                    }else{
+                        getShorturl();
+                    }
+
+                    if(!spUtils.getRenmaiInvite()) {
+                        invited();
+                    }
+                }else {
+                    toastShow("手机号码非法或不存在");
+                }
+            }
+        });
+
+        rv.setOnScrollListener(new RecyclerView.OnScrollListener() {
+                    @Override
+                    public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                        super.onScrolled(recyclerView, dx, dy);
+                        LinearLayoutManager layoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
+                        int position = layoutManager.findFirstVisibleItemPosition();
+                        LogUtils.loge("aaaaaaaaaposition:"+position);
+                        if(position >= 0) {
+                            int pos = customLetters.indexOf(mAdapter.getItem(position).getInitials());
+                            quickSideBarView.setPosition(pos);
+                        }
+
+            }
+        });
+        rv.setAdapter(mAdapter);
+
+        mAdapter.registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
+            @Override
+            public void onChanged() {
+                headersDecor.invalidateHeaders();
+            }
+        });
+
+        // 实例化汉字转拼音类
+        characterParser = CharacterParser.getInstance();
+        pinyinComparator = new PinyinComparatorContacts();
+
+        String time = TimeUtils.getStrTime5(System.currentTimeMillis());
+        tvDate.setText(time + "，快和朋友打声招呼吧");
+
+        if (spUtils.getIsSave()){
+            mContacts = spUtils.getcontactJson();
+        }else {
+            mContacts = getIntent().getStringExtra("list");
+        }
+        List<ContactsModel> model = GsonTools.fromJsonList(mContacts, ContactsModel.class);
+        seperateLists(model);
+        mAdapter.setNewData(mAllLists);
+
+        edittext.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+
+            @Override
+            public void onFocusChange(View arg0, boolean arg1) {
+                LogUtils.logd("onFocusChange:" + arg1);
+                if (arg1) {
+                    edittext.setGravity(Gravity.LEFT | Gravity.CENTER_VERTICAL);
+                } else {
+                    edittext.setGravity(Gravity.CENTER_HORIZONTAL | Gravity.CENTER_VERTICAL);
+                }
+            }
+        });
+        // 根据输入框输入值的改变来过滤搜索
+        RxTextView.textChanges(edittext).subscribe(new Action1<CharSequence>() {
+            @Override
+            public void call(CharSequence charSequence) {
+                listFilter(charSequence.toString());
+            }
+        });
+    }
+
+
+    /**
+     * 邀请时触发获取徽章
+     */
+    private void invited() {
+            mvpPresenter.invited(spUtils.getUserId());
+    }
+
+    //获取短链接接口
+    void getShorturl() {
+        RequestBody<AddOverseasRequestModel> yzmModelRequestBody = new RequestBody<>();
+        RequestBody.HeaderBean headerBean2 = new RequestBody.HeaderBean(Utils.getIPAddress(mActivity), spUtils.getSecretKeyId());
+        LogUtils.logd("ip:" + Utils.getIPAddress(mActivity));
+        AddOverseasRequestModel userNoModel = new AddOverseasRequestModel();
+        userNoModel.setUserNo(spUtils.getUserId());//
+        LogUtils.logd("UserNo:" + spUtils.getUserId());
+        yzmModelRequestBody.setBody(userNoModel);
+        yzmModelRequestBody.setHeader(headerBean2);
+
+        Gson gson2 = new Gson();
+        String json2 = gson2.toJson(yzmModelRequestBody);
+        LogUtils.logd("参数:" + json2);
+        try {
+            encMsg = DESedeUtil.getRequestAfter3DES(spUtils.getSecretKey(), spUtils.getSecretIv(), json2);
+            signMsg = DESedeUtil.getRequestAfterSign(encMsg);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+            mvpPresenter.getShorturl(encMsg, signMsg, "2", spUtils.getSecretKeyId());
+    }
+
+    @Override
+    protected CommonPresenter createPresenter() {
+        return new CommonPresenter(this,this);
+    }
+
+
+    private void listFilter(String key) {
+        LogUtils.logd("key:" + key);
+        mSearchResult.clear();
+        if (mAllLists != null && mAllLists.size() > 0) {
+            int size = mAllLists.size();
+            for (int i = 0; i < size; i++) {
+                if (mAllLists.get(i).getName().contains(key) || mAllLists.get(i).getPhone().contains(key)) {
+                    mSearchResult.add(mAllLists.get(i));
+                }
+            }
+            LogUtils.logd("mSearchResult1:" + mSearchResult.size());
+            LogUtils.logd("mAllLists1:" + mAllLists.size());
+            if (mSearchResult.size() > 0) {
+                mAdapter.setNewData(mSearchResult);
+                tvSearchFail.setVisibility(View.GONE);
+            } else {
+//                mSearchResult = mAllLists;
+//                mAdapter.setNewData(mSearchResult);
+//                LogUtils.logd("mSearchResult2:" + mSearchResult.size());
+                tvSearchFail.setVisibility(View.VISIBLE);
+                tvSearchFail.setText("没找到\""+key+"\"相关结果");
+            }
+        }
+    }
+
+    /**
+     * 按首字母对数据进行排序
+     *
+     * @param mModel
+     */
+    private void seperateLists(List<ContactsModel> mModel) {
+        mMembers.clear();
+        mAllLists.clear();
+        customLetters.clear();
+        letters.clear();
+        position = 0;
+        if (mModel != null && mModel.size() > 0) {
+            for (int i = 0; i < mModel.size(); i++) {
+                ContactsModel entity = new ContactsModel();
+                entity.setName(mModel.get(i).getName());
+                entity.setPhone(mModel.get(i).getPhone());
+                String sortString = ChineseFirstLetterUtil.getFirstLetter(mModel.get(i).getName()).toUpperCase().substring(0, 1);
+//                LogUtils.loge(sortString);
+
+                if (sortString.matches("[A-Z]")) {
+                    entity.setInitials(sortString.toUpperCase());
+                } else {
+                    entity.setInitials("#");
+                }
+                mMembers.add(entity);
+            }
+            //重新排序
+            Collections.sort(mMembers, pinyinComparator);
+
+            for (ContactsModel mMember : mMembers) {
+                if (!letters.containsKey(mMember.getInitials())) {
+                    letters.put(mMember.getInitials(), position);
+                    customLetters.add(mMember.getInitials());
+                }
+                position++;
+            }
+            //不自定义则默认26个字母
+            quickSideBarView.setLetters(customLetters);
+            mAllLists.addAll(mMembers);
+            quickSideBarView.animate().alpha(1.0f).setDuration(400);
+        }
+    }
+
+
+    @OnClick(R.id.iv_back)
+    public void onViewClicked(View view) {
+        switch (view.getId()) {
+            case R.id.iv_back:
+//                ActivityUtils.finishActivity(mActivity);
+                ActivityUtils.startActivity(mActivity,MainActivity.class);
+                ActivityUtils.finishActivity(mActivity);
+                ImeUtil.hideSoftKeyboard(edittext);
+                break;
+        }
+    }
+
+    @Override
+    public void getDataSuccess(InviteModel model) {
+        LogUtils.logd("Renmai:" + model.toString());
+        spUtils.setRenmaiInvite(true);
+    }
+
+    @Override
+    public void getDataFail(String msg) {
+    }
+
+    @Override
+    public void onLetterChanged(String letter, int position, float y) {
+        quickSideBarTipsView.setText(letter, position, y);
+        //有此key则获取位置并滚动到该位置
+        if (letters.containsKey(letter)) {
+            rv.getLayoutManager().scrollToPosition(letters.get(letter));
+            rv.scrollToPosition(letters.get(letter));
+        }
+    }
+
+    @Override
+    public void onLetterTouching(boolean touching) {
+        //可以自己加入动画效果渐显渐隐
+        quickSideBarTipsView.setVisibility(touching ? View.VISIBLE : View.INVISIBLE);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        ImeUtil.hideSoftKeyboard(edittext);
+        StatService.onPageEnd(mActivity,"人脉页面");
+    }
+
+    @Override
+    protected void onResume() {
+        isActive = true;
+        super.onResume();
+        StatService.onPageStart(mActivity,"人脉页面");
+    }
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_BACK
+                && event.getAction() == KeyEvent.ACTION_DOWN) {
+            ActivityUtils.startActivity(mActivity,MainActivity.class);
+            ActivityUtils.finishActivity(mActivity);
+            return true;
+        }
+        return super.onKeyDown(keyCode, event);
+    }
+
+
+    //获取邀请发送短信短连接
+    @Override
+    public void onSuccess(ShortUrlModel model) {
+        shortUrl = model.getBody().getShortUrl();
+        spUtils.setShortUrl(shortUrl);
+        LogUtils.loge("position:"+position);
+        LogUtils.loge("inviteClickPosition:"+inviteClickPosition);
+        Intent intent = new Intent(Intent.ACTION_SENDTO, Uri.parse("smsto:" + mSearchResult.get(inviteClickPosition).getPhone()));
+        // 如果需要将内容传过去增加如下代码
+        intent.putExtra("sms_body", "欢迎使用有本账APP "+shortUrl);
+        startActivity(intent);
+    }
+
+    @Override
+    public void onFail(String model) {
+
+    }
+}

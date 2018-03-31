@@ -1,0 +1,228 @@
+package com.beidou.ybz.accountbook.ui;
+
+import android.os.Bundle;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.view.ViewPager;
+import android.support.v7.widget.Toolbar;
+import android.view.View;
+import android.widget.TextView;
+
+import com.baidu.mobstat.StatService;
+import com.beidou.ybz.accountbook.R;
+import com.beidou.ybz.accountbook.mvp.presenter.CommonPresenter;
+import com.beidou.ybz.accountbook.mvp.view.CommonView;
+import com.beidou.ybz.accountbook.ui.fragment.FinanceFragment;
+import com.beidou.ybz.accountbook.ui.fragment.LicaiFragment;
+import com.beidou.ybz.accountbook.ui.fragment.ZijinFragment;
+import com.beidou.ybz.accountbook.util.DESedeUtil;
+import com.beidou.ybz.accountbook.util.LogUtils;
+import com.beidou.ybz.accountbook.mvp.entity.AddOverseasRequestModel;
+import com.beidou.ybz.accountbook.mvp.entity.AssetClassModel;
+import com.beidou.ybz.accountbook.mvp.entity.RequestBody;
+import com.beidou.ybz.accountbook.mvp.other.MvpActivity;
+import com.beidou.ybz.accountbook.ui.fragment.PaymentFragment;
+import com.beidou.ybz.accountbook.util.ActivityUtils;
+import com.beidou.ybz.accountbook.util.Utils;
+import com.flyco.tablayout.SegmentTabLayout;
+import com.flyco.tablayout.listener.OnTabSelectListener;
+import com.google.gson.Gson;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import butterknife.Bind;
+
+/**
+ * 添加资产界面
+ * Created by xu.yang on 2017/11/30.
+ */
+
+public class AddAssetsActivity extends MvpActivity<CommonPresenter> implements CommonView<AssetClassModel> {
+    @Bind(R.id.tv_title)
+    TextView tvTitle;
+    @Bind(R.id.toolbar)
+    Toolbar toolbar;
+    @Bind(R.id.segTablayout)
+    SegmentTabLayout segTablayout;
+    @Bind(R.id.viewpager)
+    ViewPager mViewpager;
+    private String[] mTitles = {"投资理财", "资金账户", "应收应付", "生活财务"};
+    private String encMsg, signMsg;
+    private ArrayList<AssetClassModel.BodyBean.TzlcListBean> tzlcListBeanList;
+    private ArrayList<AssetClassModel.BodyBean.ZjzhListBean> zjzhListBeanList;
+    private ArrayList<AssetClassModel.BodyBean.ZwwlListBean> zwwlListBeanList;
+    private ArrayList<AssetClassModel.BodyBean.ShcwListBean> shcwListBeanList;
+
+    private AssetClassModel assetClassModel;
+
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_addassets);
+
+
+        segTablayout.setTabData(mTitles);
+        tvTitle.setText("添加资产");
+        tvTitle.setTextColor(getResources().getColor(R.color.txt_color));
+        toolbar.setNavigationIcon(R.drawable.back_black);
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ActivityUtils.finishActivity(mActivity);
+            }
+        });
+
+        segTablayout.setOnTabSelectListener(new OnTabSelectListener() {
+            @Override
+            public void onTabSelect(int position) {
+                mViewpager.setCurrentItem(position);
+            }
+
+            @Override
+            public void onTabReselect(int position) {
+            }
+        });
+
+        mViewpager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+            @Override
+            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {}
+            @Override
+            public void onPageSelected(int position) {
+                segTablayout.setCurrentTab(position);
+            }
+            @Override
+            public void onPageScrollStateChanged(int state) {}
+        });
+
+        request();
+    }
+
+    @Override
+    protected CommonPresenter createPresenter() {
+        return new CommonPresenter(this,this);
+    }
+
+
+
+    private void setupViewPager(ViewPager viewPager) {
+        Adapter adapter = new Adapter(getSupportFragmentManager());
+
+        LicaiFragment licaiFragment = new LicaiFragment();
+        Bundle bundle1 = new Bundle();
+        bundle1.putParcelableArrayList("tzlcListBeanList",tzlcListBeanList);
+        licaiFragment.setArguments(bundle1);
+        if(!licaiFragment.isAdded()) {
+            adapter.addFragment(licaiFragment, "1");
+        }
+
+        ZijinFragment zijinFragment = new ZijinFragment();
+        Bundle bundle2 = new Bundle();
+        bundle2.putParcelableArrayList("zjzhListBeanList",zjzhListBeanList);
+        zijinFragment.setArguments(bundle2);
+        if(!zijinFragment.isAdded()) {
+            adapter.addFragment(zijinFragment, "2");
+        }
+
+
+        PaymentFragment paymentFragment = new PaymentFragment();
+        Bundle bundle3 = new Bundle();
+        bundle3.putParcelableArrayList("zwwlListBeanList",zwwlListBeanList);
+        paymentFragment.setArguments(bundle3);
+        adapter.addFragment(paymentFragment, "2");
+
+        FinanceFragment financeFragment = new FinanceFragment();
+        Bundle bundle4 = new Bundle();
+        bundle4.putParcelableArrayList("shcwListBeanList",shcwListBeanList);
+        financeFragment.setArguments(bundle4);
+        adapter.addFragment(financeFragment, "2");
+
+        viewPager.setAdapter(adapter);
+//        viewPager.setOffscreenPageLimit(2);
+    }
+
+
+    static class Adapter extends FragmentPagerAdapter {
+        private final List<Fragment> mFragments = new ArrayList<>();
+        private final List<String> mFragmentTitles = new ArrayList<>();
+
+        public Adapter(FragmentManager fm) {
+            super(fm);
+        }
+
+        public void addFragment(Fragment fragment, String title) {
+//            LogUtils.logd("addddddddddddddddddddddddddddddddddddddddddddddddddddd");
+            mFragments.add(fragment);
+            mFragmentTitles.add(title);
+        }
+
+        @Override
+        public Fragment getItem(int position) {
+            return mFragments.get(position);
+        }
+
+        @Override
+        public int getCount() {
+            return mFragments.size();
+        }
+
+        @Override
+        public CharSequence getPageTitle(int position) {
+            return mFragmentTitles.get(position);
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        StatService.onPageStart(mActivity,"添加资产页面");
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        StatService.onPageEnd(mActivity,"添加资产页面");
+    }
+
+    void request() {
+        RequestBody<AddOverseasRequestModel> requestBody = new RequestBody<>();
+        RequestBody.HeaderBean headerBean = new RequestBody.HeaderBean(Utils.getIPAddress(mActivity), spUtils.getSecretKeyId());
+        AddOverseasRequestModel requestModel = new AddOverseasRequestModel();
+        requestModel.setUserNo(spUtils.getUserId());
+
+        requestBody.setBody(requestModel);
+        requestBody.setHeader(headerBean);
+
+        Gson gson = new Gson();
+        String json = gson.toJson(requestBody);
+
+        try {
+            encMsg = DESedeUtil.getRequestAfter3DES(spUtils.getSecretKey(), spUtils.getSecretIv(), json);
+            signMsg = DESedeUtil.getRequestAfterSign(encMsg);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        mvpPresenter.defzc(encMsg, signMsg, "2", spUtils.getSecretKeyId());
+    }
+
+    @Override
+    public void getDataSuccess(AssetClassModel model) {
+        assetClassModel = model;
+        tzlcListBeanList = (ArrayList<AssetClassModel.BodyBean.TzlcListBean>) model.getBody().getTzlcList();
+        zjzhListBeanList = (ArrayList<AssetClassModel.BodyBean.ZjzhListBean>) model.getBody().getZjzhList();
+        zwwlListBeanList = (ArrayList<AssetClassModel.BodyBean.ZwwlListBean>) model.getBody().getZwwlList();
+        shcwListBeanList = (ArrayList<AssetClassModel.BodyBean.ShcwListBean>) model.getBody().getShcwList();
+
+        if (mViewpager != null) {
+            setupViewPager(mViewpager);
+            mViewpager.setCurrentItem(0);
+        }
+    }
+
+    @Override
+    public void getDataFail(String msg) {
+        toastShow(msg);
+    }
+}

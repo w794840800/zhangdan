@@ -1,0 +1,30 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:theme="@style/Theme.Design.Light.NoActionBar"
+    android:clipToPadding="true"
+    android:fitsSystemWindows="true"
+    tools:context="com.bob.caifu360.accountbook.com.beidou.caifu360.accountbook.ui.fragment.CaishangFragment">
+
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        >
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:src="@drawable/defaultavatar"/>
+    </RelativeLayout>
+
+    <com.beidou.ybz.accountbook.widget.ProgressWebView
+        android:id="@+id/Webview"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"/>
+
+
+
+</LinearLayout>

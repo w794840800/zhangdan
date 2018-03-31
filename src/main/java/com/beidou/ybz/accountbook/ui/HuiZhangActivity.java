@@ -1,0 +1,452 @@
+package com.beidou.ybz.accountbook.ui;
+
+import android.content.DialogInterface;
+import android.os.Bundle;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentStatePagerAdapter;
+import android.support.v4.view.ViewPager;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+
+import com.baidu.mobstat.StatService;
+import com.beidou.ybz.accountbook.R;
+import com.beidou.ybz.accountbook.mvp.entity.AddOverseasRequestModel;
+import com.beidou.ybz.accountbook.mvp.entity.HuizhangBigClassModel;
+import com.beidou.ybz.accountbook.mvp.entity.RequestBody;
+import com.beidou.ybz.accountbook.mvp.other.MvpActivity;
+import com.beidou.ybz.accountbook.mvp.presenter.CommonPresenter;
+import com.beidou.ybz.accountbook.mvp.view.CommonView;
+import com.beidou.ybz.accountbook.ui.fragment.BadgeSecondClassFragment;
+import com.beidou.ybz.accountbook.ui.fragment.MainCardFragment;
+import com.beidou.ybz.accountbook.util.ActivityUtils;
+import com.beidou.ybz.accountbook.util.DESedeUtil;
+import com.beidou.ybz.accountbook.util.LogUtils;
+import com.beidou.ybz.accountbook.util.Utils;
+import com.beidou.ybz.accountbook.widget.MaterialDialog;
+import com.beidou.ybz.accountbook.widget.ScaleInTransformer;
+import com.google.gson.Gson;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import butterknife.Bind;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
+
+/**
+ * Author: xu.yang on 2017/12/15
+ * QQ:754444814
+ * E-mail:754444814@qq.com
+ * module: 徽章列表界面
+ */
+public class HuiZhangActivity extends MvpActivity<CommonPresenter> implements CommonView<HuizhangBigClassModel> {
+    @Bind(R.id.ivBack)
+    ImageView ivBack;
+    @Bind(R.id.llHuizhangChengjiu)
+    LinearLayout llHuizhangChengjiu;
+    @Bind(R.id.viewpager)
+    ViewPager mViewPager;
+    @Bind(R.id.viewpagerSecond)
+    ViewPager mViewPagerSecond;
+    @Bind(R.id.tvChengjiuzhi)
+    TextView tvChengjiuzhi;
+    @Bind(R.id.tvTips)
+    TextView tvTips;
+    private MaterialDialog materialDialog;
+    private String encMsg, signMsg;
+    private List<HuizhangBigClassModel.BodyBean.BadgeTypeListBean> badgeTypeListBeanList;
+
+    CardFragmentPagerAdapter mCardFragmentPagerAdapter;
+    SecondCardFragmentPagerAdapter secondCardFragmentPagerAdapter;
+    private MainCardFragment mainFragment;
+    private BadgeSecondClassFragment secondClassFragment;
+    private int viewpagerSize = 0;
+
+    private boolean mIsChanged1, mIsChanged = false;
+    private int mCurrentPagePosition1, mCurrentPagePosition = FIRST_ITEM_INDEX;
+    private static final int POINT_LENGTH = 4;
+    private static final int FIRST_ITEM_INDEX = 1;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_hui_zhang);
+
+        ButterKnife.bind(this);
+        setSwipeBackEnable(false);
+        ActivityUtils.setStatusBar(mActivity);
+        initMaterialDialog();
+        getBigClass();
+        initView();
+    }
+
+    ViewPager.OnPageChangeListener onPageChangeListenerBig = new ViewPager.OnPageChangeListener() {
+        @Override
+        public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+            int width = mViewPagerSecond.getWidth();
+            //滑动外部Viewpager
+            mViewPagerSecond.scrollTo((int) (width * position + width * positionOffset), 0);
+        }
+
+        @Override
+        public void onPageSelected(final int position) {
+//            mViewPagerSecond.setCurrentItem(position,false);
+            mIsChanged1 = true;
+            if (position > POINT_LENGTH) {// 末位之后，跳转到首位（1）
+                mCurrentPagePosition1 = FIRST_ITEM_INDEX;
+            } else if (position < FIRST_ITEM_INDEX) {// 首位之前，跳转到末尾（N）
+                mCurrentPagePosition1 = POINT_LENGTH;
+            } else {
+                mCurrentPagePosition1 = position;
+            }
+            mViewPagerSecond.setCurrentItem(mCurrentPagePosition1, false);
+        }
+
+        @Override
+        public void onPageScrollStateChanged(int state) {
+            if (ViewPager.SCROLL_STATE_IDLE == state) {//滑动停止
+                mViewPagerSecond.addOnPageChangeListener(onPageChangeListenerSecond);
+                if (mIsChanged1) {
+                    mIsChanged1 = false;
+                    mViewPager.setCurrentItem(mCurrentPagePosition1, false);
+                }
+            } else {
+                mViewPagerSecond.removeOnPageChangeListener(onPageChangeListenerSecond);
+            }
+        }
+    };
+
+    ViewPager.OnPageChangeListener onPageChangeListenerSecond = new ViewPager.OnPageChangeListener() {
+        @Override
+        public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+//            int width=mViewPager.getWidth();
+//            //滑动外部Viewpager
+//            mViewPager.scrollTo((int)(width * position + width * positionOffset), 0);
+        }
+
+        @Override
+        public void onPageSelected(int position) {
+            mIsChanged = true;
+            if (position > POINT_LENGTH) {// 末位之后，跳转到首位（1）
+                mCurrentPagePosition = FIRST_ITEM_INDEX;
+            } else if (position < FIRST_ITEM_INDEX) {// 首位之前，跳转到末尾（N）
+                mCurrentPagePosition = POINT_LENGTH;
+            } else {
+                mCurrentPagePosition = position;
+            }
+            mViewPager.setCurrentItem(mCurrentPagePosition, false);
+        }
+
+        @Override
+        public void onPageScrollStateChanged(int state) {
+            if (ViewPager.SCROLL_STATE_IDLE == state) {
+                mViewPager.addOnPageChangeListener(onPageChangeListenerBig);
+                if (mIsChanged) {
+                    mIsChanged = false;
+                    mViewPagerSecond.setCurrentItem(mCurrentPagePosition, false);
+                }
+            } else {
+                mViewPager.removeOnPageChangeListener(onPageChangeListenerBig);
+            }
+        }
+    };
+
+    void initView() {
+        mViewPager.addOnPageChangeListener(onPageChangeListenerBig);
+        mViewPagerSecond.addOnPageChangeListener(onPageChangeListenerSecond);
+
+       /* mViewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+            @Override
+            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {}
+            @Override
+            public void onPageSelected(final int position) {
+                mViewPagerSecond.setCurrentItem(position,false);
+
+                mIsChanged1 = true;
+                if (position > POINT_LENGTH) {// 末位之后，跳转到首位（1）
+                    mCurrentPagePosition1 = FIRST_ITEM_INDEX;
+                } else if (position < FIRST_ITEM_INDEX) {// 首位之前，跳转到末尾（N）
+                    mCurrentPagePosition1 = POINT_LENGTH;
+                } else {
+                    mCurrentPagePosition1 = position;
+                }
+//                mViewPagerSecond.setCurrentItem(mCurrentPagePosition1,false);
+            }
+            @Override
+            public void onPageScrollStateChanged(int state) {
+                if (ViewPager.SCROLL_STATE_IDLE == state) {
+                    if (mIsChanged1) {
+                        mIsChanged1 = false;
+                        mViewPager.setCurrentItem(mCurrentPagePosition1, false);
+                    }
+                }
+            }
+        });*/
+        /*mViewPagerSecond.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+            @Override
+            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {}
+            @Override
+            public void onPageSelected(int position) {
+//                mViewPager.setCurrentItem(position,false);
+                mIsChanged = true;
+                if (position > POINT_LENGTH) {// 末位之后，跳转到首位（1）
+                    mCurrentPagePosition = FIRST_ITEM_INDEX;
+                } else if (position < FIRST_ITEM_INDEX) {// 首位之前，跳转到末尾（N）
+                    mCurrentPagePosition = POINT_LENGTH;
+                } else {
+                    mCurrentPagePosition = position;
+                }
+                mViewPager.setCurrentItem(mCurrentPagePosition,false);
+            }
+            @Override
+            public void onPageScrollStateChanged(int state) {
+                if (ViewPager.SCROLL_STATE_IDLE == state) {
+                    if (mIsChanged) {
+                        mIsChanged = false;
+                        mViewPagerSecond.setCurrentItem(mCurrentPagePosition, false);
+                    }
+                }
+            }
+        });*/
+    }
+
+    //获取徽章大类
+    void getBigClass() {
+        RequestBody<AddOverseasRequestModel> loginRequestModel = new RequestBody<>();
+        RequestBody.HeaderBean headerBean = new RequestBody.HeaderBean(Utils.getIPAddress(mActivity), spUtils.getSecretKeyId());
+        AddOverseasRequestModel requestModel = new AddOverseasRequestModel();
+        requestModel.setUserNo(spUtils.getUserId());
+
+        loginRequestModel.setBody(requestModel);
+        loginRequestModel.setHeader(headerBean);
+
+        Gson gson2 = new Gson();
+        String json2 = gson2.toJson(loginRequestModel);
+        LogUtils.logd(json2);
+        try {
+            encMsg = DESedeUtil.getRequestAfter3DES(spUtils.getSecretKey(), spUtils.getSecretIv(), json2);
+            signMsg = DESedeUtil.getRequestAfterSign(encMsg);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        mvpPresenter.badgetypelist(encMsg, signMsg, "2", spUtils.getSecretKeyId());
+    }
+
+    /**
+     * 初始化dialog
+     */
+    void initMaterialDialog() {
+        View view = LayoutInflater.from(this).inflate(R.layout.huizhang_chengjiuzi, null);
+        materialDialog = new MaterialDialog(this).setContentView(view);
+        materialDialog.setHuizhangCloseButton("huizhang", new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                materialDialog.dismiss();
+            }
+        }).setOnDismissListener(new DialogInterface.OnDismissListener() {
+            @Override
+            public void onDismiss(DialogInterface dialogInterface) {
+            }
+        });
+        materialDialog.setPositiveButtonEnable(false);
+
+    }
+
+    @OnClick({R.id.ivBack, R.id.llHuizhangChengjiu})
+    public void onViewClicked(View view) {
+        switch (view.getId()) {
+            case R.id.ivBack:
+                ActivityUtils.finishActivity(mActivity);
+                break;
+            case R.id.llHuizhangChengjiu:
+                materialDialog.show();
+                break;
+        }
+    }
+
+    @Override
+    protected CommonPresenter createPresenter() {
+        return new CommonPresenter(this, this);
+    }
+
+    /**
+     * 一级徽章成功回调
+     *
+     * @param model
+     */
+    @Override
+    public void getDataSuccess(HuizhangBigClassModel model) {
+        badgeTypeListBeanList = model.getBody().getBadgeTypeList();
+        mCardFragmentPagerAdapter = new CardFragmentPagerAdapter(getSupportFragmentManager(), 0);
+        secondCardFragmentPagerAdapter = new SecondCardFragmentPagerAdapter(getSupportFragmentManager());
+        if (badgeTypeListBeanList != null && badgeTypeListBeanList.size() > 0) {
+            viewpagerSize = badgeTypeListBeanList.size();//徽章大类的数量
+            Bundle bundle = null;
+
+
+            tvChengjiuzhi.setText("徽章成就值" + badgeTypeListBeanList.get(0).getGrowthValue());
+            tvTips.animate().setDuration(500).alpha(1.0f).start();
+
+
+            bundle = new Bundle();
+            mainFragment = new MainCardFragment();
+            bundle.putParcelable("data", badgeTypeListBeanList.get(viewpagerSize - 1));
+            mainFragment.setArguments(bundle);
+            mCardFragmentPagerAdapter.addCardFragment(mainFragment);
+            for (int i = 0; i < viewpagerSize; i++) {
+                bundle = new Bundle();
+                mainFragment = new MainCardFragment();
+                bundle.putParcelable("data", badgeTypeListBeanList.get(i % (badgeTypeListBeanList.size())));
+                mainFragment.setArguments(bundle);
+                mCardFragmentPagerAdapter.addCardFragment(mainFragment);
+            }
+            bundle = new Bundle();
+            mainFragment = new MainCardFragment();
+            bundle.putParcelable("data", badgeTypeListBeanList.get(0));
+            mainFragment.setArguments(bundle);
+            mCardFragmentPagerAdapter.addCardFragment(mainFragment);
+
+            mViewPager.setOffscreenPageLimit(4);
+            mViewPager.setPageMargin(0);//50
+            mViewPager.setAdapter(mCardFragmentPagerAdapter);
+            mViewPager.setPageTransformer(true, new ScaleInTransformer());
+            mViewPager.setCurrentItem(1, false);//48
+            //徽章大类ViewPager数据装载 结束
+
+            //徽章小类ViewPager数据装载 开始
+            Bundle bundle1 = null;
+            bundle1 = new Bundle();
+            secondClassFragment = new BadgeSecondClassFragment();
+            bundle1.putString("badgeType", badgeTypeListBeanList.get(viewpagerSize - 1).getBadgeType());
+            secondClassFragment.setArguments(bundle1);
+            secondCardFragmentPagerAdapter.addCardFragment(secondClassFragment);
+            for (int i = 0; i < viewpagerSize; i++) {//
+                bundle1 = new Bundle();
+                secondClassFragment = new BadgeSecondClassFragment();
+                bundle1.putString("badgeType", badgeTypeListBeanList.get(i % (badgeTypeListBeanList.size())).getBadgeType());
+                secondClassFragment.setArguments(bundle1);
+                secondCardFragmentPagerAdapter.addCardFragment(secondClassFragment);
+            }
+            bundle1 = new Bundle();
+            secondClassFragment = new BadgeSecondClassFragment();
+            bundle1.putString("badgeType", badgeTypeListBeanList.get(0).getBadgeType());
+            secondClassFragment.setArguments(bundle1);
+            secondCardFragmentPagerAdapter.addCardFragment(secondClassFragment);
+
+            mViewPagerSecond.setOffscreenPageLimit(4);
+            mViewPagerSecond.setPageMargin(0);//50
+            mViewPagerSecond.setAdapter(secondCardFragmentPagerAdapter);
+            //徽章小类ViewPager数据装载 结束
+            mViewPagerSecond.setCurrentItem(1, false);//48
+
+        }
+    }
+
+    class CardFragmentPagerAdapter extends FragmentStatePagerAdapter {
+        private List<MainCardFragment> mFragments;
+
+        public CardFragmentPagerAdapter(FragmentManager fm, float baseElevation) {
+            super(fm);
+            mFragments = new ArrayList<>();
+        }
+
+        @Override
+        public int getCount() {
+            return mFragments.size();
+        }
+
+        @Override
+        public Fragment getItem(int position) {
+            LogUtils.logd("getItem-position:" + position % mFragments.size());
+            return mFragments.get(position % mFragments.size());
+        }
+
+        @Override
+        public Object instantiateItem(ViewGroup container, int position) {
+            //写死50条写法
+            Object fragment = super.instantiateItem(container, position % mFragments.size());
+            mFragments.set(position % mFragments.size(), (MainCardFragment) fragment);
+            return fragment;
+        }
+
+        @Override
+        public void destroyItem(ViewGroup container, int position, Object object) {
+            super.destroyItem(container, position % mFragments.size(), object);
+        }
+
+        public void addCardFragment(MainCardFragment fragment) {
+            mFragments.add(fragment);
+        }
+    }
+
+    class SecondCardFragmentPagerAdapter extends FragmentStatePagerAdapter {
+        private List<BadgeSecondClassFragment> mFragments;
+
+        public SecondCardFragmentPagerAdapter(FragmentManager fm) {
+            super(fm);
+            mFragments = new ArrayList<>();
+        }
+
+        @Override
+        public int getCount() {
+            return mFragments.size();
+        }
+
+        @Override
+        public Fragment getItem(int position) {
+            LogUtils.logd("getItem-position:" + position);
+            return mFragments.get(position % mFragments.size());
+        }
+
+        @Override
+        public Object instantiateItem(ViewGroup container, int position) {
+            //写死50条写法
+            Object fragment = super.instantiateItem(container, position % mFragments.size());
+            mFragments.set(position % mFragments.size(), (BadgeSecondClassFragment) fragment);
+//            Object fragment = super.instantiateItem(container, position);
+//            mFragments.set(position, (BadgeSecondClassFragment) fragment);
+            return fragment;
+        }
+
+        /**
+         * Remove a page for the given position. The adapter is responsible for
+         * removing the view from its container,
+         * although it only must ensure this is done by the time it returns from finishUpdate(View).
+         * 移除给定位置的数据，适配器负责从container（容器）中取出，但是这个必须保证是在finishUpdate（view）
+         * 返回的时间内完成
+         *
+         * @param container
+         * @param position
+         * @param object
+         */
+        @Override
+        public void destroyItem(ViewGroup container, int position, Object object) {
+            super.destroyItem(container, position % mFragments.size(), object);
+        }
+
+        public void addCardFragment(BadgeSecondClassFragment fragment) {
+            mFragments.add(fragment);
+        }
+    }
+
+    @Override
+    public void getDataFail(String msg) {
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        StatService.onPageStart(mActivity, "徽章列表页面");
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        StatService.onPageEnd(mActivity, "徽章列表页面");
+    }
+}

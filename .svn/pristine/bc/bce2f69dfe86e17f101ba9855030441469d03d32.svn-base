@@ -1,0 +1,446 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/colorWhite"
+    android:fitsSystemWindows="true"
+    android:orientation="vertical"
+    tools:context="com.beidou.ybz.accountbook.ui.CompileBlackboxActivity">
+
+    <include layout="@layout/toolbar" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@drawable/shadow" />
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <android.support.v4.widget.NestedScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="28dp"
+                        android:layout_marginTop="20.5dp"
+                        android:text="留言"
+                        android:textColor="#ff262b36"
+                        android:textSize="16sp" />
+
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+
+                        <EditText
+                            android:id="@+id/ed1"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="28dp"
+                            android:layout_marginRight="21.5dp"
+                            android:layout_marginTop="13.5dp"
+                            android:background="@null"
+                            android:gravity="top|left"
+                            android:hint="好好照顾我的账户哦~"
+                            android:maxLength="100"
+                            android:minHeight="129dp"
+                            android:textColor="#ff262b36"
+                            android:textColorHint="#ffd3d6de"
+                            android:textSize="14sp" />
+
+                        <TextView
+                            android:id="@+id/xiabiao"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentRight="true"
+                            android:layout_below="@id/ed1"
+                            android:paddingBottom="9.5dp"
+                            android:paddingRight="21.5dp"
+                            android:text="50/100"
+                            android:textColor="#707889"
+                            android:textSize="14sp" />
+                    </RelativeLayout>
+
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="5dp"
+                    android:background="#fff7f9ff" />
+
+                <!--发送条件-->
+                <RelativeLayout
+                    android:id="@+id/rel_fasong"
+                    android:layout_width="match_parent"
+                    android:layout_height="50dp">
+
+                    <TextView
+                        style="@style/blackbox_textstyle"
+                        android:layout_marginLeft="40dp"
+                        android:text="发送条件" />
+
+                    <TextView
+                        android:id="@+id/ed2"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_centerVertical="true"
+                        android:layout_marginLeft="114dp"
+                        android:layout_marginRight="47.5dp"
+                        android:background="@null"
+                        android:hint="请选择发送时段"
+                        android:textColor="#ff262b36"
+                        android:textColorHint="#ffd3d6de"
+                        android:textSize="14sp" />
+
+                    <ImageView
+                        android:layout_width="8dp"
+                        android:layout_height="14dp"
+                        android:layout_alignParentRight="true"
+                        android:layout_centerVertical="true"
+                        android:layout_marginRight="15.45dp"
+                        android:background="@drawable/jiantou" />
+
+                </RelativeLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="@drawable/shadow" />
+
+                <!--1-->
+                <LinearLayout
+                    android:id="@+id/rel_cc1"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <RelativeLayout
+
+                        android:layout_width="match_parent"
+                        android:layout_height="50dp">
+
+                        <ImageView
+                            android:id="@+id/iv_del1"
+                            style="@style/blackbox_img1"
+                            android:src="@drawable/del_chuancheng_hui" />
+
+                        <TextView
+                            android:id="@+id/tv_cc1"
+                            style="@style/blackbox_textstyle"
+                            android:layout_toRightOf="@id/iv_del1"
+                            android:text="传承人" />
+
+                        <com.beidou.ybz.accountbook.widget.ClearEditText
+                            android:id="@+id/ed_cc1"
+                            style="@style/blackbox_edittextstyle"
+                            android:layout_toRightOf="@id/tv_cc1"
+                            android:inputType="number" />
+
+
+                        <ImageView
+                            android:id="@+id/img_txl1"
+                            style="@style/blackbox_img2"
+                            android:src="@drawable/tongxunlu_liang" />
+
+                    </RelativeLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="@drawable/shadow" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/rel_cc2"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="gone">
+
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="50dp">
+
+                        <ImageView
+                            android:id="@+id/iv_del2"
+                            style="@style/blackbox_img1"
+                            android:src="@drawable/del_chuancheng_liang" />
+
+                        <TextView
+                            android:id="@+id/tv_cc2"
+                            style="@style/blackbox_textstyle"
+                            android:layout_toRightOf="@id/iv_del2"
+                            android:text="传承人" />
+
+                        <com.beidou.ybz.accountbook.widget.ClearEditText
+                            android:id="@+id/ed_cc2"
+                            style="@style/blackbox_edittextstyle"
+                            android:layout_toRightOf="@id/tv_cc2"
+                            android:inputType="number" />
+
+
+                        <ImageView
+                            android:id="@+id/img_txl2"
+                            style="@style/blackbox_img2"
+                            android:src="@drawable/tongxunlu_liang" />
+
+                    </RelativeLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="@drawable/shadow" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/rel_cc3"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="gone">
+
+                    <RelativeLayout
+
+                        android:layout_width="match_parent"
+                        android:layout_height="50dp">
+
+                        <ImageView
+                            android:id="@+id/iv_del3"
+                            style="@style/blackbox_img1"
+                            android:src="@drawable/del_chuancheng_liang" />
+
+                        <TextView
+                            android:id="@+id/tv_cc3"
+                            style="@style/blackbox_textstyle"
+                            android:layout_toRightOf="@id/iv_del3"
+                            android:text="传承人" />
+
+                        <com.beidou.ybz.accountbook.widget.ClearEditText
+                            android:id="@+id/ed_cc3"
+                            style="@style/blackbox_edittextstyle"
+                            android:layout_toRightOf="@id/tv_cc3"
+                            android:inputType="number" />
+
+
+                        <ImageView
+                            android:id="@+id/img_txl3"
+                            style="@style/blackbox_img2"
+                            android:src="@drawable/tongxunlu_liang" />
+
+                    </RelativeLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="@drawable/shadow" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/rel_cc4"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="gone">
+
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="50dp">
+
+                        <ImageView
+                            android:id="@+id/iv_del4"
+                            style="@style/blackbox_img1"
+                            android:src="@drawable/del_chuancheng_liang" />
+
+                        <TextView
+                            android:id="@+id/tv_cc4"
+                            style="@style/blackbox_textstyle"
+                            android:layout_toRightOf="@id/iv_del4"
+                            android:text="传承人" />
+
+                        <com.beidou.ybz.accountbook.widget.ClearEditText
+                            android:id="@+id/ed_cc4"
+                            style="@style/blackbox_edittextstyle"
+                            android:layout_toRightOf="@id/tv_cc4"
+                            android:inputType="number" />
+
+
+                        <ImageView
+                            android:id="@+id/img_txl4"
+                            style="@style/blackbox_img2"
+                            android:src="@drawable/tongxunlu_liang" />
+
+                    </RelativeLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="@drawable/shadow" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/rel_cc5"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="gone">
+
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="50dp">
+
+                        <ImageView
+                            android:id="@+id/iv_del5"
+                            style="@style/blackbox_img1"
+                            android:src="@drawable/del_chuancheng_liang" />
+
+                        <TextView
+                            android:id="@+id/tv_cc5"
+                            style="@style/blackbox_textstyle"
+                            android:layout_toRightOf="@id/iv_del5"
+                            android:text="传承人" />
+
+                        <com.beidou.ybz.accountbook.widget.ClearEditText
+                            android:id="@+id/ed_cc5"
+                            style="@style/blackbox_edittextstyle"
+                            android:layout_toRightOf="@id/tv_cc5"
+                            android:inputType="number" />
+
+
+                        <ImageView
+                            android:id="@+id/img_txl5"
+                            style="@style/blackbox_img2"
+                            android:src="@drawable/tongxunlu_liang" />
+
+                    </RelativeLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="@drawable/shadow" />
+
+                </LinearLayout>
+
+                <!--添加传承人-->
+                <LinearLayout
+                    android:id="@+id/rel_add"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="50dp">
+
+                        <ImageView
+                            android:id="@+id/iv_add"
+                            style="@style/blackbox_img1"
+                            android:src="@drawable/add_chuancheng_liang" />
+
+                        <TextView
+                            style="@style/blackbox_textstyle"
+                            android:layout_toRightOf="@id/iv_add"
+                            android:text="添加传承人"
+                            android:textColor="#ff55bbff" />
+
+                    </RelativeLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="@drawable/shadow" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="50dp">
+
+
+                        <TextView
+                            style="@style/blackbox_textstyle"
+                            android:layout_marginLeft="40dp"
+                            android:text="发送前短信通知我" />
+
+                        <com.beidou.ybz.accountbook.widget.SwitchButton
+                            android:id="@+id/sb_use_checked"
+                            style="@style/SwitchButtonStyleMD"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentRight="true"
+                            android:layout_centerVertical="true"
+                            android:layout_marginRight="18dp"
+                            android:focusable="false" />
+
+                    </RelativeLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="@drawable/shadow" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/time_linear"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="gone">
+
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="50dp">
+
+                        <TextView
+                            android:id="@+id/tv_fasongtime"
+                            style="@style/blackbox_textstyle"
+                            android:layout_marginLeft="40dp"
+                            android:text="2017-10-31发送" />
+
+                    </RelativeLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="@drawable/shadow" />
+                </LinearLayout>
+
+
+            </LinearLayout>
+
+
+        </android.support.v4.widget.NestedScrollView>
+
+        <Button
+            android:id="@+id/sure"
+            android:layout_width="match_parent"
+            android:layout_height="45dp"
+            android:layout_alignParentBottom="true"
+            android:background="@drawable/hxz_bg1"
+            android:text="确认"
+            android:textColor="#ff707889"
+            android:textSize="17sp" />
+
+    </RelativeLayout>
+
+
+</LinearLayout>

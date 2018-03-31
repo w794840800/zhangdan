@@ -1,0 +1,417 @@
+package com.beidou.ybz.accountbook.ui;
+
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.os.Bundle;
+import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.widget.Toolbar;
+import android.text.Editable;
+import android.text.TextUtils;
+import android.text.TextWatcher;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+
+import com.baidu.mobstat.StatService;
+import com.beidou.ybz.accountbook.R;
+import com.beidou.ybz.accountbook.mvp.entity.AddOverseasRequestModel;
+import com.beidou.ybz.accountbook.mvp.entity.InsuranceListModel;
+import com.beidou.ybz.accountbook.mvp.entity.PrepaiddetailModel;
+import com.beidou.ybz.accountbook.mvp.entity.RequestBody;
+import com.beidou.ybz.accountbook.mvp.entity.SercetKeyOverdueModel;
+import com.beidou.ybz.accountbook.mvp.entity.UserNoModel;
+import com.beidou.ybz.accountbook.mvp.other.MvpActivity;
+import com.beidou.ybz.accountbook.mvp.presenter.CommonPresenter;
+import com.beidou.ybz.accountbook.mvp.view.CommonView;
+import com.beidou.ybz.accountbook.mvp.view.OtherView;
+import com.beidou.ybz.accountbook.util.ActivityUtils;
+import com.beidou.ybz.accountbook.util.AlertDialogUtils;
+import com.beidou.ybz.accountbook.util.DESedeUtil;
+import com.beidou.ybz.accountbook.util.ImeUtil;
+import com.beidou.ybz.accountbook.util.LogUtils;
+import com.beidou.ybz.accountbook.util.Utils;
+import com.beidou.ybz.accountbook.widget.ClearEditText;
+import com.beidou.ybz.accountbook.widget.MaterialDialog;
+import com.google.gson.Gson;
+
+import java.util.List;
+
+import butterknife.Bind;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
+
+/**
+ * Author: xu.yang on 2017/12/29
+ * QQ:754444814
+ * E-mail:754444814@qq.com
+ * module: 预付卡详情界面
+ */
+public class PrepaidDetailActivity extends MvpActivity<CommonPresenter> implements CommonView<PrepaiddetailModel>,
+        OtherView<SercetKeyOverdueModel>, View.OnClickListener {
+    @Bind(R.id.tv_title)
+    TextView tvTitle;
+    @Bind(R.id.toolbar)
+    Toolbar toolbar;
+    @Bind(R.id.swipeRefresh)
+    SwipeRefreshLayout mSwipeRefreshLayout;
+    @Bind(R.id.tv_right)
+    TextView tvRight;
+    @Bind(R.id.tvAmount)
+    TextView tvAmount;
+    @Bind(R.id.tvAddAssets)
+    TextView tvAddAssets;
+    @Bind(R.id.tvMemo)
+    TextView tvMemo;
+    @Bind(R.id.llMemo)
+    LinearLayout llMemo;
+    @Bind(R.id.tvTimes)
+    TextView tvTimes;
+    @Bind(R.id.llTimes)
+    LinearLayout llTimes;
+    @Bind(R.id.tvName)
+    TextView tvName;
+    private String encMsg, signMsg;
+    private List<InsuranceListModel.BodyBean.ProListBean> proListBeanlist;
+    AlertDialogUtils alertDialogUtils;
+    private String id, name, currentType, productName;
+    private MaterialDialog materialDialog;
+    private TextView tvZhuanru, tvZhuanchu;
+    private LinearLayout llZhuan;
+    private ClearEditText cetMoney;
+    private String andorsub, amount, comment, expireDate, memo, times;
+    private boolean isEdit;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_prepaiddetail);
+        ButterKnife.bind(this);
+
+        Intent in = getIntent();
+        if (in != null) {
+            id = in.getStringExtra("id");
+            name = in.getStringExtra("name");
+        }
+        initMaterialDialog();
+
+        andorsub = "1";//默认为加
+        alertDialogUtils = new AlertDialogUtils(mActivity);
+        toolbar.setNavigationIcon(R.drawable.back_black);
+        tvAddAssets.setText("+  新增消费记录");
+        tvTitle.setText("预付卡");
+        tvName.setText(name);
+        tvRight.setText("编辑");
+        tvRight.setTextColor(getResources().getColor(R.color.txt_color));
+        tvTitle.setTextColor(getResources().getColor(R.color.txt_color));
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ActivityUtils.finishActivity(mActivity);
+                ImeUtil.hideSoftKeyboard(tvAmount);
+            }
+        });
+
+        //下拉刷新条的颜色
+        mSwipeRefreshLayout.setColorSchemeResources(R.color.colorGold);
+
+        mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                isEdit = false;
+                request(id);
+            }
+        });
+
+
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        LogUtils.logd("onResume");
+        isEdit = false;
+        request(id);
+        StatService.onPageStart(mActivity,"预付卡详情页面");
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        ImeUtil.hideSoftKeyboard(tvAmount);
+        StatService.onPageEnd(mActivity,"预付卡详情页面");
+    }
+
+    /**
+     * 初始化dialog
+     */
+    void initMaterialDialog() {
+        View view = LayoutInflater.from(this).inflate(R.layout.addoperationrecord, null);
+        tvZhuanru = (TextView) view.findViewById(R.id.tvZhuanru);
+        tvZhuanchu = (TextView) view.findViewById(R.id.tvZhuanchu);
+        cetMoney = (ClearEditText) view.findViewById(R.id.cetMoney);
+        llZhuan = (LinearLayout) view.findViewById(R.id.llZhuan);
+
+        cetMoney.setHint("请输入消费金额");
+        llZhuan.setVisibility(View.GONE);
+        cetMoney.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                //限制只能输入到小数点后两位
+                if (s.toString().contains(".")) {
+                    if (s.length() - 1 - s.toString().indexOf(".") > 2) {//DECIMAL_DIGITS
+                        s = s.toString().subSequence(0,
+                                s.toString().indexOf(".") + 2 + 1);//DECIMAL_DIGITS
+                        cetMoney.setText(s);
+                        cetMoney.setSelection(s.length());
+                    }
+                }
+                if (s.toString().trim().substring(0).equals(".")) {
+                    s = "0" + s;
+                    cetMoney.setText(s);
+                    cetMoney.setSelection(2);
+                }
+                if (s.toString().startsWith("0")
+                        && s.toString().trim().length() > 1) {
+                    if (!s.toString().substring(1, 2).equals(".")) {
+                        cetMoney.setText(s.subSequence(0, 1));
+                        cetMoney.setSelection(1);
+                        return;
+                    }
+                }
+            }
+            @Override
+            public void afterTextChanged(Editable s) {
+                String text = s.toString();
+                if (text != null && text.length() > 0) {
+                    materialDialog.setPositiveButtonEnable(true);
+                } else {
+                    materialDialog.setPositiveButtonEnable(false);
+                }
+            }
+        });
+
+        materialDialog = new MaterialDialog(this).setContentView(view);
+
+        materialDialog.setTitle("新增消费记录");
+        materialDialog.setPositiveButton("确定", new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                isEdit = true;
+                if(Double.parseDouble(cetMoney.getText().toString()) > Double.parseDouble(amount)){
+                    toastShow("剩余金额不足");
+                }else {
+                    request(id);
+                }
+            }
+        }).setNegativeButton("s", new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                materialDialog.dismiss();
+                ImeUtil.hideSoftKeyboard(tvAmount);
+            }
+        }).setOnDismissListener(new DialogInterface.OnDismissListener() {
+            @Override
+            public void onDismiss(DialogInterface dialogInterface) {
+                cetMoney.setText("");
+                tvAmount.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        ImeUtil.hideSoftKeyboard(tvAmount);
+                    }
+                }, 500);
+            }
+        });
+        materialDialog.setPositiveButtonEnable(false);
+        tvZhuanru.setOnClickListener(this);
+        tvZhuanchu.setOnClickListener(this);
+    }
+
+    @Override
+    protected CommonPresenter createPresenter() {
+        return new CommonPresenter(this, this);
+    }
+
+    void request(String id) {
+        RequestBody<AddOverseasRequestModel> requestBody = new RequestBody<>();
+        RequestBody.HeaderBean headerBean = new RequestBody.HeaderBean(Utils.getIPAddress(mActivity), spUtils.getSecretKeyId());
+        AddOverseasRequestModel requestModel = new AddOverseasRequestModel();
+        requestModel.setUserNo(spUtils.getUserId());
+        requestModel.setAndorsub("2");//减法
+        requestModel.setId(id);//amount
+        requestModel.setAmount(cetMoney.getText().toString());
+
+        requestBody.setBody(requestModel);
+        requestBody.setHeader(headerBean);
+
+        Gson gson = new Gson();
+        String json = gson.toJson(requestBody);
+        LogUtils.logd("参数：" + json);
+        LogUtils.logd("isEdit：" + isEdit);
+        try {
+            encMsg = DESedeUtil.getRequestAfter3DES(spUtils.getSecretKey(), spUtils.getSecretIv(), json);
+            signMsg = DESedeUtil.getRequestAfterSign(encMsg);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        if (isEdit) {
+            mvpPresenter.updateprepaidcardsum(encMsg, signMsg, "2", spUtils.getSecretKeyId());
+        } else {
+            mvpPresenter.getprepaidcard(encMsg, signMsg, "2", spUtils.getSecretKeyId());
+        }
+    }
+
+    /*void request() {
+        RequestBody<UserNoModel> requestBody = new RequestBody<>();
+        RequestBody.HeaderBean headerBean = new RequestBody.HeaderBean(Utils.getIPAddress(mActivity), spUtils.getSecretKeyId());
+        UserNoModel requestModel = new UserNoModel();
+        requestModel.setUserNo(spUtils.getUserId());
+
+        requestBody.setBody(requestModel);
+        requestBody.setHeader(headerBean);
+
+        Gson gson2 = new Gson();
+        String json2 = gson2.toJson(requestBody);
+
+        try {
+            encMsg = DESedeUtil.getRequestAfter3DES(spUtils.getSecretKey(), spUtils.getSecretIv(), json2);
+            signMsg = DESedeUtil.getRequestAfterSign(encMsg);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        mvpPresenter.getinsurancelist(encMsg, signMsg, "2", spUtils.getSecretKeyId());
+    }*/
+
+    @OnClick({R.id.tv_right, R.id.tvAddAssets, R.id.llOperationRecord})
+    public void onClick(View view) {
+        switch (view.getId()) {
+            case R.id.llOperationRecord:
+                StatService.onEvent(mActivity, "预付卡详情页点击操作记录入口", "查看预付卡操作记录", 1);
+                Intent in = new Intent(mActivity, PrepaidCardOperationRecordActivity.class);
+                in.putExtra("id", id);
+                startActivity(in);
+                overridePendingTransition(R.anim.left_in, 0);
+                break;
+            case R.id.tvZhuanru:
+                tvZhuanru.setBackgroundResource(R.drawable.rmb);
+                tvZhuanchu.setBackgroundResource(R.drawable.rmb_empty);
+                tvZhuanru.setTextColor(getResources().getColor(R.color.colorWhite));
+                tvZhuanchu.setTextColor(getResources().getColor(R.color.button_text_unable));
+                andorsub = "1";
+                break;
+            case R.id.tvZhuanchu:
+                tvZhuanchu.setBackgroundResource(R.drawable.rmb);
+                tvZhuanru.setBackgroundResource(R.drawable.rmb_empty);
+                tvZhuanchu.setTextColor(getResources().getColor(R.color.colorWhite));
+                tvZhuanru.setTextColor(getResources().getColor(R.color.button_text_unable));
+                andorsub = "2";
+                break;
+            case R.id.tvAddAssets:
+                StatService.onEvent(mActivity, "预付卡详情页点击新增操作记录", "新增预付卡操作记录", 1);
+                materialDialog.show();
+                cetMoney.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        ImeUtil.showSoftKeyboard(cetMoney);
+                    }
+                }, 250);
+                break;
+            case R.id.tv_right:
+                Intent in1 = new Intent(mActivity, AddPrepaidCard.class);
+                in1.putExtra("amount", amount);
+                in1.putExtra("id", id);
+                in1.putExtra("comment", comment);
+                in1.putExtra("times", times);
+                in1.putExtra("expireDate", expireDate);
+                in1.putExtra("memo", memo);
+                in1.putExtra("flag", "edit");
+                startActivity(in1);
+                overridePendingTransition(R.anim.left_in, 0);
+                break;
+        }
+    }
+
+    @Override
+    public void getDataSuccess(PrepaiddetailModel model) {
+        mSwipeRefreshLayout.setRefreshing(false);
+        try {
+            amount = model.getBody().getInfoDto().getAmount();
+            //comment  expireDate memo times
+            comment = model.getBody().getInfoDto().getComment();
+            expireDate = model.getBody().getInfoDto().getExpireDate();
+            memo = model.getBody().getInfoDto().getMemo();
+            times = model.getBody().getInfoDto().getTimes();
+            tvAmount.setText(Utils.addCommaContainsPoint(amount));
+
+            if (memo == null || TextUtils.isEmpty(memo)) {
+                llMemo.setVisibility(View.GONE);
+            } else {
+                llMemo.setVisibility(View.VISIBLE);
+                tvMemo.setText(memo);
+            }
+
+            if (times == null || TextUtils.isEmpty(times)) {
+                llTimes.setVisibility(View.GONE);
+            } else {
+                llTimes.setVisibility(View.VISIBLE);
+                tvTimes.setText(times);
+            }
+
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void getDataFail(String msg) {
+        toastShow(msg);
+    }
+
+
+    @Override
+    public void onSuccess(SercetKeyOverdueModel model) {
+
+        if (materialDialog != null && materialDialog.isShow()) {
+            materialDialog.dismiss();
+        }
+
+        try {
+//            if(andorsub.equals("1")){
+//                amount = String.valueOf(Double.parseDouble(amount) + Double.parseDouble(cetMoney.getText().toString()));
+//            }else{
+//                LogUtils.logd(""+Double.parseDouble(amount)+"----"+Double.parseDouble(cetMoney.getText().toString()));
+//
+//                amount = String.valueOf(new BigDecimal(Double.parseDouble(amount)).plus(new BigDecimal(Double.parseDouble(cetMoney.getText().toString()))));
+//                LogUtils.logd("差：:"+amount);
+//            }
+//
+//            tvAmount.setText(Utils.addCommaContainsPoint(amount));
+            toastShow("新增消费记录成功", R.drawable.gou_toast);
+            isEdit = false;
+            request(id);
+
+            //延时关闭
+            tvAmount.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    ImeUtil.hideSoftKeyboard(tvAmount);
+                }
+            }, 300);
+
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        //andorsub 1+ 、 2-
+    }
+
+    @Override
+    public void onFail(String model) {
+        toastShow(model);
+    }
+
+
+}

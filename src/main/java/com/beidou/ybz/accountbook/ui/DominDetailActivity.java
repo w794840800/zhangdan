@@ -1,0 +1,246 @@
+package com.beidou.ybz.accountbook.ui;
+
+import android.content.Intent;
+import android.os.Bundle;
+import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.widget.Toolbar;
+import android.text.TextUtils;
+import android.view.View;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+
+import com.baidu.mobstat.StatService;
+import com.beidou.ybz.accountbook.R;
+import com.beidou.ybz.accountbook.mvp.entity.AddOverseasRequestModel;
+import com.beidou.ybz.accountbook.mvp.entity.DominDetailModel;
+import com.beidou.ybz.accountbook.mvp.entity.FixedIncomeDetailModel;
+import com.beidou.ybz.accountbook.mvp.entity.InsuranceListModel;
+import com.beidou.ybz.accountbook.mvp.entity.RequestBody;
+import com.beidou.ybz.accountbook.mvp.other.MvpActivity;
+import com.beidou.ybz.accountbook.mvp.presenter.CommonPresenter;
+import com.beidou.ybz.accountbook.mvp.view.CommonView;
+import com.beidou.ybz.accountbook.util.ActivityUtils;
+import com.beidou.ybz.accountbook.util.DESedeUtil;
+import com.beidou.ybz.accountbook.util.LogUtils;
+import com.beidou.ybz.accountbook.util.Utils;
+import com.google.gson.Gson;
+
+import java.util.List;
+
+import butterknife.Bind;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
+
+/**
+ * Author: xu.yang on 2017/12/28
+ * QQ:754444814
+ * E-mail:754444814@qq.com
+ * module: 域名详情界面
+ */
+public class DominDetailActivity extends MvpActivity<CommonPresenter> implements CommonView<DominDetailModel> {
+    @Bind(R.id.toolbar)
+    Toolbar toolbar;
+    @Bind(R.id.tv_right)
+    TextView tvRight;
+    @Bind(R.id.tv_title)
+    TextView tvTitle;
+    @Bind(R.id.swipeRefresh)
+    SwipeRefreshLayout mSwipeRefreshLayout;
+    @Bind(R.id.tvAmount)
+    TextView tvAmount;
+    @Bind(R.id.viewLine)
+    View viewLine;
+    @Bind(R.id.tvMemo)
+    TextView tvMemo;
+    @Bind(R.id.llMemo)
+    LinearLayout llMemo;
+    @Bind(R.id.llTime)
+    LinearLayout llTime;
+    @Bind(R.id.tvBuyTime)
+    TextView tvBuyTime;
+    @Bind(R.id.llBuyTime)
+    LinearLayout llBuyTime;
+    @Bind(R.id.tvExpirytime)
+    TextView tvExpirytime;
+    @Bind(R.id.llExpirytime)
+    LinearLayout llExpirytime;
+    private String encMsg, signMsg;
+    private List<InsuranceListModel.BodyBean.ProListBean> proListBeanlist;
+    private String id, name, amount, memo, buyDate, endDate;
+    //    private String andorsub, amount;
+    private boolean isEdit;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_domindetail);
+        ButterKnife.bind(this);
+
+
+        toolbar.setNavigationIcon(R.drawable.back_black);
+
+        tvRight.setText("编辑");
+        tvRight.setTextColor(getResources().getColor(R.color.txt_color));
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ActivityUtils.finishActivity(mActivity);
+            }
+        });
+
+        Intent in = getIntent();
+        if (in != null) {
+            id = in.getStringExtra("id");
+            name = in.getStringExtra("name");
+        }
+
+        tvTitle.setText(name);
+        tvTitle.setTextColor(getResources().getColor(R.color.txt_color));
+
+        //下拉刷新条的颜色
+        mSwipeRefreshLayout.setColorSchemeResources(R.color.colorGold);
+
+        mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                isEdit = false;
+            }
+        });
+
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        LogUtils.logd("onResume");
+        isEdit = false;
+
+        request();
+        StatService.onPageStart(mActivity, "域名详情页面");
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        StatService.onPageEnd(mActivity, "域名详情页面");
+    }
+
+    @Override
+    protected CommonPresenter createPresenter() {
+        return new CommonPresenter(this, this);
+    }
+
+
+    void request() {
+        RequestBody<AddOverseasRequestModel> requestBody = new RequestBody<>();
+        RequestBody.HeaderBean headerBean = new RequestBody.HeaderBean(Utils.getIPAddress(mActivity), spUtils.getSecretKeyId());
+        AddOverseasRequestModel requestModel = new AddOverseasRequestModel();
+        requestModel.setUserNo(spUtils.getUserId());
+        requestModel.setId(id);
+
+        requestBody.setBody(requestModel);
+        requestBody.setHeader(headerBean);
+
+        Gson gson2 = new Gson();
+        String json2 = gson2.toJson(requestBody);
+        LogUtils.logd("参数：" + json2);
+        try {
+            encMsg = DESedeUtil.getRequestAfter3DES(spUtils.getSecretKey(), spUtils.getSecretIv(), json2);
+            signMsg = DESedeUtil.getRequestAfterSign(encMsg);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        mvpPresenter.getdomain(encMsg, signMsg, "2", spUtils.getSecretKeyId());
+    }
+
+    @OnClick({R.id.tv_right})
+    public void onClick(View view) {
+        switch (view.getId()) {
+            case R.id.tv_right:
+                Intent in = new Intent(this, AddDomin.class);
+                in.putExtra("id", id);
+                in.putExtra("name", name);
+                in.putExtra("amount", amount);
+                in.putExtra("buyDate", buyDate);
+                in.putExtra("endDate", endDate);
+                in.putExtra("memo", memo);
+                startActivity(in);
+                overridePendingTransition(R.anim.left_in, 0);
+                break;
+
+        }
+    }
+
+    @Override
+    public void getDataSuccess(DominDetailModel model) {
+        mSwipeRefreshLayout.setRefreshing(false);
+        // amount, arrearsName,arrearsStatus,interest,loanTime,memo,returnTime
+        try {
+            amount = model.getBody().getInfoDto().getAmount();
+//            ,brokerName,investmentTerm,yearIncome
+            name = model.getBody().getInfoDto().getHosturl();
+
+            buyDate = model.getBody().getInfoDto().getBuyDate();
+            endDate = model.getBody().getInfoDto().getEndDate();
+            memo = model.getBody().getInfoDto().getMemo();
+
+
+            tvAmount.setText(Utils.addCommaContainsPoint(amount));
+
+            tvBuyTime.setText(buyDate);
+            tvExpirytime.setText(endDate);
+            tvMemo.setText(memo);
+
+            if (memo == null || TextUtils.isEmpty(memo)) {
+                llMemo.setVisibility(View.GONE);
+                viewLine.setVisibility(View.GONE);
+            } else {
+                llMemo.setVisibility(View.VISIBLE);
+                viewLine.setVisibility(View.VISIBLE);
+            }
+
+
+//buyDate endDate
+            if (TextUtils.isEmpty(buyDate) && TextUtils.isEmpty(endDate)) {//两个都为空
+                llTime.setVisibility(View.GONE);
+            } else if (buyDate == null || TextUtils.isEmpty(buyDate)) { //年化收益为空,期限不为空
+                llTime.setVisibility(View.VISIBLE);
+                llBuyTime.setVisibility(View.GONE);
+                llExpirytime.setVisibility(View.VISIBLE);
+                llExpirytime.setOrientation(LinearLayout.HORIZONTAL);
+
+                LinearLayout.LayoutParams layoutParam = new LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+                layoutParam.setMargins(20, 0, 0, 0);
+
+                tvExpirytime.setLayoutParams(layoutParam);
+            } else if (endDate == null || TextUtils.isEmpty(endDate)) {//归还时间为空,借入时间不为空
+                llBuyTime.setVisibility(View.VISIBLE);
+                llExpirytime.setVisibility(View.GONE);
+                llTime.setVisibility(View.VISIBLE);
+                llBuyTime.setOrientation(LinearLayout.HORIZONTAL);
+
+                LinearLayout.LayoutParams layoutParam = new LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+                layoutParam.setMargins(20, 0, 0, 0);
+
+                tvBuyTime.setLayoutParams(layoutParam);
+            } else {//借入、归还时间都不为空
+                llBuyTime.setVisibility(View.VISIBLE);
+                llExpirytime.setVisibility(View.VISIBLE);
+                llTime.setVisibility(View.VISIBLE);
+            }
+
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void getDataFail(String msg) {
+        toastShow(msg);
+    }
+
+
+}

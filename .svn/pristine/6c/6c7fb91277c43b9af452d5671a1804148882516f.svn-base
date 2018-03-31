@@ -1,0 +1,107 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 25
+    buildToolsVersion "25.0.3"
+
+
+    signingConfigs {
+        myconfig {
+            keyAlias 'ybz'
+            keyPassword 'android'
+            storeFile file('D:/ybz.jks')
+            storePassword 'android'
+        }
+    }
+
+    defaultConfig {
+        applicationId "com.beidou.ybz.accountbook"
+        minSdkVersion 17
+        targetSdkVersion 25
+        versionCode 1
+        versionName "1.0"
+//        javaCompileOptions { annotationProcessorOptions { includeCompileClasspath = true } }
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            buildConfigField("boolean", "LOG_DEBUG", "false")
+        }
+
+        debug {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            //      applicationIdSuffix "debug"
+            debuggable true
+            jniDebuggable false
+            signingConfig signingConfigs.myconfig
+            renderscriptDebuggable false
+            zipAlignEnabled true
+            buildConfigField("boolean", "LOG_DEBUG", "true")
+        }
+    }
+
+    repositories {
+        flatDir {
+            dirs 'libs'
+        }
+    }
+}
+
+dependencies {
+    compile fileTree(include: ['*.jar'], dir: 'libs')
+    compile 'com.android.support.constraint:constraint-layout:1.0.2'
+    testCompile 'junit:junit:4.12'
+    compile 'com.android.support:appcompat-v7:25.3.1'
+    compile 'com.android.support:recyclerview-v7:25.3.1'
+    compile 'com.jakewharton:butterknife:7.0.1'
+    compile 'com.squareup.retrofit2:retrofit:2.0.2'
+    compile 'com.squareup.okhttp3:logging-interceptor:3.1.2'
+    compile 'com.squareup.retrofit2:converter-gson:2.0.2'
+    compile 'com.squareup.retrofit2:adapter-rxjava:2.0.2'
+    compile 'io.reactivex:rxandroid:1.1.0'
+    compile 'io.reactivex:rxjava:1.1.0'
+    compile 'com.android.support:support-v4:25.3.1'
+    //    compile 'com.flyco.banner:FlycoBanner_Lib:2.0.2@aar'
+    compile 'com.github.bumptech.glide:glide:3.6.1'
+    compile 'com.android.support:design:25.0.0'
+    compile 'com.orhanobut:logger:1.15'
+    //    compile 'com.sunfusheng:marqueeview:1.3.1'
+    compile 'com.flyco.tablayout:FlycoTabLayout_Lib:2.1.0@aar'
+    //http://www.jianshu.com/p/b343fcff51b0
+    compile 'com.github.CymChad:BaseRecyclerViewAdapterHelper:2.9.22'
+    compile 'com.flipboard:bottomsheet-core:1.5.2'
+    compile 'com.flipboard:bottomsheet-commons:1.5.2'
+    compile 'de.hdodenhof:circleimageview:2.1.0'
+    compile 'com.tapadoo.android:alerter:1.0.7'
+    compile 'jp.wasabeef:glide-transformations:2.0.1'
+    //Appbar滑动动画
+    compile 'com.github.todou:appbarspring:1.0.3'
+    compile(name: 'swipeBack_library', ext: 'aar')
+    compile(name: 'quicksidebar-release', ext: 'aar')
+    compile 'de.hdodenhof:circleimageview:2.1.0'
+    compile 'com.contrarywind:Android-PickerView:3.2.7'
+    compile 'com.tbruyelle.rxpermissions:rxpermissions:0.7.0@aar'
+    compile 'com.flipboard:bottomsheet-core:1.5.2'
+    compile 'com.flipboard:bottomsheet-commons:1.5.2'
+    compile 'com.jakewharton.rxbinding:rxbinding:0.4.0'
+    compile 'com.github.CymChad:BaseRecyclerViewAdapterHelper:2.9.30'
+//    compile files('libs/open_sdk_r5923_lite.jar')
+    compile 'com.tencent.mm.opensdk:wechat-sdk-android-with-mta:1.3.4'
+    compile files('libs/libammsdk.jar')
+//    compile 'com.android.support:cardview-v7:23.1.0'
+//    compile project(':quicksidebar')
+    compile files('libs/ShareSDK-Wechat-Moments-3.1.2.jar')
+    compile files('libs/ShareSDK-Wechat-Favorite-3.1.2.jar')
+    compile files('libs/ShareSDK-Wechat-Core-3.1.2.jar')
+    compile files('libs/ShareSDK-Wechat-3.1.2.jar')
+    compile files('libs/ShareSDK-ShortMessage-3.1.2.jar')
+    compile files('libs/ShareSDK-QZone-3.1.2.jar')
+    compile files('libs/ShareSDK-qq_share-3.1.2.jar')
+    compile files('libs/ShareSDK-Core-3.1.2.jar')
+    compile files('libs/MobTools-2017.1201.1507.jar')
+    compile files('libs/MobCommons-2017.1201.1507.jar')
+    compile 'org.greenrobot:eventbus:3.0.0'
+    compile project(':PushSDK')
+}

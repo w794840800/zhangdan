@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/colorWhite"
+    android:fitsSystemWindows="true"
+    android:focusableInTouchMode="true"
+    android:orientation="vertical"
+    tools:context="com.bob.caifu360.accountbook.com.beidou.caifu360.accountbook.ui.RenmaiActivity">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="44dp"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="11.1dp"
+            android:layout_marginLeft="8.1dp"
+            android:layout_marginRight="12.55dp"
+            android:layout_marginTop="11dp"
+            android:layout_weight="0.9"
+            android:src="@drawable/back_black" />
+
+
+        <com.beidou.ybz.accountbook.widget.ClearEditText
+            android:id="@+id/edittext"
+            android:layout_width="match_parent"
+            android:layout_height="28dp"
+            android:layout_gravity="center_vertical"
+            android:layout_marginBottom="8dp"
+            android:layout_marginRight="16.5dp"
+            android:layout_marginTop="8dp"
+            android:layout_weight="0.1"
+            android:background="@drawable/renmai_search"
+            android:drawableLeft="@drawable/search"
+            android:drawablePadding="7.5dp"
+            android:hint="搜索"
+            android:textColor="#ff707889"
+            android:textSize="14dp" />
+
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@drawable/shadow" />
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <ListView
+            android:id="@+id/sortlist"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:background="@color/colorWhite"
+            android:listSelector="@drawable/comm_btn_selector" />
+
+        <TextView
+            android:id="@+id/dialog"
+            android:layout_width="80.0dp"
+            android:layout_height="80.0dp"
+            android:layout_gravity="center"
+            android:background="@drawable/number_base"
+            android:gravity="center"
+            android:textColor="#ffffffff"
+            android:textSize="30.0dp"
+            android:visibility="invisible" />
+
+        <com.beidou.ybz.accountbook.widget.sidebar.SideBar
+            android:id="@+id/sidrbar"
+            android:layout_width="30.0dp"
+            android:layout_height="match_parent"
+            android:layout_gravity="right|center" />
+    </FrameLayout>
+
+</LinearLayout>

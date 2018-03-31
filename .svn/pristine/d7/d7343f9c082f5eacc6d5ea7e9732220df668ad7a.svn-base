@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/ll"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/colorWhite"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="50dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingLeft="15dp"
+        android:paddingRight="19dp">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="match_parent"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+            <TextView
+                android:id="@+id/tvName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="15sp"
+                android:maxEms="8"
+                android:ellipsize="end"
+                android:singleLine="true"
+                android:textColor="@color/background"
+                android:text="大概 刚刚大概大概大概大概的高度个个高度"/>
+            <TextView
+                android:id="@+id/tvHasReturn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="12sp"
+                android:layout_marginLeft="6dp"
+                android:visibility="gone"
+                android:paddingLeft="6dp"
+                android:paddingRight="6dp"
+                android:paddingBottom="2dp"
+                android:paddingTop="2dp"
+                android:textColor="@color/colorGold"
+                android:background="@drawable/bg_gold_bigradius"
+                android:text=""/>
+
+        </LinearLayout>
+
+
+        <TextView
+            android:id="@+id/tvAmount"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:text="1.234万"
+            android:gravity="right|center_vertical"
+            android:textColor="#707889"
+            android:textSize="15sp" />
+
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="0.5dp"
+        android:layout_marginTop="0dp"
+        android:background="@color/bgcolordark" />
+
+
+</LinearLayout>

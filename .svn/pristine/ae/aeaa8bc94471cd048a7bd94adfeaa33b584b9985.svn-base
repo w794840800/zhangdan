@@ -1,0 +1,263 @@
+package com.beidou.ybz.accountbook.ui.fragment;
+
+import android.annotation.SuppressLint;
+import android.os.Build;
+import android.util.Log;
+import android.view.View;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
+
+import com.beidou.ybz.accountbook.R;
+import com.beidou.ybz.accountbook.mvp.entity.AddOverseasRequestModel;
+import com.beidou.ybz.accountbook.mvp.entity.CsIndexDataModel;
+import com.beidou.ybz.accountbook.mvp.entity.MyModel;
+import com.beidou.ybz.accountbook.mvp.entity.RequestBody;
+import com.beidou.ybz.accountbook.mvp.other.MvpFragment;
+import com.beidou.ybz.accountbook.mvp.presenter.CommonPresenter;
+import com.beidou.ybz.accountbook.mvp.view.CommonView;
+import com.beidou.ybz.accountbook.mvp.view.OtherView;
+import com.beidou.ybz.accountbook.retrofit.ApiStores;
+import com.beidou.ybz.accountbook.util.DESedeUtil;
+import com.beidou.ybz.accountbook.util.Utils;
+import com.beidou.ybz.accountbook.widget.ProgressWebView1;
+import com.bumptech.glide.Glide;
+import com.google.gson.Gson;
+
+import butterknife.Bind;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
+import de.hdodenhof.circleimageview.CircleImageView;
+
+public class CaishangFragment extends MvpFragment<CommonPresenter> implements CommonView<CsIndexDataModel>, OtherView<MyModel> {
+
+    ProgressWebView1 mWebView;
+    @Bind(R.id.caishang_Title)
+    TextView caishangTitle;
+    @Bind(R.id.caishang_fenshu)
+    TextView caishangFenshu;
+    @Bind(R.id.CircleImageView1)
+    CircleImageView CircleImageView1;
+    @Bind(R.id.top1)
+    RelativeLayout top1;
+    @Bind(R.id.CircleImageView2)
+    CircleImageView CircleImageView2;
+    @Bind(R.id.top2)
+    RelativeLayout top2;
+    @Bind(R.id.relativelayout)
+    LinearLayout relativelayout;
+    @Bind(R.id.tv_title)
+    TextView tvTitle;
+
+    private String encMsg, signMsg;
+    private String url;
+
+    @Override
+    public int getLayoutRes() {
+        return R.layout.web_cs_home;
+    }
+
+    @Override
+    public void initView() {
+        mWebView = new ProgressWebView1(getActivity(), null, tvTitle);
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT);
+        mWebView.setLayoutParams(lp);
+        relativelayout.addView(mWebView);
+    }
+
+
+    @Override
+    public void onHiddenChanged(boolean hidden) {
+        super.onHiddenChanged(hidden);
+        if (isHidden()) {
+            mWebView.loadUrl("javascript:radioPause()");
+            mWebView.reload();
+        }
+    }
+
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        indexdata();
+        request();
+        if (spUtils.getIsLogin()) {
+            index();
+        }
+        Glide.with(mActivity)
+                .load(spUtils.getPortraitUrl())
+                .error(R.drawable.defaultavatar)
+                .into(CircleImageView1);
+        Glide.with(mActivity)
+                .load(spUtils.getPortraitUrl())
+                .error(R.drawable.defaultavatar)
+                .into(CircleImageView2);
+    }
+
+    @Override
+    protected CommonPresenter createPresenter() {
+        if (mActivity != null) {
+            return new CommonPresenter(mActivity, this);
+        } else {
+            return new CommonPresenter(getActivity(), this);
+        }
+    }
+
+    /**
+     * 财商h5
+     */
+    @SuppressLint("SetJavaScriptEnabled")
+    private void request() {
+        RequestBody<AddOverseasRequestModel> requestBody = new RequestBody<>();
+        RequestBody.HeaderBean headerBean = new RequestBody.HeaderBean(Utils.getIPAddress(mActivity), spUtils.getSecretKeyId());
+        AddOverseasRequestModel addOverseasRequestModel = new AddOverseasRequestModel();
+        addOverseasRequestModel.setUserNo(spUtils.getUserId());
+//        if (spUtils.getNickName()!=null&spUtils.getNickName().equals("")){
+//            addOverseasRequestModel.setNickName(spUtils.getPhone());
+//        }else {
+//            addOverseasRequestModel.setNickName(spUtils.getNickName());
+//        }
+        addOverseasRequestModel.setNickName(spUtils.getNickName());
+        addOverseasRequestModel.setPortraitUrl("");
+        requestBody.setBody(addOverseasRequestModel);
+        requestBody.setHeader(headerBean);
+        Gson gson2 = new Gson();
+        String json2 = gson2.toJson(requestBody);
+        try {
+            encMsg = DESedeUtil.getRequestAfter3DES(spUtils.getSecretKey(), spUtils.getSecretIv(), json2);
+            signMsg = DESedeUtil.getRequestAfterSign(encMsg);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+//        mvpPresenter.fqindex(encMsg, signMsg, "2", spUtils.getSecretKeyId());
+        url = ApiStores.CAISHANG_URL + "fq/index.htm?" + "encMsg=" + encMsg + "&signMsg=" + signMsg + "&msgType=" + "2" + "&secretKeyId=" + spUtils.getSecretKeyId();
+        Log.e("", "request: --------utl----------" + url);
+        mWebView.loadUrl(url);
+    }
+
+    /**
+     * 财商首页数据
+     */
+    private void indexdata() {
+        RequestBody<AddOverseasRequestModel> requestBody = new RequestBody<>();
+        RequestBody.HeaderBean headerBean = new RequestBody.HeaderBean(Utils.getIPAddress(mActivity), spUtils.getSecretKeyId());
+        AddOverseasRequestModel addOverseasRequestModel = new AddOverseasRequestModel();
+        addOverseasRequestModel.setUserNo(spUtils.getUserId());
+        requestBody.setBody(addOverseasRequestModel);
+        requestBody.setHeader(headerBean);
+        Gson gson2 = new Gson();
+        String json2 = gson2.toJson(requestBody);
+        try {
+            encMsg = DESedeUtil.getRequestAfter3DES(spUtils.getSecretKey(), spUtils.getSecretIv(), json2);
+            signMsg = DESedeUtil.getRequestAfterSign(encMsg);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        mvpPresenter.indexdata(encMsg, signMsg, "2", spUtils.getSecretKeyId());
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        ButterKnife.unbind(this);
+
+        if (mWebView != null) {
+            mWebView.clearCache(true); //清空缓存
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                if (relativelayout != null) {
+                    relativelayout.removeView(mWebView);
+                }
+                mWebView.removeAllViews();
+                mWebView.destroy();
+            } else {
+                mWebView.removeAllViews();
+                mWebView.destroy();
+                if (relativelayout != null) {
+                    relativelayout.removeView(mWebView);
+                }
+            }
+            mWebView = null;
+        }
+    }
+
+    /**
+     * 财商首页数据
+     *
+     * @param model
+     */
+    @Override
+    public void getDataSuccess(CsIndexDataModel model) {
+        if (model.getBody() == null) {//-----未测试+
+            top2.setVisibility(View.VISIBLE);
+            top1.setVisibility(View.GONE);
+        } else if (String.valueOf(model.getBody().getStudyOver()).equals("1")) {//-----已完成
+            top2.setVisibility(View.GONE);
+            top1.setVisibility(View.VISIBLE);
+        } else {//----未完成
+            top2.setVisibility(View.GONE);
+            top1.setVisibility(View.VISIBLE);
+            caishangFenshu.setText(model.getBody().getWealthValue() + "分");
+            caishangTitle.setText(model.getBody().getLevelName());
+        }
+    }
+
+    @Override
+    public void getDataFail(String msg) {
+        toastShow(msg);
+    }
+
+
+    @OnClick(R.id.CircleImageView1)
+    public void onViewClicked(View view) {
+        switch (view.getId()) {
+            case R.id.CircleImageView1:
+                mWebView.loadUrl("javascript:radioPause()");
+                break;
+        }
+    }
+
+    /**
+     * 我的首页接口
+     */
+    private void index() {
+        RequestBody<AddOverseasRequestModel> requestBody = new RequestBody<>();
+        RequestBody.HeaderBean headerBean = new RequestBody.HeaderBean(Utils.getIPAddress(mActivity), spUtils.getSecretKeyId());
+        AddOverseasRequestModel addOverseasRequestModel = new AddOverseasRequestModel();
+        addOverseasRequestModel.setUserNo(spUtils.getUserId());
+        addOverseasRequestModel.setVisitTime(spUtils.getMessageTime());
+        requestBody.setBody(addOverseasRequestModel);
+        requestBody.setHeader(headerBean);
+        Gson gson2 = new Gson();
+        String json2 = gson2.toJson(requestBody);
+        try {
+            encMsg = DESedeUtil.getRequestAfter3DES(spUtils.getSecretKey(), spUtils.getSecretIv(), json2);
+            signMsg = DESedeUtil.getRequestAfterSign(encMsg);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        mvpPresenter.index(encMsg, signMsg, "2", spUtils.getSecretKeyId());
+    }
+
+    @Override
+    public void onSuccess(MyModel model) {
+        String portraitUrl = model.getBody().getPortraitUrl();
+        if (!portraitUrl.startsWith("http")) {
+            portraitUrl = ApiStores.OTHER_IMG_URL + portraitUrl;
+        }
+        spUtils.setPortraitUrl(portraitUrl);
+        Glide.with(mActivity)
+                .load(portraitUrl)
+                .error(R.drawable.defaultavatar)
+                .into(CircleImageView1);
+        Glide.with(mActivity)
+                .load(portraitUrl)
+                .error(R.drawable.defaultavatar)
+                .into(CircleImageView2);
+    }
+
+    @Override
+    public void onFail(String model) {
+
+    }
+}

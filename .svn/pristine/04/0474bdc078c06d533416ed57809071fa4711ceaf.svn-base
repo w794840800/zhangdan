@@ -1,0 +1,248 @@
+package com.beidou.ybz.accountbook.ui;
+
+import android.content.Intent;
+import android.os.Bundle;
+import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.widget.Toolbar;
+import android.text.TextUtils;
+import android.view.View;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+
+import com.beidou.ybz.accountbook.R;
+import com.beidou.ybz.accountbook.mvp.entity.AddOverseasRequestModel;
+import com.beidou.ybz.accountbook.mvp.entity.EquityDetailModel;
+import com.beidou.ybz.accountbook.mvp.entity.InsuranceListModel;
+import com.beidou.ybz.accountbook.mvp.entity.RequestBody;
+import com.beidou.ybz.accountbook.mvp.other.MvpActivity;
+import com.beidou.ybz.accountbook.mvp.presenter.CommonPresenter;
+import com.beidou.ybz.accountbook.mvp.view.CommonView;
+import com.beidou.ybz.accountbook.util.ActivityUtils;
+import com.beidou.ybz.accountbook.util.AlertDialogUtils;
+import com.beidou.ybz.accountbook.util.DESedeUtil;
+import com.beidou.ybz.accountbook.util.Utils;
+import com.google.gson.Gson;
+
+import java.util.List;
+
+import butterknife.Bind;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
+
+/**
+ * Author: xu.yang on 2017/12/6
+ * QQ:754444814
+ * E-mail:754444814@qq.com
+ * module: 股权详情界面
+ */
+public class EquityDetailActivity extends MvpActivity<CommonPresenter> implements CommonView<EquityDetailModel> {
+    @Bind(R.id.tv_title)
+    TextView tvTitle;
+    @Bind(R.id.toolbar)
+    Toolbar toolbar;
+    @Bind(R.id.swipeRefresh)
+    SwipeRefreshLayout mSwipeRefreshLayout;
+    @Bind(R.id.tv_right)
+    TextView tvRight;
+    @Bind(R.id.tvAmount)
+    TextView tvAmount;
+    @Bind(R.id.tvMemo)
+    TextView tvMemo;
+    @Bind(R.id.llMemo)
+    LinearLayout llMemo;
+    @Bind(R.id.tvBroker)
+    TextView tvBroker;
+    @Bind(R.id.tvPeriod)
+    TextView tvPeriod;
+    @Bind(R.id.llPeriod)
+    LinearLayout llPeriod;
+    @Bind(R.id.tvBorrowTime)
+    TextView tvBorrowTime;
+    @Bind(R.id.llBorrowTime)
+    LinearLayout llBorrowTime;
+    @Bind(R.id.llTime)
+    LinearLayout llTime;
+    private String encMsg, signMsg;
+    private List<InsuranceListModel.BodyBean.ProListBean> proListBeanlist;
+    AlertDialogUtils alertDialogUtils;
+    private String id, name, memo, amount, brokerName, investmentTerm, investmentTime;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_equitydetail);
+        ButterKnife.bind(this);
+
+        handlerIntent(getIntent());
+
+
+        alertDialogUtils = new AlertDialogUtils(mActivity);
+        toolbar.setNavigationIcon(R.drawable.back_black);
+        tvTitle.setText(name);
+        tvRight.setText("编辑");
+        tvRight.setTextColor(getResources().getColor(R.color.txt_color));
+        tvTitle.setTextColor(getResources().getColor(R.color.txt_color));
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ActivityUtils.finishActivity(mActivity);
+            }
+        });
+
+        //下拉刷新条的颜色
+        mSwipeRefreshLayout.setColorSchemeResources(R.color.colorGold);
+
+        mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                request(id);
+            }
+        });
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        handlerIntent(intent);
+    }
+
+    void handlerIntent(Intent in) {
+        if (in != null) {
+            id = in.getStringExtra("id");
+            name = in.getStringExtra("name");
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        request(id);
+    }
+
+    @Override
+    protected CommonPresenter createPresenter() {
+        return new CommonPresenter(this, this);
+    }
+
+    void request(String id) {
+        RequestBody<AddOverseasRequestModel> requestBody = new RequestBody<>();
+        RequestBody.HeaderBean headerBean = new RequestBody.HeaderBean(Utils.getIPAddress(mActivity), spUtils.getSecretKeyId());
+        AddOverseasRequestModel requestModel = new AddOverseasRequestModel();
+        requestModel.setUserNo(spUtils.getUserId());
+        requestModel.setId(id);
+
+        requestBody.setBody(requestModel);
+        requestBody.setHeader(headerBean);
+
+        Gson gson = new Gson();
+        String json = gson.toJson(requestBody);
+
+        try {
+            encMsg = DESedeUtil.getRequestAfter3DES(spUtils.getSecretKey(), spUtils.getSecretIv(), json);
+            signMsg = DESedeUtil.getRequestAfterSign(encMsg);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        mvpPresenter.getequityassets(encMsg, signMsg, "2", spUtils.getSecretKeyId());
+    }
+
+
+    @OnClick({R.id.tv_right})
+    public void onViewClicked(View view) {
+        switch (view.getId()) {
+            case R.id.tv_right:
+                Intent in = new Intent(mActivity, AddEquityAssets.class);
+                in.putExtra("id", id);
+                in.putExtra("name", name);
+                in.putExtra("investmentTerm", investmentTerm);
+                in.putExtra("investmentTime", investmentTime);
+                in.putExtra("brokerName", brokerName);
+                in.putExtra("memo", memo);
+                in.putExtra("amount", amount);
+                startActivity(in);
+                overridePendingTransition(R.anim.left_in, 0);
+                break;
+        }
+    }
+
+    @Override
+    public void getDataSuccess(EquityDetailModel model) {
+        mSwipeRefreshLayout.setRefreshing(false);
+        try {
+
+            amount = model.getBody().getInfoDto().getAmount();
+            tvAmount.setText(Utils.addCommaContainsPoint(amount));
+            memo = model.getBody().getInfoDto().getMemo();
+            brokerName = model.getBody().getInfoDto().getBrokerName();
+            investmentTerm = model.getBody().getInfoDto().getInvestmentTerm();//期限
+            investmentTime = model.getBody().getInfoDto().getInvestmentTime();
+
+            tvBroker.setText(brokerName);
+            tvPeriod.setText(investmentTerm);
+
+
+            if (memo == null || TextUtils.isEmpty(memo)) {
+                llMemo.setVisibility(View.GONE);
+            } else {
+                llMemo.setVisibility(View.VISIBLE);
+            }
+
+            if (brokerName == null || TextUtils.isEmpty(brokerName)) {
+                tvBroker.setVisibility(View.GONE);
+            } else {
+                tvBroker.setVisibility(View.VISIBLE);
+            }
+
+            if (TextUtils.isEmpty(investmentTime) && TextUtils.isEmpty(investmentTerm)) {//两个都为空
+                llTime.setVisibility(View.GONE);
+            } else if (investmentTime == null || TextUtils.isEmpty(investmentTime)) { //投资时间为空,期限不为空
+                llTime.setVisibility(View.VISIBLE);
+                llBorrowTime.setVisibility(View.GONE);
+                llPeriod.setVisibility(View.VISIBLE);
+                llPeriod.setOrientation(LinearLayout.HORIZONTAL);
+
+                LinearLayout.LayoutParams layoutParam = new LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+                layoutParam.setMargins(20, 0, 0, 0);
+
+                tvPeriod.setLayoutParams(layoutParam);
+            } else if (investmentTerm == null || TextUtils.isEmpty(investmentTerm)) {
+                llBorrowTime.setVisibility(View.VISIBLE);
+                llPeriod.setVisibility(View.GONE);
+                llTime.setVisibility(View.VISIBLE);
+                llBorrowTime.setOrientation(LinearLayout.HORIZONTAL);
+
+                LinearLayout.LayoutParams layoutParam = new LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+                layoutParam.setMargins(20, 0, 0, 0);
+
+                tvBorrowTime.setLayoutParams(layoutParam);
+            } else {//借入、归还时间都不为空
+                llBorrowTime.setVisibility(View.VISIBLE);
+                llPeriod.setVisibility(View.VISIBLE);
+                llTime.setVisibility(View.VISIBLE);
+            }
+
+
+            tvBorrowTime.setText(investmentTime);
+          /*  if (investmentTerm == null || TextUtils.isEmpty(investmentTerm)) {
+                llPeriod.setVisibility(View.INVISIBLE);
+            } else {
+                llPeriod.setVisibility(View.VISIBLE);
+            }*/
+
+            tvMemo.setText(memo);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void getDataFail(String msg) {
+        mSwipeRefreshLayout.setRefreshing(false);
+        toastShow(msg);
+    }
+
+
+}

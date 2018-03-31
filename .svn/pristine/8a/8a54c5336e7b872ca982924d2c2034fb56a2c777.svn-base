@@ -1,0 +1,587 @@
+package com.beidou.ybz.accountbook.ui;
+
+import android.Manifest;
+import android.annotation.SuppressLint;
+import android.content.Intent;
+import android.database.Cursor;
+import android.net.Uri;
+import android.os.Bundle;
+import android.provider.ContactsContract;
+import android.support.v7.widget.Toolbar;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.view.MotionEvent;
+import android.view.View;
+import android.widget.Button;
+import android.widget.CompoundButton;
+import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
+
+import com.baidu.mobstat.StatService;
+import com.beidou.ybz.accountbook.R;
+import com.beidou.ybz.accountbook.mvp.entity.AddOverseasRequestModel;
+import com.beidou.ybz.accountbook.mvp.entity.RequestBody;
+import com.beidou.ybz.accountbook.mvp.entity.SercetKeyOverdueModel;
+import com.beidou.ybz.accountbook.mvp.other.MvpActivity;
+import com.beidou.ybz.accountbook.mvp.presenter.CommonPresenter;
+import com.beidou.ybz.accountbook.mvp.view.ThirdView;
+import com.beidou.ybz.accountbook.util.ActivityUtils;
+import com.beidou.ybz.accountbook.util.DESedeUtil;
+import com.beidou.ybz.accountbook.util.IEditTextChangeListener;
+import com.beidou.ybz.accountbook.util.LogUtils;
+import com.beidou.ybz.accountbook.util.Utils;
+import com.beidou.ybz.accountbook.util.WorksSizeCheckUtil;
+import com.beidou.ybz.accountbook.widget.SwitchButton;
+import com.bigkoo.pickerview.OptionsPickerView;
+import com.google.gson.Gson;
+import com.tbruyelle.rxpermissions.RxPermissions;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import butterknife.Bind;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
+import rx.functions.Action1;
+
+public class MyBlackboxActivity extends MvpActivity<CommonPresenter> implements ThirdView<SercetKeyOverdueModel> {
+    @Bind(R.id.toolbar)
+    Toolbar toolbar;
+    @Bind(R.id.tv_title)
+    TextView tvTitle;
+    @Bind(R.id.rel_cc1)
+    LinearLayout relCc1;
+    @Bind(R.id.rel_cc2)
+    LinearLayout relCc2;
+    @Bind(R.id.rel_cc3)
+    LinearLayout relCc3;
+    @Bind(R.id.rel_cc4)
+    LinearLayout relCc4;
+    @Bind(R.id.rel_cc5)
+    LinearLayout relCc5;
+    @Bind(R.id.rel_add)
+    LinearLayout relAdd;
+    @Bind(R.id.iv_del2)
+    ImageView ivDel2;
+    @Bind(R.id.iv_del3)
+    ImageView ivDel3;
+    @Bind(R.id.iv_del4)
+    ImageView ivDel4;
+    @Bind(R.id.iv_del5)
+    ImageView ivDel5;
+    @Bind(R.id.ed1)
+    EditText ed1;
+    @Bind(R.id.ed2)
+    TextView ed2;
+    OptionsPickerView pvOptions;
+    @Bind(R.id.img_txl1)
+    ImageView imgTxl1;
+    @Bind(R.id.img_txl2)
+    ImageView imgTxl2;
+    @Bind(R.id.img_txl3)
+    ImageView imgTxl3;
+    @Bind(R.id.img_txl4)
+    ImageView imgTxl4;
+    @Bind(R.id.img_txl5)
+    ImageView imgTxl5;
+    @Bind(R.id.ed_cc1)
+    EditText edCc1;
+    @Bind(R.id.ed_cc2)
+    EditText edCc2;
+    @Bind(R.id.ed_cc3)
+    EditText edCc3;
+    @Bind(R.id.ed_cc4)
+    EditText edCc4;
+    @Bind(R.id.ed_cc5)
+    EditText edCc5;
+    @Bind(R.id.sure)
+    Button sure;
+    @Bind(R.id.sb_use_checked)
+    SwitchButton sbUseChecked;
+    @Bind(R.id.tv_fasongtime)
+    TextView tvFasongtime;
+    @Bind(R.id.time_linear)
+    LinearLayout timeLinear;
+    @Bind(R.id.xiabiao)
+    TextView xiabiao;
+    @Bind(R.id.rel_fasong)
+    RelativeLayout relFasong;
+    private String encMsg, signMsg;
+    private String notice;//0----不通知 1---通知
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_my_blackbox);
+        ButterKnife.bind(this);
+
+        tvTitle.setText("我的黑匣子");
+        tvTitle.setTextColor(getResources().getColor(R.color.txt_color));
+        toolbar.setNavigationIcon(R.drawable.back_black);
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ActivityUtils.finishActivity(mActivity);
+            }
+        });
+        options1Items.add("连续30天未登录");
+        options1Items.add("连续60天未登录");
+        options1Items.add("连续180天未登录");
+        options1Items.add("连续365天未登录");
+
+        ed2.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+                if (!ed2.getText().toString().equals("")) {
+                    sure.setEnabled(true);
+                    sure.setBackgroundResource(R.drawable.hxz_bg2);
+                    sure.setTextColor(getResources().getColor(R.color.colorWhite));
+                } else {
+                    sure.setEnabled(false);
+                    sure.setBackgroundResource(R.drawable.hxz_bg1);
+                }
+            }
+        });
+
+        //条件选择器
+        pvOptions = new OptionsPickerView.Builder(this, new OptionsPickerView.OnOptionsSelectListener() {
+            @Override
+            public void onOptionsSelect(int options1, int option2, int options3, View v) {
+                //返回的分别是三个级别的选中位置
+                String tx = options1Items.get(options1);
+                ed2.setText(tx);
+            }
+        })
+                .setSubCalSize(16)//确定和取消文字大小
+                .setSubmitColor(getResources().getColor(R.color.colorGold))//确定按钮文字颜色
+                .setCancelColor(getResources().getColor(R.color.detailColor))//取消按钮文字颜色
+                .setContentTextSize(17)//滚轮文字大小
+                .build();
+        pvOptions.setPicker(options1Items);
+
+
+        sure.setEnabled(false);
+        WorksSizeCheckUtil.textChangeListener textChangeListener = new WorksSizeCheckUtil.textChangeListener(sure);
+        textChangeListener.addAllEditText(ed1, edCc1, edCc2, edCc3, edCc4, edCc5);
+        WorksSizeCheckUtil.setChangeListener(new IEditTextChangeListener() {
+            @Override
+            public void textChange(boolean isHasContent) {
+                if (isHasContent) {
+                    sure.setEnabled(true);
+                    sure.setBackgroundResource(R.drawable.bg1);
+                } else {// TODO: 2017/12/21 只要有按钮里面有内容就高亮
+                    if (!ed1.getText().toString().trim().equals("") || !ed2.getText().toString().trim().equals("")
+                            || !edCc1.getText().toString().trim().equals("") || !edCc2.getText().toString().trim().equals("")
+                            || !edCc3.getText().toString().trim().equals("") || !edCc4.getText().toString().trim().equals("")
+                            || !edCc5.getText().toString().trim().equals("")) {
+                        sure.setEnabled(true);
+                        sure.setBackgroundResource(R.drawable.hxz_bg2);
+                        sure.setTextColor(getResources().getColor(R.color.colorWhite));
+                    } else {
+                        sure.setEnabled(false);
+                        sure.setBackgroundResource(R.drawable.hxz_bg1);
+                    }
+                }
+            }
+        });
+
+
+        sbUseChecked.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                if (b) {
+                    timeLinear.setAlpha(0f);
+                    timeLinear.setVisibility(View.VISIBLE);
+                    timeLinear.animate().alpha(1f).setDuration(2000).start();
+                    notice = "1";
+                } else {
+                    timeLinear.setVisibility(View.GONE);
+                    notice = "0";
+                }
+            }
+        });
+
+        xiabiao.setText("0" + "/100");
+        ed1.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+//                int detailLength = 100-editable.length();
+                xiabiao.setText(editable.length() + "/100");
+            }
+        });
+
+        sbUseChecked.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                if (ed2.getText().length() > 0) {
+                    return false;
+                } else {
+                    toastShow("请选择发送条件");
+                    return true;
+                }
+            }
+        });
+
+
+    }
+
+
+    @Override
+    protected CommonPresenter createPresenter() {
+        return new CommonPresenter(this, this);
+    }
+
+    /**
+     * from = 0,
+     * to = "VISIBLE"
+     * <p>
+     * from = 4,
+     * to = "INVISIBLE"
+     * <p>
+     * from = 8,
+     * to = "GONE"
+     *
+     * @param view
+     */
+    @SuppressLint("WrongConstant")
+    @OnClick({R.id.rel_add, R.id.iv_del2, R.id.iv_del3, R.id.iv_del4, R.id.iv_del5, R.id.rel_fasong, R.id.img_txl1, R.id.img_txl2,
+            R.id.img_txl3, R.id.img_txl4, R.id.img_txl5, R.id.sure})
+    public void onViewClicked(View view) {
+        switch (view.getId()) {
+            case R.id.rel_add://----------添加传承人
+                if (relCc2.getVisibility() == 8) {
+                    relCc2.setAlpha(0f);
+                    relCc2.setVisibility(View.VISIBLE);
+                    relCc2.animate().alpha(1f).setDuration(2000).start();
+                    test1();
+
+                } else if (relCc3.getVisibility() == 8) {
+                    relCc3.setAlpha(0f);
+                    relCc2.setVisibility(View.VISIBLE);
+
+                    relCc3.setVisibility(View.VISIBLE);
+                    relCc3.animate().alpha(1f).setDuration(2000).start();
+                    test1();
+                } else if (relCc4.getVisibility() == 8) {
+                    relCc4.setAlpha(0);
+                    relCc2.setVisibility(View.VISIBLE);
+                    relCc3.setVisibility(View.VISIBLE);
+
+                    relCc4.setVisibility(View.VISIBLE);
+                    relCc4.animate().alpha(1f).setDuration(2000).start();
+                    test1();
+                } else if (relCc5.getVisibility() == 8) {
+                    relCc5.setAlpha(0);
+                    relCc2.setVisibility(View.VISIBLE);
+                    relCc3.setVisibility(View.VISIBLE);
+                    relCc4.setVisibility(View.VISIBLE);
+
+                    relCc5.setVisibility(View.VISIBLE);
+                    relCc5.animate().alpha(1f).setDuration(2000).start();
+
+                    test1();
+                }
+                break;
+            case R.id.iv_del2:
+                if (relCc2.getVisibility() == 0) {
+                    relCc2.setAlpha(1);
+                    relCc2.setVisibility(View.GONE);
+                    relCc2.animate().alpha(0f).setDuration(2000).start();
+
+                    test();
+                }
+                break;
+            case R.id.iv_del3:
+                if (relCc3.getVisibility() == 0) {
+                    relCc3.setAlpha(1);
+                    relCc3.setVisibility(View.GONE);
+                    relCc3.animate().alpha(0f).setDuration(2000).start();
+
+                    test();
+                }
+                break;
+            case R.id.iv_del4:
+                if (relCc4.getVisibility() == 0) {
+                    relCc4.setAlpha(1);
+                    relCc4.setVisibility(View.GONE);
+                    relCc4.animate().alpha(0f).setDuration(2000).start();
+
+                    test();
+                }
+                break;
+            case R.id.iv_del5:
+                if (relCc5.getVisibility() == 0) {
+                    relCc5.setAlpha(1);
+                    relCc5.setVisibility(View.GONE);
+                    relCc5.animate().alpha(0f).setDuration(2000).start();
+
+                    test();
+                }
+                break;
+            case R.id.rel_fasong://----------发送条件
+                if (!pvOptions.isShowing()) {
+                    pvOptions.show();
+                }
+                break;
+            case R.id.img_txl1://-----不可删的传承人的通讯录
+                goContext(1);
+                break;
+            case R.id.img_txl2:
+                goContext(2);
+                break;
+            case R.id.img_txl3:
+                goContext(3);
+                break;
+            case R.id.img_txl4:
+                goContext(4);
+                break;
+            case R.id.img_txl5:
+                goContext(5);
+                break;
+            case R.id.sure:
+                if (ed1.getText().toString().equals("")){
+                    toastShow("请输入留言");
+                }else if (ed2.getText().toString().equals("")){
+                    toastShow("请选择发送条件");
+                }else if (edCc1.getText().toString().equals("")||!Utils.isPhone(edCc1.getText().toString())){
+                    toastShow("请添加或输入联系人1");
+                    LogUtils.loge("--------gGG-------"+String.valueOf(edCc2.getVisibility() == 0));
+                }else if (relCc2.getVisibility() == 0 &&(edCc2.getText().toString().equals("")||!Utils.isPhone(edCc2.getText().toString()))){
+                    toastShow("请添加或输入联系人2");
+                }else if (relCc3.getVisibility() == 0 &&(edCc3.getText().toString().equals("")||!Utils.isPhone(edCc3.getText().toString()))){
+                    toastShow("请添加或输入联系人3");
+                }else if (relCc4.getVisibility() == 0 &&(edCc4.getText().toString().equals("")||!Utils.isPhone(edCc4.getText().toString()))){
+                    toastShow("请添加或输入联系人4");
+                }else if (relCc5.getVisibility() == 0 &&(edCc5.getText().toString().equals("")||!Utils.isPhone(edCc5.getText().toString()))){
+                    toastShow("请添加或输入联系人5");
+                }else {
+                    save();
+                }
+                break;
+        }
+    }
+
+    private boolean isKong(EditText editText) {
+        if (editText.getText().toString().trim().equals("")) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * 保存黑匣子
+     */
+    @SuppressLint("WrongConstant")
+    private void save() {
+        RequestBody<AddOverseasRequestModel> loginRequestModel = new RequestBody<>();
+        RequestBody.HeaderBean headerBean = new RequestBody.HeaderBean(Utils.getIPAddress(mActivity), spUtils.getSecretKeyId());
+        AddOverseasRequestModel requestModel = new AddOverseasRequestModel();
+
+        requestModel.setUserNo(spUtils.getUserId());
+        if (notice == null){
+            requestModel.setNotice("0");
+        }else {
+            requestModel.setNotice(notice);//-------是否通知用户
+        }
+
+        String mobile = null;
+        mobile = edCc1.getText().toString();
+        if (relCc2.getVisibility() == 0&&relCc3.getVisibility() == 0&&relCc4.getVisibility() == 0&&relCc5.getVisibility() == 0){
+            mobile = edCc1.getText().toString()+";"+edCc2.getText().toString()+";"+edCc3.getText().toString()+";"+edCc4.getText().toString()+";"+
+                    edCc5.getText().toString();
+        }else if (relCc2.getVisibility() == 0&&relCc3.getVisibility() == 0&&relCc4.getVisibility() == 0){
+            mobile = edCc1.getText().toString()+";"+edCc2.getText().toString()+";"+edCc3.getText().toString()+";"+edCc4.getText().toString();
+        }else if (relCc2.getVisibility() == 0&&relCc3.getVisibility() == 0){
+            mobile = edCc1.getText().toString()+";"+edCc2.getText().toString()+";"+edCc3.getText().toString();
+        }else if (relCc2.getVisibility() == 0){
+            mobile = edCc1.getText().toString()+";"+edCc2.getText().toString();
+        }
+
+        requestModel.setMobile(mobile);
+        if (ed2.getText().toString().equals("连续30天未登录")){
+            requestModel.setConditionif("1");
+        }else if (ed2.getText().toString().equals("连续60天未登录")){
+            requestModel.setConditionif("2");
+        }else if (ed2.getText().toString().equals("连续180天未登录")){
+            requestModel.setConditionif("3");
+        }else if (ed2.getText().toString().equals("连续365天未登录")){
+            requestModel.setConditionif("4");
+        }else if (ed2.getText().toString().equals("")){
+            requestModel.setConditionif("");
+        }
+        requestModel.setCfDate("2018-01-10");//--------触发日期
+        requestModel.setMessage(ed1.getText().toString());//----消息
+        requestModel.setSfkq("1");//----是否开启   1开启   2不开启
+
+        loginRequestModel.setBody(requestModel);
+        loginRequestModel.setHeader(headerBean);
+
+        Gson gson2 = new Gson();
+        String json2 = gson2.toJson(loginRequestModel);
+        LogUtils.logd(json2);
+        try {
+            encMsg = DESedeUtil.getRequestAfter3DES(spUtils.getSecretKey(), spUtils.getSecretIv(), json2);
+            signMsg = DESedeUtil.getRequestAfterSign(encMsg);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        mvpPresenter.addhjz(encMsg, signMsg, "2", spUtils.getSecretKeyId());
+    }
+
+    private final static int GET_CONTEXT = 123;
+    private List<String> options1Items = new ArrayList<>();
+    String number, name;
+    private int num;
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        switch (requestCode) {
+            case GET_CONTEXT:
+                if (resultCode == RESULT_OK) {
+                    if (data != null) {
+                        Uri uri = data.getData();
+                        if (uri != null) {
+                            Cursor cursor = getContentResolver()
+                                    .query(uri, new String[]{ContactsContract.CommonDataKinds.Phone.NUMBER,
+                                            ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME}, null, null, null);
+                            while (cursor.moveToNext()) {
+                                number = cursor.getString(0).replaceAll(" ", "").replaceAll("-", "");
+                                name = cursor.getString(1);
+                                LogUtils.loge("-----------mingzi----------" + name);
+                                switch (num) {
+                                    case 1:
+                                        edCc1.setText(number);
+                                        break;
+                                    case 2:
+                                        edCc2.setText(number);
+                                        break;
+                                    case 3:
+                                        edCc3.setText(number);
+                                        break;
+                                    case 4:
+                                        edCc4.setText(number);
+                                        break;
+                                    case 5:
+                                        edCc5.setText(number);
+                                        break;
+                                }
+
+                            }
+                        }
+                    }
+                }
+        }
+    }
+
+
+    @SuppressLint("WrongConstant")
+    private void test() {
+        if (relCc2.getVisibility() == 8 || relCc3.getVisibility() == 8 || relCc4.getVisibility() == 8 ||
+                relCc5.getVisibility() == 8) {
+            relAdd.setVisibility(View.VISIBLE);
+        }
+    }
+
+    @SuppressLint("WrongConstant")
+    private void test1() {
+        if (relCc2.getVisibility() == 0 && relCc3.getVisibility() == 0 && relCc4.getVisibility() == 0 &&
+                relCc5.getVisibility() == 0) {
+            relAdd.setVisibility(View.GONE);
+        }
+    }
+
+    /**
+     * 跳到通讯录
+     */
+    private void goContext(final int num1) {
+        RxPermissions.getInstance(MyBlackboxActivity.this)
+                .request(Manifest.permission.WRITE_CONTACTS, Manifest.permission.READ_CONTACTS)//这里填写所需要的权限
+                .subscribe(new Action1<Boolean>() {
+                    @Override
+                    public void call(Boolean aBoolean) {
+                        if (aBoolean) {//true表示获取权限成功（注意这里在android6.0以下默认为true）
+//                                    toastShow("成功");
+                            num = num1;
+                            Intent intent = new Intent(Intent.ACTION_PICK, ContactsContract.CommonDataKinds.Phone.CONTENT_URI);
+                            startActivityForResult(intent,GET_CONTEXT);
+                        } else {
+                            toastShow("请打开通讯录权限");
+                        }
+                    }
+                });
+
+
+//        num = num1;
+//        Intent intent = new Intent(Intent.ACTION_PICK, ContactsContract.CommonDataKinds.Phone.CONTENT_URI);
+//        startActivityForResult(intent, GET_CONTEXT);
+    }
+
+    private void getPermission() {
+        RxPermissions.getInstance(MyBlackboxActivity.this)
+                .request(Manifest.permission.WRITE_CONTACTS, Manifest.permission.READ_CONTACTS)//这里填写所需要的权限
+                .subscribe(new Action1<Boolean>() {
+                    @Override
+                    public void call(Boolean aBoolean) {
+                        if (aBoolean) {//true表示获取权限成功（注意这里在android6.0以下默认为true）
+//                                    toastShow("成功");
+                            Intent intent = new Intent(Intent.ACTION_PICK, ContactsContract.CommonDataKinds.Phone.CONTENT_URI);
+                            startActivityForResult(intent, GET_CONTEXT);
+                        } else {
+                            toastShow("请打开通讯录权限");
+                        }
+                    }
+                });
+    }
+
+    /**
+     * 保存黑匣子结果
+     *
+     * @param model
+     */
+
+    @Override
+    public void ThirdSuccess(SercetKeyOverdueModel model) {
+        spUtils.setOpenblackBox(true);
+        ActivityUtils.startActivityRightIn(mActivity,BlackboxDetailActivity.class);
+    }
+
+    @Override
+    public void ThirdFail(String msg) {
+        toastShow(msg);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        StatService.onPageStart(mActivity,"我的黑匣子页面");
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        StatService.onPageEnd(mActivity,"我的黑匣子页面");
+    }
+}

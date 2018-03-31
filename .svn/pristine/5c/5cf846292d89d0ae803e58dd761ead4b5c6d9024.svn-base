@@ -1,0 +1,802 @@
+package com.beidou.ybz.accountbook.ui;
+
+import android.Manifest;
+import android.animation.ValueAnimator;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.database.Cursor;
+import android.net.Uri;
+import android.os.Build;
+import android.os.Bundle;
+import android.provider.ContactsContract;
+import android.support.v7.widget.Toolbar;
+import android.text.TextUtils;
+import android.util.Log;
+import android.view.MotionEvent;
+import android.view.View;
+import android.view.WindowManager;
+import android.widget.Button;
+import android.widget.CompoundButton;
+import android.widget.EditText;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import com.baidu.mobstat.StatService;
+import com.beidou.ybz.accountbook.R;
+import com.beidou.ybz.accountbook.mvp.entity.AddOverseasRequestModel;
+import com.beidou.ybz.accountbook.mvp.entity.GetHjzModel;
+import com.beidou.ybz.accountbook.mvp.entity.RequestBody;
+import com.beidou.ybz.accountbook.mvp.entity.SercetKeyOverdueModel;
+import com.beidou.ybz.accountbook.mvp.other.MvpActivity;
+import com.beidou.ybz.accountbook.mvp.presenter.CommonPresenter;
+import com.beidou.ybz.accountbook.mvp.view.ThirdView;
+import com.beidou.ybz.accountbook.util.ActivityUtils;
+import com.beidou.ybz.accountbook.util.DESedeUtil;
+import com.beidou.ybz.accountbook.util.ImeUtil;
+import com.beidou.ybz.accountbook.util.LogUtils;
+import com.beidou.ybz.accountbook.util.TimeUtils;
+import com.beidou.ybz.accountbook.util.ToastUtils;
+import com.beidou.ybz.accountbook.util.Utils;
+import com.beidou.ybz.accountbook.widget.ClearEditText;
+import com.beidou.ybz.accountbook.widget.SwitchButton;
+import com.bigkoo.pickerview.OptionsPickerView;
+import com.google.gson.Gson;
+import com.jakewharton.rxbinding.widget.RxTextView;
+import com.tbruyelle.rxpermissions.RxPermissions;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import butterknife.Bind;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
+import rx.Observable;
+import rx.functions.Action1;
+import rx.functions.Func7;
+
+/**
+ * Author: xu.yang on 2018/2/7
+ * QQ:754444814
+ * E-mail:754444814@qq.com
+ * module: 黑匣子编辑页面（优化）
+ */
+public class BlackBoxEditActivity extends MvpActivity<CommonPresenter> implements ThirdView<SercetKeyOverdueModel> {
+    @Bind(R.id.toolbar)
+    Toolbar toolbar;
+    @Bind(R.id.tv_title)
+    TextView tvTitle;
+    @Bind(R.id.etContent)
+    EditText etContent;
+    @Bind(R.id.tvXiabiao)
+    TextView tvXiabiao;
+    @Bind(R.id.tvSendCondition)
+    TextView tvSendCondition;
+    @Bind(R.id.cetInheritor1)
+    ClearEditText cetInheritor1;
+    @Bind(R.id.llInheritor1)
+    LinearLayout llInheritor1;
+    @Bind(R.id.cetInheritor2)
+    ClearEditText cetInheritor2;
+    @Bind(R.id.llInheritor2)
+    LinearLayout llInheritor2;
+    @Bind(R.id.cetInheritor3)
+    ClearEditText cetInheritor3;
+    @Bind(R.id.llInheritor3)
+    LinearLayout llInheritor3;
+    @Bind(R.id.cetInheritor4)
+    ClearEditText cetInheritor4;
+    @Bind(R.id.llInheritor4)
+    LinearLayout llInheritor4;
+    @Bind(R.id.cetInheritor5)
+    ClearEditText cetInheritor5;
+    @Bind(R.id.llInheritor5)
+    LinearLayout llInheritor5;
+    @Bind(R.id.sb_use_checked)
+    SwitchButton sbUseChecked;
+    @Bind(R.id.tvSendTime)
+    TextView tvSendTime;
+    @Bind(R.id.llSendTime)
+    LinearLayout llSendTime;
+    @Bind(R.id.btnSure)
+    Button btnSure;
+    private List<LinearLayout> llInheritorList;
+    private int inheritorSerial;//点击具体传承人后通讯录按钮对应的序号
+    private int addInheritorSerial = 1;//点击底部添加传承人对应的序号,全局
+    private List<Integer> delInheritorSerialList;//删除的位置集合
+    private int addInheritorSerialCount = 1;//点击底部添加传承人对应的总数,全局
+    private List<ClearEditText> clearEditTextList;
+    private int inheritorHeight;//五个传承人框子高度
+    private ValueAnimator inheritorAnimatorShow, inheritorAnimatorHide;//传承人框子显示/隐藏动画
+    int delInheritorSerialListSize;//删除集合的个数
+//    int delInheritorSerialListIndex = 0;//删除集合的下标
+    private boolean isAddInheritorCount;//是否是点击底部“添加继承人”？
+    private boolean isSendTime;//是否是发送时间？
+    private OptionsPickerView sendTimePickView;
+    private List<String> sendTimeList = new ArrayList<>();
+    private List<Integer> sendTimeDayList = new ArrayList<>();
+    private String sendDate, conditionif;//发送的日期和对应编号
+    private String messageNotice = "2";//发送前短信通知？ 2-不通知 1-通知
+    private String encMsg, signMsg;
+    private GetHjzModel getHjzModel;
+    private boolean isEdit;
+    private String from;
+    private boolean isFromDetail;
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN | WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN);//软键盘不自动弹出
+        setContentView(R.layout.activity_blackboxedit);
+
+        tvTitle.setText("设置黑匣子");
+        tvTitle.setTextColor(getResources().getColor(R.color.txt_color));
+        toolbar.setNavigationIcon(R.drawable.back_black);
+        toolbar.setBackgroundColor(getResources().getColor(R.color.colorWhite));
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ActivityUtils.finishActivity(mActivity);
+            }
+        });
+
+        //五个传承人输入框集合
+        clearEditTextList = new ArrayList<>();
+        clearEditTextList.add(cetInheritor1);
+        clearEditTextList.add(cetInheritor2);
+        clearEditTextList.add(cetInheritor3);
+        clearEditTextList.add(cetInheritor4);
+        clearEditTextList.add(cetInheritor5);
+
+        //五个传承人LinearLayout框集合
+        llInheritorList = new ArrayList<>();
+        llInheritorList.add(llInheritor1);
+        llInheritorList.add(llInheritor2);
+        llInheritorList.add(llInheritor3);
+        llInheritorList.add(llInheritor4);
+        llInheritorList.add(llInheritor5);
+
+        //计算传承人框子的高度
+        int w = View.MeasureSpec.makeMeasureSpec(0,
+                View.MeasureSpec.UNSPECIFIED);
+        int h = View.MeasureSpec.makeMeasureSpec(0,
+                View.MeasureSpec.UNSPECIFIED);
+        llInheritor1.measure(w, h);
+        inheritorHeight = llInheritor1.getMeasuredHeight();
+        Log.e("llInheritor1", "llInheritor1: " + llInheritor1);
+        initAnimator();
+
+        //删除的传承人集合，默认是2,3,4,5
+        delInheritorSerialList = new ArrayList<>();
+        delInheritorSerialList.add(1);
+        delInheritorSerialList.add(2);
+        delInheritorSerialList.add(3);
+        delInheritorSerialList.add(4);
+
+        initSwitchButton();
+        liuyanInput();
+        initSendCondition();
+        bindViewByRxBinding();
+
+        //只有选择了发送条件，Checkedbutton才可点击
+        sbUseChecked.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                if (tvSendCondition.getText().length() > 0) {
+                    return false;
+                } else {
+                    toastShow("请选择发送条件");
+                    return true;
+                }
+            }
+        });
+
+        Intent intent = getIntent();
+        from = intent.getStringExtra("from");
+        if(from != null && from.equals("detail")){
+            isFromDetail = true;
+        }
+        getHjzModel = intent.getParcelableExtra("getHjzModel");
+        if (getHjzModel != null) {
+            isEdit = true;
+            String message = null;
+            try {
+                sendDate = getHjzModel.getBody().getInfoDto().getCfDate();//发送日期
+                conditionif = getHjzModel.getBody().getInfoDto().getConditionif();//发送条件
+                messageNotice = getHjzModel.getBody().getInfoDto().getNotice();//是否开启短信通知 1-开启 2-不开启
+                message = getHjzModel.getBody().getInfoDto().getMessage();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            tvSendTime.setText(sendDate + "发送");
+            etContent.setText(message);
+            etContent.setSelection(etContent.getText().toString().length());
+            if(conditionif != null && Utils.isNumeric(conditionif)) {
+                tvSendCondition.setText(sendTimeList.get(Integer.parseInt(conditionif) - 1));
+                sendTimePickView.setSelectOptions(Integer.parseInt(conditionif) - 1);
+            }
+            if (messageNotice != null && messageNotice.equals("1")) {
+                sbUseChecked.setChecked(true);
+            } else {
+                sbUseChecked.setChecked(false);
+            }
+            int size = getHjzModel.getBody().getProList().size();
+            size = size > 5 ? 5 : size;
+            addInheritorSerialCount = size;
+            addInheritorSerial = size + 1;
+            inheritorSerial = size;
+            for (int i = 1; i < size; i++) {
+                delInheritorSerialList.remove(0);
+                llInheritorList.get(i).getLayoutParams().height = inheritorHeight;
+                llInheritorList.get(i).requestLayout();
+            }
+            for (int i = 0; i < size; i++) {
+                clearEditTextList.get(i).setText(getHjzModel.getBody().getProList().get(i).getMobile());
+            }
+
+        }
+    }
+
+    /**
+     * 发送条件设置
+     */
+    private void initSendCondition() {
+        sendTimeList.add("连续30天未登录");
+        sendTimeList.add("连续60天未登录");
+        sendTimeList.add("连续180天未登录");
+        sendTimeList.add("连续365天未登录");
+        sendTimeDayList.add(30);
+        sendTimeDayList.add(60);
+        sendTimeDayList.add(180);
+        sendTimeDayList.add(365);
+        //发送条件选择器
+        sendTimePickView = new OptionsPickerView.Builder(this, new OptionsPickerView.OnOptionsSelectListener() {
+            @Override
+            public void onOptionsSelect(int options1, int option2, int options3, View v) {
+                //返回的分别是三个级别的选中位置
+                String sendCondition = sendTimeList.get(options1);
+                tvSendCondition.setText(sendCondition);
+                sendDate = TimeUtils.getOldDate(sendTimeDayList.get(options1));
+                conditionif = String.valueOf(options1 + 1);
+                tvSendTime.setText(sendDate + "发送");
+            }
+        })
+                .setSubCalSize(16)//确定和取消文字大小
+                .setSubmitColor(getResources().getColor(R.color.colorGold))//确定按钮文字颜色
+                .setCancelColor(getResources().getColor(R.color.detailColor))//取消按钮文字颜色
+                .setContentTextSize(17)//滚轮文字大小
+                .build();
+        sendTimePickView.setPicker(sendTimeList);
+    }
+
+    //发送前短信通知开关
+    private void initSwitchButton() {
+        sbUseChecked.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                if (b) {
+                    isSendTime = true;
+                    inheritorAnimatorShow.start();
+                    messageNotice = "1";//短信通知开启
+                    StatService.onEvent(mActivity, "设置/编辑黑匣子时打开发送前通知", "[设置/编辑黑匣子时打开发送前通知]");
+                } else {
+                    isSendTime = true;
+                    inheritorAnimatorHide.start();
+                    messageNotice = "2";//短信不通知
+                }
+            }
+        });
+    }
+
+    //留言输入框限制
+    private void liuyanInput() {
+        RxTextView.textChanges(etContent).subscribe(new Action1<CharSequence>() {
+            @Override
+            public void call(CharSequence charSequence) {
+                tvXiabiao.setText(charSequence.length() + "/100");
+                if (charSequence.length() == 100) {
+                    tvXiabiao.setTextColor(getResources().getColor(R.color.red));
+                } else {
+                    tvXiabiao.setTextColor(getResources().getColor(R.color.xiabiao));
+                }
+            }
+        });
+    }
+
+    /**
+     * 传承人框子
+     * 布局展开/隐藏动画
+     * 属性动画-动态改变布局高度
+     */
+    void initAnimator() {
+        final ValueAnimator.AnimatorUpdateListener ani = new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+                int h = (Integer) animation.getAnimatedValue();
+                //动态更新view的高度
+                LogUtils.logd("addInheritorSerial:" + addInheritorSerial);
+                LogUtils.logd("addInheritorSerialCount:" + addInheritorSerialCount);
+                if (isSendTime) {
+                    llSendTime.getLayoutParams().height = h;
+                    llSendTime.requestLayout();
+                    return;
+                }
+
+                switch (inheritorSerial + 1) {//addInheritorSerial
+                    case 2:
+                        llInheritor2.getLayoutParams().height = h;
+                        llInheritor2.requestLayout();
+                        break;
+                    case 3:
+                        llInheritor3.getLayoutParams().height = h;
+                        llInheritor3.requestLayout();
+                        break;
+                    case 4:
+                        llInheritor4.getLayoutParams().height = h;
+                        llInheritor4.requestLayout();
+                        break;
+                    case 5:
+                        llInheritor5.getLayoutParams().height = h;
+                        llInheritor5.requestLayout();
+                        break;
+                }
+            }
+        };
+
+        inheritorAnimatorHide = ValueAnimator.ofInt(inheritorHeight, 0);
+        inheritorAnimatorShow = ValueAnimator.ofInt(0, inheritorHeight);
+
+        inheritorAnimatorHide.addUpdateListener(ani);
+        inheritorAnimatorShow.addUpdateListener(ani);
+
+        inheritorAnimatorShow.setDuration(400);
+        inheritorAnimatorHide.setDuration(400);
+
+    }
+
+    @OnClick({R.id.rlSendCondition, R.id.ivDeleteInheritor1, R.id.ivAddInheritor1, R.id.ivDeleteInheritor2, R.id.ivAddInheritor2,
+            R.id.ivDeleteInheritor3, R.id.ivAddInheritor3, R.id.ivDeleteInheritor4, R.id.ivAddInheritor4, R.id.ivDeleteInheritor5,
+            R.id.ivAddInheritor5, R.id.llAddInheritor, R.id.btnSure})
+    public void onViewClicked(View view) {
+        switch (view.getId()) {
+            case R.id.rlSendCondition://选择发送条件
+                if (!sendTimePickView.isShowing()) {
+                    sendTimePickView.show();
+                    ImeUtil.hideSoftKeyboard(view);
+                }
+                break;
+            case R.id.ivDeleteInheritor1://传承人1删除
+                break;
+            case R.id.ivAddInheritor1://传承人1添加
+                isAddInheritorCount = false;
+                getContact(0);
+                break;
+            case R.id.ivDeleteInheritor2://传承人2删除
+                isSendTime = false;
+                //删除一个传承人，从删除列表中加上对应的
+                cetInheritor2.setText("");
+                if (!delInheritorSerialList.contains(1)) {
+                    delInheritorSerialList.add(1);
+                }
+
+                addInheritorSerial = 2;
+                inheritorSerial = 1;
+                inheritorAnimatorHide.start();
+                addInheritorSerialCount--;
+                break;
+            case R.id.ivAddInheritor2://传承人2添加
+                isAddInheritorCount = false;
+                getContact(1);
+                break;
+            case R.id.ivDeleteInheritor3://传承人3删除
+                isSendTime = false;
+                cetInheritor3.setText("");
+                addInheritorSerial = 3;
+                inheritorSerial = 2;
+                if (!delInheritorSerialList.contains(2)) {
+                    delInheritorSerialList.add(2);
+                }
+
+                inheritorAnimatorHide.start();
+                addInheritorSerialCount--;
+                break;
+            case R.id.ivAddInheritor3://传承人3添加
+                isAddInheritorCount = false;
+                getContact(2);
+                break;
+            case R.id.ivDeleteInheritor4://传承人4删除
+                isSendTime = false;
+                cetInheritor4.setText("");
+                addInheritorSerial = 4;
+                inheritorSerial = 3;
+                if (!delInheritorSerialList.contains(3)) {
+                    delInheritorSerialList.add(3);
+                }
+                inheritorAnimatorHide.start();
+                addInheritorSerialCount--;
+                break;
+            case R.id.ivAddInheritor4://传承人4添加
+                isAddInheritorCount = false;
+                getContact(3);
+                break;
+            case R.id.ivDeleteInheritor5://传承人5删除
+                isSendTime = false;
+                cetInheritor5.setText("");
+                addInheritorSerial = 5;
+                inheritorSerial = 4;
+                if (!delInheritorSerialList.contains(4)) {
+                    delInheritorSerialList.add(4);
+                }
+                addInheritorSerialCount--;
+                inheritorAnimatorHide.start();
+                break;
+            case R.id.ivAddInheritor5://传承人5添加
+                isAddInheritorCount = false;
+                getContact(4);
+                break;
+            case R.id.llAddInheritor://添加传承人
+                LogUtils.logd("addInheritorSerialCount数量:" + addInheritorSerialCount);
+
+                if (addInheritorSerialCount >= 5) {
+                    toastShow("最多可添加5个",R.drawable.tan_toast);
+                    break;
+                }
+
+                isSendTime = false;
+                isAddInheritorCount = true;
+                delInheritorSerialListSize = delInheritorSerialList.size();//删除位置集合大小
+                LogUtils.logd("delInheritorSerialListSize:" + delInheritorSerialListSize);
+                if (isContactPermission()) {
+                    //当用户有授权通讯录时，直接进入通讯录进行选择，选择后上方渐隐出现传承人输入框和所选内容
+                    if (delInheritorSerialListSize > 0) {
+                        getContact(delInheritorSerialList.get(0));
+//                        delInheritorSerialListIndex++;
+                    }
+                } else {
+                    //当用户没有授权通讯录时，上方渐隐出现传承人输入框，同时获得焦点
+                    addInheritorSerial++;
+                    inheritorSerial = delInheritorSerialList.get(0);
+                    inheritorAnimatorShow.start();
+                    addInheritorSerialCount++;
+//                    clearEditTextList.get(addInheritorSerialCount - 1).requestFocus();
+                    clearEditTextList.get(inheritorSerial).requestFocus();
+                    delInheritorSerialList.remove(0);
+//                    ImeUtil.showSoftKeyboard(clearEditTextList.get(addInheritorSerial-1));
+                }
+                break;
+            case R.id.btnSure://确认按钮
+                if (!Utils.isNetworkAvailable(mActivity)) {
+                    Toast.makeText(mActivity, "当前网络不可用，请检查网络情况", Toast.LENGTH_SHORT).show();
+                } else if (valid()) {
+                    save();
+                }
+
+                break;
+        }
+    }
+
+
+    /**
+     * 提交前判断输入是否为空
+     *
+     * @return
+     */
+    boolean valid() {
+        if (TextUtils.isEmpty(etContent.getText().toString())) {
+            toastShow("请填写留言");
+            return false;
+        } else if (TextUtils.isEmpty(tvSendCondition.getText().toString())) {
+            toastShow("请选择发送条件");
+            return false;
+        } else if (TextUtils.isEmpty(cetInheritor1.getText().toString()) && TextUtils.isEmpty(cetInheritor2.getText().toString())
+                && TextUtils.isEmpty(cetInheritor3.getText().toString()) && TextUtils.isEmpty(cetInheritor4.getText().toString())
+                && TextUtils.isEmpty(cetInheritor5.getText().toString())) {
+            toastShow("请添加或输入联系人");
+            return false;
+        } else if(!TextUtils.isEmpty(cetInheritor1.getText().toString()) && !Utils.isPhone(cetInheritor1.getText().toString())){
+            toastShow("请输入正确的联系人号码");
+            return false;
+        } else if(!TextUtils.isEmpty(cetInheritor2.getText().toString()) && !Utils.isPhone(cetInheritor2.getText().toString())){
+            toastShow("请输入正确的联系人号码");
+            return false;
+        } else if(!TextUtils.isEmpty(cetInheritor3.getText().toString()) && !Utils.isPhone(cetInheritor3.getText().toString())){
+            toastShow("请输入正确的联系人号码");
+            return false;
+        } else if(!TextUtils.isEmpty(cetInheritor4.getText().toString()) && !Utils.isPhone(cetInheritor4.getText().toString())){
+            toastShow("请输入正确的联系人号码");
+            return false;
+        } else if(!TextUtils.isEmpty(cetInheritor5.getText().toString()) && !Utils.isPhone(cetInheritor5.getText().toString())){
+            toastShow("请输入正确的联系人号码");
+            return false;
+        }else {
+            return true;
+        }
+    }
+
+
+    /**
+     * 保存黑匣子
+     */
+    private void save() {
+        RequestBody<AddOverseasRequestModel> loginRequestModel = new RequestBody<>();
+        RequestBody.HeaderBean headerBean = new RequestBody.HeaderBean(Utils.getIPAddress(mActivity), spUtils.getSecretKeyId());
+        AddOverseasRequestModel requestModel = new AddOverseasRequestModel();
+
+        requestModel.setUserNo(spUtils.getUserId());
+        requestModel.setNotice(messageNotice);//-------是否通知用户
+
+        String mobile = null;
+        mobile = cetInheritor1.getText().toString().concat(";")
+                .concat(cetInheritor2.getText().toString()).concat(";")
+                .concat(cetInheritor3.getText().toString()).concat(";")
+                .concat(cetInheritor4.getText().toString()).concat(";")
+                .concat(cetInheritor5.getText().toString());
+
+        LogUtils.loge("手机号串：" + mobile);
+
+        mobile = mobileHandle(mobile);
+        LogUtils.loge("手机号串后：" + mobile);
+
+        requestModel.setMobile(mobile);
+        requestModel.setConditionif(conditionif);
+        requestModel.setCfDate(sendDate);//短信发送日期
+        requestModel.setMessage(etContent.getText().toString());//留言内容
+        requestModel.setSfkq("1");//是否开启黑匣子   1开启   2不开启
+
+        loginRequestModel.setBody(requestModel);
+        loginRequestModel.setHeader(headerBean);
+
+        Gson gson2 = new Gson();
+        String json2 = gson2.toJson(loginRequestModel);
+        LogUtils.logd(json2);
+        try {
+            encMsg = DESedeUtil.getRequestAfter3DES(spUtils.getSecretKey(), spUtils.getSecretIv(), json2);
+            signMsg = DESedeUtil.getRequestAfterSign(encMsg);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        if (isEdit) {
+            mvpPresenter.updatehjz(encMsg, signMsg, "2", spUtils.getSecretKeyId());
+        } else {
+            mvpPresenter.addhjz(encMsg, signMsg, "2", spUtils.getSecretKeyId());
+        }
+    }
+
+    /**
+     * 用combineLatest处理表单验证
+     */
+    private void bindViewByRxBinding() {
+        Observable<CharSequence> Observable1 = RxTextView.textChanges(etContent);
+        Observable<CharSequence> Observable2 = RxTextView.textChanges(tvSendCondition);
+        Observable<CharSequence> Observable3 = RxTextView.textChanges(cetInheritor1);
+        Observable<CharSequence> Observable4 = RxTextView.textChanges(cetInheritor2);
+        Observable<CharSequence> Observable5 = RxTextView.textChanges(cetInheritor3);
+        Observable<CharSequence> Observable6 = RxTextView.textChanges(cetInheritor4);
+        Observable<CharSequence> Observable7 = RxTextView.textChanges(cetInheritor5);
+
+        Observable.combineLatest(Observable1, Observable2, Observable3, Observable4, Observable5, Observable6, Observable7,
+                new Func7<CharSequence, CharSequence, CharSequence, CharSequence, CharSequence, CharSequence, CharSequence, Boolean>() {
+                    @Override
+                    public Boolean call(CharSequence string1, CharSequence string2, CharSequence string3, CharSequence string4, CharSequence string5, CharSequence string6, CharSequence string7) {
+                        return !Utils.isTextEmpty(string1.toString()) || !Utils.isTextEmpty(string2.toString())
+                                || !Utils.isTextEmpty(string3.toString()) || !Utils.isTextEmpty(string4.toString())
+                                || !Utils.isTextEmpty(string5.toString()) || !Utils.isTextEmpty(string6.toString())
+                                || !Utils.isTextEmpty(string7.toString());
+                    }
+                }).subscribe(new Action1<Boolean>() {
+            @Override
+            public void call(Boolean verify) {
+                if (verify) {
+                    btnSure.setEnabled(true);
+                    btnSure.setTextColor(getResources().getColor(R.color.colorWhite));
+                    btnSure.setBackgroundResource(R.drawable.hxz_bg2);
+                } else {
+                    btnSure.setEnabled(false);
+                    btnSure.setTextColor(getResources().getColor(R.color.stock_gray));
+                    btnSure.setBackgroundResource(R.drawable.hxz_bg1);
+                }
+            }
+        });
+    }
+
+
+    /**
+     * 处理手机号连接串
+     *
+     * @param mobile
+     * @return
+     */
+    String mobileHandle(String mobile) {
+        String newMobile = mobile;
+        if (mobile != null) {
+            if (mobile.startsWith(";;;;")) {
+                mobile = mobile.substring(4);
+            }
+            if (mobile.startsWith(";;;")) {
+                mobile = mobile.substring(3);
+            }
+            if (mobile.startsWith(";;")) {
+                mobile = mobile.substring(2);
+            }
+            if (mobile.startsWith(";")) {
+                mobile = mobile.substring(1);
+            }
+
+
+            if (mobile.endsWith(";;;;")) {
+                mobile = mobile.substring(0, mobile.length() - 4);
+            }
+            if (mobile.endsWith(";;;")) {
+                mobile = mobile.substring(0, mobile.length() - 3);
+            }
+            if (mobile.endsWith(";;")) {
+                mobile = mobile.substring(0, mobile.length() - 2);
+            }
+            if (mobile.endsWith(";")) {
+                mobile = mobile.substring(0, mobile.length() - 1);
+            }
+
+            if (mobile.contains(";;;;")) {
+                mobile = mobile.replace(";;;;", ";");
+            }
+            if (mobile.contains(";;;")) {
+                mobile = mobile.replace(";;;", ";");
+            }
+            if (mobile.contains(";;")) {
+                mobile = mobile.replace(";;", ";");
+            }
+
+
+        }
+
+        LogUtils.logd(newMobile + "---" + mobile);
+        return mobile;
+    }
+
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        //通讯录
+        if (requestCode == 0 && resultCode == RESULT_OK) {
+            String number = null;
+            if (data == null) {
+                return;
+            }
+            //处理返回的data,获取选择的联系人信息
+            String[] contacts = new String[2];
+            if (data != null) {
+                Uri uri = data.getData();
+                if (uri != null) {
+                    Cursor cursor = getContentResolver()
+                            .query(uri, new String[]{ContactsContract.CommonDataKinds.Phone.NUMBER,
+                                    ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME}, null, null, null);
+                    while (cursor.moveToNext()) {
+                        number = cursor.getString(0).replaceAll(" ", "").replaceAll("-", "");
+                        String name = cursor.getString(1);
+                        contacts[0] = name;
+                        contacts[1] = number;
+                        LogUtils.logd("onActivityResult---name:" + contacts[0] + "\nphone:" + contacts[1]);
+                    }
+                    if (inheritorSerial >= 5) {
+                        return;
+                    }
+                    clearEditTextList.get(inheritorSerial).setText(number);
+
+                    if (isAddInheritorCount) {
+//                    addInheritorSerial++;
+                        //点击添加传承人添加后 动画显示
+                        addInheritorSerialCount++;
+                        addInheritorSerial = addInheritorSerialCount;
+                        isSendTime = false;
+                        cetInheritor1.postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                inheritorAnimatorShow.start();
+                            }
+                        }, 200);
+
+                        delInheritorSerialList.remove(0);
+                        LogUtils.logd("delInheritorSerialList.toString():" + delInheritorSerialList.toString());
+                    }
+                }
+            }
+        }
+
+    }
+
+
+    /**
+     * 获取通讯录联系人
+     */
+    private void getContact(final int num1) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M){
+            inheritorSerial = num1;
+            Uri uri1 = ContactsContract.CommonDataKinds.Phone.CONTENT_URI;
+            Intent intent1 = new Intent(Intent.ACTION_PICK, uri1);
+            startActivityForResult(intent1, 0);
+        }else{
+            RxPermissions.getInstance(BlackBoxEditActivity.this)
+//                .request(Manifest.permission.WRITE_CONTACTS, Manifest.permission.READ_CONTACTS)//这里填写所需要的权限
+                    .request(Manifest.permission.READ_CONTACTS)//这里填写所需要的权限
+                    .subscribe(new Action1<Boolean>() {
+                        @Override
+                        public void call(Boolean aBoolean) {
+                            if (aBoolean) {//true表示获取权限成功（注意这里在android6.0以下默认为true）
+                                inheritorSerial = num1;
+                                Uri uri1 = ContactsContract.CommonDataKinds.Phone.CONTENT_URI;
+                                Intent intent1 = new Intent(Intent.ACTION_PICK, uri1);
+                                startActivityForResult(intent1, 0);
+                            } else {
+                                toastShow("您取消了通讯录权限");
+                            }
+                        }
+                    });
+        }
+
+    }
+
+
+    /**
+     * 判断应用是否获取通讯录权限
+     *
+     * @return
+     */
+    boolean isContactPermission() {
+
+        PackageManager pm = getPackageManager();
+        boolean permission = (PackageManager.PERMISSION_GRANTED ==
+                pm.checkPermission("android.permission.READ_CONTACTS", getPackageName()));
+        LogUtils.logd("判断应用是否获取通讯录权限:"+permission);
+
+        return permission;
+    }
+
+    @Override
+    protected CommonPresenter createPresenter() {
+        return new CommonPresenter(this, this);
+    }
+
+    @Override
+    public void ThirdSuccess(SercetKeyOverdueModel model) {
+        spUtils.setOpenblackBox(true);
+        toastShow("设置完成", R.drawable.gou_toast);
+        if(isEdit) {
+            etContent.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                ActivityUtils.finishActivity(mActivity);
+                }
+            }, ToastUtils.toastTime);
+        }else{
+            etContent.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    ActivityUtils.startActivityRightInWithFrom(mActivity, MyBlackboxDetailActivity.class, "add");
+                }
+            }, ToastUtils.toastTime);
+        }
+
+    }
+
+    @Override
+    public void ThirdFail(String msg) {
+        toastShow(msg);
+        toastShow("留言内容仅支持中英文，不能有特殊字符或者敏感字符");
+    }
+
+    @Override
+    protected void onResume() {
+        isActive = true;
+        super.onResume();
+        StatService.onPageStart(mActivity, "黑匣子编辑页面");
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        ImeUtil.hideSoftKeyboard(etContent);
+        StatService.onPageEnd(mActivity, "黑匣子编辑页面");
+    }
+}

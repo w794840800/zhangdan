@@ -1,0 +1,351 @@
+package com.beidou.ybz.accountbook.ui;
+
+import android.content.Intent;
+import android.os.Bundle;
+import android.support.design.widget.AppBarLayout;
+import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
+import android.view.KeyEvent;
+import android.view.View;
+import android.widget.ImageButton;
+import android.widget.TextView;
+
+import com.baidu.mobstat.StatService;
+import com.beidou.ybz.accountbook.R;
+import com.beidou.ybz.accountbook.adapter.AdapterInsurance;
+import com.beidou.ybz.accountbook.mvp.entity.AddOverseasRequestModel;
+import com.beidou.ybz.accountbook.mvp.entity.InsuranceListModel;
+import com.beidou.ybz.accountbook.mvp.entity.RequestBody;
+import com.beidou.ybz.accountbook.mvp.entity.SercetKeyOverdueModel;
+import com.beidou.ybz.accountbook.mvp.other.MvpActivity;
+import com.beidou.ybz.accountbook.mvp.presenter.CommonPresenter;
+import com.beidou.ybz.accountbook.mvp.view.CommonView;
+import com.beidou.ybz.accountbook.mvp.view.OtherView;
+import com.beidou.ybz.accountbook.util.AppBarStateChangeListener;
+import com.beidou.ybz.accountbook.util.DESedeUtil;
+import com.beidou.ybz.accountbook.util.DialogClickListener;
+import com.beidou.ybz.accountbook.util.LogUtils;
+import com.beidou.ybz.accountbook.util.Utils;
+import com.beidou.ybz.accountbook.widget.EmptyView;
+import com.beidou.ybz.accountbook.mvp.entity.UserNoModel;
+import com.beidou.ybz.accountbook.util.ActivityUtils;
+import com.beidou.ybz.accountbook.util.AlertDialogUtils;
+import com.chad.library.adapter.base.BaseQuickAdapter;
+import com.google.gson.Gson;
+
+import java.math.BigDecimal;
+import java.util.List;
+
+import butterknife.Bind;
+import butterknife.OnClick;
+
+/**
+ * Author: xu.yang on 2017/12/6
+ * QQ:754444814
+ * E-mail:754444814@qq.com
+ * module: 保险界面
+ */
+public class InsuranceActivity extends MvpActivity<CommonPresenter> implements CommonView<InsuranceListModel>, OtherView<SercetKeyOverdueModel> {
+    @Bind(R.id.bob_empty_view)
+    EmptyView mEmptyView;
+    @Bind(R.id.appbar)
+    AppBarLayout appbar;
+    @Bind(R.id.tvAddAssets)
+    TextView tvAddAssets;
+    @Bind(R.id.tv_title)
+    TextView tvTitle;
+    @Bind(R.id.tvAmount)
+    TextView tvAmount;
+    @Bind(R.id.toolbar)
+    Toolbar toolbar;
+    @Bind(R.id.ib_back)
+    ImageButton ibBack;
+    @Bind(R.id.swipeRefresh)
+    SwipeRefreshLayout mSwipeRefreshLayout;
+    @Bind(R.id.rv)
+    RecyclerView rv;
+    private String encMsg, signMsg, from;
+    private List<InsuranceListModel.BodyBean.ProListBean> proListBeanlist;
+    private AdapterInsurance mAdapter;
+    AlertDialogUtils alertDialogUtils;
+    private int mPosition;//删除的position
+    private int count = 0;
+    private String zzzj;
+    private boolean isFromAdd;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_insurance);
+
+        alertDialogUtils = new AlertDialogUtils(mActivity);
+        tvTitle.setText("保险");
+        tvAddAssets.setText("+ 新建保险");
+        tvTitle.setTextColor(getResources().getColor(R.color.txt_color));
+
+        mEmptyView.bindView(rv); // 设置bindView
+        mEmptyView.buttonClick(this, "request"); // 当button点击时调用哪个方法
+
+        //下拉刷新条的颜色
+        mSwipeRefreshLayout.setColorSchemeResources(R.color.colorGold);
+
+        mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                request();
+            }
+        });
+
+        appbar.addOnOffsetChangedListener(new AppBarStateChangeListener() {
+            @Override
+            public void onOffset(AppBarLayout appBarLayout, int i) {
+                int totalOffset = appBarLayout.getTotalScrollRange();
+                float scale = (float) (totalOffset - i) / (float) totalOffset;//展开-1 收起-0
+
+                /**
+                 * 根据appbar收放改变字体颜色
+                 */
+                if (scale < 0.5) {
+                    tvTitle.setTextColor(getResources().getColor(R.color.colorBlack));
+                    tvTitle.setAlpha(1 - scale * 2);
+                    ibBack.setImageResource(R.drawable.back_black);
+                    ibBack.setAlpha(1 - scale * 2);
+                } else {
+                    tvTitle.setTextColor(getResources().getColor(R.color.colorWhite));
+                    tvTitle.setAlpha(2 * scale - 1);
+                    ibBack.setImageResource(R.drawable.back);
+                    ibBack.setAlpha(2 * scale - 1);
+                }
+            }
+
+            @Override
+            public void onStateChanged(AppBarLayout appBarLayout, State state) {
+                //判断appbar状态，防止与SwipeRefreshLayout下拉事件冲突
+                if (state == State.EXPANDED) {//展开状态
+                    mSwipeRefreshLayout.setEnabled(true);
+                } else if (state == State.COLLAPSED) {//折叠状态
+                    mSwipeRefreshLayout.setEnabled(false);
+                } else if (state == State.IDLE) {//折叠状态
+                    mSwipeRefreshLayout.setEnabled(false);
+                }
+            }
+        });
+
+        rv.setLayoutManager(new LinearLayoutManager(this));
+        mAdapter = new AdapterInsurance(R.layout.overseaslist_item, null);
+        rv.setAdapter(mAdapter);
+
+        handleIntent(getIntent());
+
+        mAdapter.setOnItemLongClickListener(new BaseQuickAdapter.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(BaseQuickAdapter adapter, View view, int position) {
+                alertDialogUtils.setMessage("确定要删除" + proListBeanlist.get(position).getProductName() + "？");
+                alertDialogUtils.setPosition(position);
+                alertDialogUtils.show();
+                return true;
+                //返回false时点击事件和长按事件会有冲突，设为true,事件拦截，冲突解除
+            }
+        });
+
+        mAdapter.setOnItemClickListener(new BaseQuickAdapter.OnItemClickListener() {
+            @Override
+            public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
+                Intent in = new Intent(mActivity, InsuranceDetailActivity.class);
+                in.putExtra("id", proListBeanlist.get(position).getId());
+                in.putExtra("name", proListBeanlist.get(position).getProductName());
+                startActivity(in);
+                overridePendingTransition(R.anim.left_in, 0);
+            }
+        });
+
+        alertDialogUtils.setOnDialogClickListener(new DialogClickListener() {
+            @Override
+            public void clickYes(int which) {
+                StatService.onEvent(mActivity, "点击保险列表任一删除按钮", "删除保险具体资产", 1);
+                LogUtils.logd("which:" + which);
+                mPosition = which;
+                del(proListBeanlist.get(which).getId());
+            }
+
+            @Override
+            public void clickNo() {
+            }
+        });
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        handleIntent(intent);
+    }
+
+    private void handleIntent(Intent in) {
+        if (in != null) {
+            from = in.getStringExtra("from");
+        }
+
+        if (from != null && from.equals("add")) {
+            isFromAdd = true;
+        } else {
+            isFromAdd = false;
+        }
+    }
+
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        request();
+        StatService.onPageStart(mActivity, "保险列表页面");
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        StatService.onPageEnd(mActivity, "保险列表页面");
+    }
+
+    @Override
+    protected CommonPresenter createPresenter() {
+        return new CommonPresenter(this, this);
+    }
+
+    void del(String id) {
+        RequestBody<AddOverseasRequestModel> requestBody = new RequestBody<>();
+        RequestBody.HeaderBean headerBean = new RequestBody.HeaderBean(Utils.getIPAddress(mActivity), spUtils.getSecretKeyId());
+        AddOverseasRequestModel requestModel = new AddOverseasRequestModel();
+        requestModel.setUserNo(spUtils.getUserId());
+        requestModel.setId(id);
+
+        requestBody.setBody(requestModel);
+        requestBody.setHeader(headerBean);
+
+        Gson gson = new Gson();
+        String json = gson.toJson(requestBody);
+        LogUtils.logi(json);
+        try {
+            encMsg = DESedeUtil.getRequestAfter3DES(spUtils.getSecretKey(), spUtils.getSecretIv(), json);
+            signMsg = DESedeUtil.getRequestAfterSign(encMsg);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        mvpPresenter.delinsurance(encMsg, signMsg, "2", spUtils.getSecretKeyId());
+    }
+
+    void request() {
+        RequestBody<UserNoModel> requestBody = new RequestBody<>();
+        RequestBody.HeaderBean headerBean = new RequestBody.HeaderBean(Utils.getIPAddress(mActivity), spUtils.getSecretKeyId());
+        UserNoModel requestModel = new UserNoModel();
+        requestModel.setUserNo(spUtils.getUserId());
+
+        requestBody.setBody(requestModel);
+        requestBody.setHeader(headerBean);
+
+        Gson gson2 = new Gson();
+        String json2 = gson2.toJson(requestBody);
+
+        try {
+            encMsg = DESedeUtil.getRequestAfter3DES(spUtils.getSecretKey(), spUtils.getSecretIv(), json2);
+            signMsg = DESedeUtil.getRequestAfterSign(encMsg);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        mvpPresenter.getinsurancelist(encMsg, signMsg, "2", spUtils.getSecretKeyId());
+        if (count == 0) {
+            mEmptyView.loading();
+        }
+    }
+
+    @OnClick({R.id.ib_back, R.id.tvAddAssets})
+    public void onViewClicked(View view) {
+        switch (view.getId()) {
+            case R.id.ib_back:
+//                if(isFromAdd){//如果从添加页跳转过来，点击返回直接跳到首页
+                ActivityUtils.startActivity(mActivity, MainActivity.class);
+                ActivityUtils.finishActivity(mActivity);
+//                }else {
+//                    ActivityUtils.finishActivity(mActivity);
+//                }
+                break;
+            case R.id.tvAddAssets:
+                StatService.onEvent(mActivity, "保险列表页点击新增", "新增保险", 1);
+                Intent in = new Intent(mActivity, AddInsuranceAssets.class);
+                in.putExtra("from", "list");
+                startActivity(in);
+                overridePendingTransition(R.anim.left_in, 0);
+                break;
+        }
+    }
+
+    @Override
+    public void getDataSuccess(InsuranceListModel model) {
+
+        try {
+            mSwipeRefreshLayout.setRefreshing(false);
+            count++;
+            proListBeanlist = model.getBody().getProList();
+            zzzj = model.getBody().getZsz();
+            tvAmount.setText(Utils.addCommaContainsPoint(zzzj));
+            if (proListBeanlist != null && proListBeanlist.size() > 0) {
+                mEmptyView.success();
+                mAdapter.setNewData(proListBeanlist);
+            } else {
+                mEmptyView.setEmptyText("还没有保险产品哦～");
+                mEmptyView.empty();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    @Override
+    public void getDataFail(String msg) {
+        mSwipeRefreshLayout.setRefreshing(false);
+        toastShow(msg);
+        mEmptyView.loadfail();
+    }
+
+    //删除回调
+    @Override
+    public void onSuccess(SercetKeyOverdueModel model) {
+        toastShow("删除成功", R.drawable.gou_toast);
+        try {
+            //大数保存中间值，防止转换为科学计数法
+            zzzj = String.valueOf(new BigDecimal(Double.parseDouble(zzzj) - Double.parseDouble(proListBeanlist.get(mPosition).getAmount())));
+            LogUtils.loge("zzzj==" + zzzj);
+            tvAmount.setText(Utils.addCommaContainsPoint(zzzj));
+            proListBeanlist.remove(mPosition);
+            mAdapter.notifyItemRemoved(mPosition);//推荐用这个
+            if (mAdapter.getItemCount() == 0) {
+                mEmptyView.setEmptyText("还没有保险产品哦～");
+                mEmptyView.empty();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void onFail(String model) {
+        toastShow(model);
+    }
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_BACK
+                && event.getAction() == KeyEvent.ACTION_DOWN) {
+//            if (isFromAdd) {//如果从添加页跳转过来，点击返回直接跳到首页
+            ActivityUtils.startActivity(mActivity, MainActivity.class);
+            ActivityUtils.finishActivity(mActivity);
+//            } else {
+//                ActivityUtils.finishActivity(mActivity);
+//            }
+            return true;
+        }
+        return super.onKeyDown(keyCode, event);
+    }
+}

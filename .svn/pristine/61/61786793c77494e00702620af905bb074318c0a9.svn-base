@@ -1,0 +1,97 @@
+package com.beidou.ybz.accountbook.ui;
+
+import android.os.Bundle;
+import android.support.v7.widget.Toolbar;
+import android.view.View;
+import android.webkit.WebView;
+import android.widget.TextView;
+
+import com.beidou.ybz.accountbook.R;
+import com.beidou.ybz.accountbook.mvp.other.MvpActivity;
+import com.beidou.ybz.accountbook.mvp.presenter.CommonPresenter;
+import com.beidou.ybz.accountbook.util.ActivityUtils;
+import com.beidou.ybz.accountbook.util.ImeUtil;
+
+import butterknife.Bind;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
+import cn.sharesdk.framework.Platform;
+import cn.sharesdk.framework.ShareSDK;
+import cn.sharesdk.onekeyshare.OnekeyShare;
+import cn.sharesdk.wechat.friends.Wechat;
+
+public class AboutUsActivity extends MvpActivity<CommonPresenter> {
+
+    @Bind(R.id.tv_title)
+    TextView tvTitle;
+    @Bind(R.id.toolbar)
+    Toolbar toolbar;
+    @Bind(R.id.activity_about_us_webView)
+    WebView activityAboutUsWebView;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_about_us);
+        ButterKnife.bind(this);
+
+        tvTitle.setText("关于我们");
+        tvTitle.setTextColor(getResources().getColor(R.color.txt_color));
+        toolbar.setNavigationIcon(R.drawable.back_black);
+        toolbar.setBackgroundColor(getResources().getColor(R.color.colorWhite));
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ImeUtil.hideSoftKeyboard(v);
+                ActivityUtils.finishActivity(mActivity);
+            }
+        });
+
+    }
+
+    @Override
+    protected CommonPresenter createPresenter() {
+        return null;
+    }
+
+    @OnClick(R.id.tv_title)
+    public void onViewClicked(View view) {
+        switch (view.getId()){
+            case R.id.tv_title:
+                Platform plat = ShareSDK.getPlatform(Wechat.NAME);
+                showShare(plat.getName());
+                break;
+        }
+    }
+
+    private void showShare(String platform) {
+        OnekeyShare oks = new OnekeyShare();
+        //指定分享的平台，如果为空，还是会调用九宫格的平台列表界面
+//        if (platform != null) {
+//            oks.setPlatform(platform);
+//        }
+//关闭sso授权
+        oks.disableSSOWhenAuthorize();
+
+// title标题，印象笔记、邮箱、信息、微信、人人网和QQ空间等使用
+        oks.setTitle("标题");
+// titleUrl是标题的网络链接，QQ和QQ空间等使用
+        oks.setTitleUrl("https://hao.360.cn/?src=lm&ls=n31c42a959f");
+// text是分享文本，所有平台都需要这个字段
+        oks.setText("我是分享文本");
+// imagePath是图片的本地路径，Linked-In以外的平台都支持此参数
+//oks.setImagePath("/sdcard/test.jpg");//确保SDcard下面存在此张图片
+        oks.setImageUrl("https://p1.ssl.qhimg.com/t0151320b1d0fc50be8.png");
+// url仅在微信（包括好友和朋友圈）中使用
+        oks.setUrl("https://hao.360.cn/?src=lm&ls=n31c42a959f");
+// comment是我对这条分享的评论，仅在人人网和QQ空间使用
+        oks.setComment("我是测试评论文本");
+// site是分享此内容的网站名称，仅在QQ空间使用
+        oks.setSite(getString(R.string.app_name));
+// siteUrl是分享此内容的网站地址，仅在QQ空间使用
+        oks.setSiteUrl("https://hao.360.cn/?src=lm&ls=n31c42a959f");
+
+// 启动分享GUI
+        oks.show(this);
+    }
+}

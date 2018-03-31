@@ -1,0 +1,244 @@
+package com.beidou.ybz.accountbook.ui;
+
+import android.content.Intent;
+import android.os.Bundle;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
+import android.view.View;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+
+import com.baidu.mobstat.StatService;
+import com.beidou.ybz.accountbook.R;
+import com.beidou.ybz.accountbook.mvp.presenter.CommonPresenter;
+import com.beidou.ybz.accountbook.mvp.view.CommonView;
+import com.beidou.ybz.accountbook.util.DESedeUtil;
+import com.beidou.ybz.accountbook.util.LogUtils;
+import com.beidou.ybz.accountbook.widget.EmptyView;
+import com.beidou.ybz.accountbook.adapter.AdapterSupportBank;
+import com.beidou.ybz.accountbook.adapter.AdapterSupportBankOther;
+import com.beidou.ybz.accountbook.mvp.entity.RequestBody;
+import com.beidou.ybz.accountbook.mvp.entity.SupportBankModel;
+import com.beidou.ybz.accountbook.mvp.entity.UserNoModel;
+import com.beidou.ybz.accountbook.mvp.other.MvpActivity;
+import com.beidou.ybz.accountbook.util.ActivityUtils;
+import com.beidou.ybz.accountbook.util.AlertDialogUtils;
+import com.beidou.ybz.accountbook.util.Utils;
+import com.chad.library.adapter.base.BaseQuickAdapter;
+import com.google.gson.Gson;
+
+import java.util.List;
+
+import butterknife.Bind;
+import butterknife.ButterKnife;
+
+/**
+ * Author: xu.yang on 2017/12/15
+ * QQ:754444814
+ * E-mail:754444814@qq.com
+ * module: 支持的银行卡界面
+ */
+public class SupportBankActivity extends MvpActivity<CommonPresenter> implements CommonView<SupportBankModel> {
+    @Bind(R.id.bob_empty_view)
+    EmptyView mEmptyView;
+    @Bind(R.id.tv_title)
+    TextView tvTitle;
+    @Bind(R.id.toolbar)
+    Toolbar toolbar;
+    //    @Bind(R.id.swipeRefresh)
+//    SwipeRefreshLayout mSwipeRefreshLayout;
+    @Bind(R.id.rvCommon)
+    RecyclerView rvCommon;
+    @Bind(R.id.rvOther)
+    RecyclerView rvOther;
+    @Bind(R.id.llAll)
+    LinearLayout llAll;
+    private String encMsg, signMsg, id;
+    private List<SupportBankModel.BodyBean.CommListBean> commListBeanList;
+    private List<SupportBankModel.BodyBean.BankListBean> bankListBeanList;
+    AlertDialogUtils alertDialogUtils;
+    private int mPosition;//删除的position
+    private int count;
+    private String flag;
+    private AdapterSupportBank mAdapter;
+    private AdapterSupportBankOther mOtherAdapter;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_supportbankcard);
+        ButterKnife.bind(this);
+
+        tvTitle.setText("银行列表");
+        tvTitle.setTextColor(getResources().getColor(R.color.txt_color));
+        toolbar.setBackgroundColor(getResources().getColor(R.color.colorWhite));
+        toolbar.setNavigationIcon(R.drawable.back_black);
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ActivityUtils.finishActivity(mActivity);
+            }
+        });
+
+        Intent in = getIntent();
+        if (in != null) {
+            mPosition = in.getIntExtra("position", -1);
+            flag = in.getStringExtra("flag");
+            id = in.getStringExtra("id");
+        }
+
+        mEmptyView.bindView(llAll); // 设置bindView
+        mEmptyView.buttonClick(this, "request"); // 当button点击时调用哪个方法
+//        //下拉刷新条的颜色
+//        mSwipeRefreshLayout.setColorSchemeResources(R.color.colorGold);
+
+        rvCommon.setLayoutManager(new LinearLayoutManager(this));
+        rvOther.setLayoutManager(new LinearLayoutManager(this));
+
+        rvCommon.setNestedScrollingEnabled(false);
+        rvOther.setNestedScrollingEnabled(false);
+
+        mAdapter = new AdapterSupportBank(R.layout.supportbank_item, null);
+        mOtherAdapter = new AdapterSupportBankOther(R.layout.supportbank_item, null);
+        rvCommon.setAdapter(mAdapter);
+        rvOther.setAdapter(mOtherAdapter);
+
+
+        mAdapter.setOnItemClickListener(new BaseQuickAdapter.OnItemClickListener() {
+            @Override
+            public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
+                Intent intent = new Intent();
+                intent.putExtra("bankname", commListBeanList.get(position).getBankName());
+                intent.putExtra("bankid", commListBeanList.get(position).getId());
+                intent.putExtra("position", position);
+                intent.putExtra("flag", "common");
+                mAdapter.setCurrentPosition(position);
+                mOtherAdapter.setCurrentPosition(-1);
+                setResult(RESULT_OK, intent);
+                ActivityUtils.finishActivity(mActivity);
+            }
+        });
+
+
+        mOtherAdapter.setOnItemClickListener(new BaseQuickAdapter.OnItemClickListener() {
+            @Override
+            public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
+                Intent intent = new Intent();
+                intent.putExtra("bankname", bankListBeanList.get(position).getBankName());
+                intent.putExtra("bankid", bankListBeanList.get(position).getId());
+                intent.putExtra("position", position);
+                intent.putExtra("flag", "bankList");
+                mOtherAdapter.setCurrentPosition(position);
+                mAdapter.setCurrentPosition(-1);
+                setResult(RESULT_OK, intent);
+                ActivityUtils.finishActivity(mActivity);
+            }
+        });
+
+
+//        mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+//            @Override
+//            public void onRefresh() {
+//                request();
+//            }
+//        });
+
+
+        request();
+    }
+
+    void request() {
+        RequestBody<UserNoModel> requestBody = new RequestBody<>();
+        RequestBody.HeaderBean headerBean = new RequestBody.HeaderBean(Utils.getIPAddress(mActivity), spUtils.getSecretKeyId());
+        UserNoModel requestModel = new UserNoModel();
+//        requestModel.setUserNo(spUtils.getUserId());
+
+        requestBody.setBody(requestModel);
+        requestBody.setHeader(headerBean);
+
+        Gson gson2 = new Gson();
+        String json2 = gson2.toJson(requestBody);
+        LogUtils.logd("参数：" + json2);
+        try {
+            encMsg = DESedeUtil.getRequestAfter3DES(spUtils.getSecretKey(), spUtils.getSecretIv(), json2);
+            signMsg = DESedeUtil.getRequestAfterSign(encMsg);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        mvpPresenter.getSupportBank(encMsg, signMsg, "2", spUtils.getSecretKeyId());
+        if (count == 0) {
+            mEmptyView.loading();
+        }
+
+    }
+
+    @Override
+    protected CommonPresenter createPresenter() {
+        return new CommonPresenter(this, this);
+    }
+
+
+    @Override
+    public void getDataSuccess(SupportBankModel model) {
+//        mSwipeRefreshLayout.setRefreshing(false);
+        count++;
+        commListBeanList = model.getBody().getCommList();
+        bankListBeanList = model.getBody().getBankList();
+        if (commListBeanList != null && commListBeanList.size() > 0) {
+            for (int i = 0; i < commListBeanList.size(); i++) {
+                if(id != null && id.equals(commListBeanList.get(i).getId())){//与列表匹配选中的id,显示选中打钩效果
+                    mAdapter.setCurrentPosition(i);
+                    break;
+                }
+            }
+
+
+            mEmptyView.success();
+            mAdapter.setNewData(commListBeanList);
+//            if (flag != null && flag.equals("common")) {
+//                mAdapter.setCurrentPosition(mPosition);
+//            }
+        } else {
+            mEmptyView.setEmptyText("还没有银行卡产品哦～");
+            mEmptyView.empty();
+        }
+
+        if (bankListBeanList != null && bankListBeanList.size() > 0) {
+            for (int i = 0; i < bankListBeanList.size(); i++) {
+                if(id != null && id.equals(bankListBeanList.get(i).getId())){
+                    mOtherAdapter.setCurrentPosition(i);
+                    break;
+                }
+            }
+            mEmptyView.success();
+            mOtherAdapter.setNewData(bankListBeanList);
+//            if (flag != null && flag.equals("bankList")) {
+//                mOtherAdapter.setCurrentPosition(mPosition);
+//            }
+        } else {
+            mEmptyView.setEmptyText("还没有银行卡产品哦～");
+            mEmptyView.empty();
+        }
+    }
+
+    @Override
+    public void getDataFail(String msg) {
+//        mSwipeRefreshLayout.setRefreshing(false);
+        toastShow(msg);
+        mEmptyView.loadfail();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        StatService.onPageStart(mActivity,"支持的银行卡列表页面");
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        StatService.onPageEnd(mActivity,"支持的银行卡列表页面");
+    }
+
+}

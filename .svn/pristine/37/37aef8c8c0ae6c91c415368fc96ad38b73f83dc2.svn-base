@@ -1,0 +1,75 @@
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/back_lightgreen"
+    android:fitsSystemWindows="true"
+    android:orientation="vertical">
+
+
+    <include layout="@layout/toolbar"/>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@drawable/shadow"/>
+
+    <TextView
+        android:id="@+id/tvDescribe"
+        android:layout_width="match_parent"
+        android:layout_height="80dp"
+        android:gravity="center"
+        android:text="请输入新的支付密码"
+        android:textColor="@color/background"
+        android:background="@color/colorWhite"
+        android:textSize="15sp"/>
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@drawable/shadow"/>
+    <com.beidou.ybz.accountbook.widget.PinEntryEditText
+        android:id="@+id/petPasswd"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp"
+        android:layout_marginTop="20dp"
+        android:background="@null"
+        android:cursorVisible="false"
+        android:digits="1234567890"
+        android:inputType="number"
+        android:maxLength="6"
+        android:textIsSelectable="false"
+        android:textSize="50sp"
+        android:visibility="visible"
+        app:pinBackgroundDrawable="@drawable/bg_pin_nocolor"
+        app:pinAnimationType="fromBottom"
+        app:pinCharacterMask="•"
+        app:pinLineColors="@color/background"/>
+    <TextView
+        android:id="@+id/tvForgetPasswd"
+        android:layout_width="match_parent"
+        android:gravity="right"
+        android:layout_height="wrap_content"
+        android:paddingTop="10dp"
+        android:paddingBottom="10dp"
+        android:layout_marginRight="20dp"
+        android:textColor="@color/toolbar"
+        android:text="忘记密码？"/>
+    <Button
+        android:id="@+id/btnSave"
+        android:layout_width="match_parent"
+        android:layout_height="45dp"
+        android:text="完成"
+        android:enabled="false"
+        android:textColor="#fff"
+        android:textSize="14sp"
+        android:layout_marginTop="50dp"
+        android:layout_marginBottom="30dp"
+        android:layout_marginLeft="15dp"
+        android:layout_marginRight="15dp"
+        android:visibility="gone"
+        android:background="@drawable/bg_unenabled"
+        />
+</LinearLayout>

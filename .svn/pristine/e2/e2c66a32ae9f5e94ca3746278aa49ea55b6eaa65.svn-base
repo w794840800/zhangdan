@@ -1,0 +1,637 @@
+package com.beidou.ybz.accountbook.ui.fragment;
+
+import android.annotation.TargetApi;
+import android.content.Intent;
+import android.os.Build;
+import android.support.design.widget.AppBarLayout;
+import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.text.TextUtils;
+import android.util.ArrayMap;
+import android.view.View;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+
+import com.beidou.ybz.accountbook.R;
+import com.beidou.ybz.accountbook.adapter.AdapterRecommend;
+import com.beidou.ybz.accountbook.adapter.AdapterZichan;
+import com.beidou.ybz.accountbook.adapter.AdapterZichan2;
+import com.beidou.ybz.accountbook.mvp.entity.AccountIndexModel;
+import com.beidou.ybz.accountbook.mvp.entity.AddOverseasRequestModel;
+import com.beidou.ybz.accountbook.mvp.entity.EncryptedResponseModel;
+import com.beidou.ybz.accountbook.mvp.entity.GetHjzModel;
+import com.beidou.ybz.accountbook.mvp.entity.RequestBody;
+import com.beidou.ybz.accountbook.mvp.entity.RequestBody2;
+import com.beidou.ybz.accountbook.mvp.entity.SecretKeyResponseModel;
+import com.beidou.ybz.accountbook.mvp.entity.SercetKeyOverdueModel;
+import com.beidou.ybz.accountbook.mvp.other.MvpFragment;
+import com.beidou.ybz.accountbook.mvp.presenter.CommonPresenter;
+import com.beidou.ybz.accountbook.mvp.view.CommonView;
+import com.beidou.ybz.accountbook.mvp.view.OtherView;
+import com.beidou.ybz.accountbook.mvp.view.ThirdView;
+import com.beidou.ybz.accountbook.retrofit.ApiStores;
+import com.beidou.ybz.accountbook.retrofit.AppClient;
+import com.beidou.ybz.accountbook.ui.AddAssetsActivity;
+import com.beidou.ybz.accountbook.ui.AddStockAssets;
+import com.beidou.ybz.accountbook.ui.ArrearsassetActivity;
+import com.beidou.ybz.accountbook.ui.BankCardActivity;
+import com.beidou.ybz.accountbook.ui.BlackboxDetailActivity;
+import com.beidou.ybz.accountbook.ui.BlackboxUnsettingActivity;
+import com.beidou.ybz.accountbook.ui.CreditActivity;
+import com.beidou.ybz.accountbook.ui.CurrentFinancialActivity;
+import com.beidou.ybz.accountbook.ui.CustomActivity;
+import com.beidou.ybz.accountbook.ui.DominActivity;
+import com.beidou.ybz.accountbook.ui.EquityActivity;
+import com.beidou.ybz.accountbook.ui.FixedIncomeActivity;
+import com.beidou.ybz.accountbook.ui.FundActivity;
+import com.beidou.ybz.accountbook.ui.GameActivity;
+import com.beidou.ybz.accountbook.ui.InsuranceActivity;
+import com.beidou.ybz.accountbook.ui.InternetActivity;
+import com.beidou.ybz.accountbook.ui.LoanActivity;
+import com.beidou.ybz.accountbook.ui.LoginActivity;
+import com.beidou.ybz.accountbook.ui.OverseasActivity;
+import com.beidou.ybz.accountbook.ui.PrepaidActivity;
+import com.beidou.ybz.accountbook.ui.PrivateOfferingActivity;
+import com.beidou.ybz.accountbook.ui.ReimbursementActivity;
+import com.beidou.ybz.accountbook.ui.StockActivity;
+import com.beidou.ybz.accountbook.util.ActivityUtils;
+import com.beidou.ybz.accountbook.util.AlertDialogUtils;
+import com.beidou.ybz.accountbook.util.AppBarStateChangeListener;
+import com.beidou.ybz.accountbook.util.DESedeUtil;
+import com.beidou.ybz.accountbook.util.DialogClickListener;
+import com.beidou.ybz.accountbook.util.GsonTools;
+import com.beidou.ybz.accountbook.util.LogUtils;
+import com.beidou.ybz.accountbook.util.SppaConstant;
+import com.beidou.ybz.accountbook.util.Utils;
+import com.chad.library.adapter.base.BaseQuickAdapter;
+import com.google.gson.Gson;
+import com.orhanobut.logger.Logger;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import butterknife.Bind;
+import butterknife.OnClick;
+import rx.Observable;
+import rx.Subscriber;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.schedulers.Schedulers;
+
+/**
+ * Author: Bob on 2017/10/30 15:16
+ * QQ:754444814
+ * E-mail:754444814@qq.com
+ */
+public class MainFragment extends MvpFragment<CommonPresenter> implements CommonView<AccountIndexModel>,
+        OtherView<SercetKeyOverdueModel>, ThirdView<SecretKeyResponseModel> {
+    @Bind(R.id.appbar)
+    AppBarLayout appbar;
+    @Bind(R.id.tvXinyuan)
+    TextView tvXinyuan;
+    @Bind(R.id.ivHeixiazi)
+    ImageView ivHeixiazi;
+    @Bind(R.id.rvZichan)
+    RecyclerView rvZichan;
+    @Bind(R.id.rvZichan2)
+    RecyclerView rvZichan2;
+    @Bind(R.id.rvRecommend)
+    RecyclerView rvRecommend;
+    @Bind(R.id.swipeRefresh)
+    SwipeRefreshLayout mSwipeRefreshLayout;
+    @Bind(R.id.tvJzc)
+    TextView tvJzc;
+    @Bind(R.id.tvZzc)
+    TextView tvZzc;
+    @Bind(R.id.tvZfz)
+    TextView tvZfz;
+    @Bind(R.id.ivVisible)
+    ImageView ivVisible;
+    @Bind(R.id.llRecommend)
+    LinearLayout llRecommend;
+    @Bind(R.id.llZichanEmpty)
+    LinearLayout llZichanEmpty;
+    private AdapterZichan mAdapter;
+    private AdapterZichan2 mAdapter2;
+    private AdapterRecommend mAdapterRecommend;
+    private List<String> list, listKey;
+    AlertDialogUtils alertDialogUtils, alertDialogOther;
+    private String encMsg, signMsg;
+    private ArrayMap<String, String> map;
+    private List<AccountIndexModel.BodyBean.FieldViewAmountListBean> fieldViewAmountListBeanList, fieldViewAmountListBeanListCopy;
+    private List<AccountIndexModel.BodyBean.FieldViewdelListBean> fieldViewdelListBeanList;
+    private List<AccountIndexModel.BodyBean.ReProListBean> reProListBeanList;
+    private boolean isLoadMore, isVisible;
+    private String jzc, zzc, zqk;
+    private List<String> fieldnListCopy;
+    private int count = 0;
+    private int mPosition;//删除的position
+
+    @Override
+    public int getLayoutRes() {
+        count = 0;
+        return R.layout.fragment_main;
+    }
+
+    void getSecretkey() {
+        RequestBody2 requestBody = new RequestBody2();
+        RequestBody2.HeaderBean headerBean = new RequestBody2.HeaderBean();
+        requestBody.setHeader(headerBean);
+        RequestBody2.BodyBean bodyBean = new RequestBody2.BodyBean();
+        requestBody.setBody(bodyBean);
+        Gson gson = new Gson();
+        String json = gson.toJson(requestBody);
+        Logger.e("aaaa:：" + json);
+        Logger.json(json);
+        mvpPresenter.getSecretkey(json);
+    }
+
+    /**
+     * 请求
+     */
+    void getRequest(String id) {
+        RequestBody<AddOverseasRequestModel> yzmModelRequestBody = new RequestBody<>();
+        RequestBody.HeaderBean headerBean2 = new RequestBody.HeaderBean(Utils.getIPAddress(mActivity), spUtils.getSecretKeyId());
+        LogUtils.logd("ip:" + Utils.getIPAddress(mActivity));
+        AddOverseasRequestModel userNoModel = new AddOverseasRequestModel();
+        userNoModel.setUserNo(spUtils.getUserId());//
+        userNoModel.setId(id);
+        yzmModelRequestBody.setBody(userNoModel);
+        yzmModelRequestBody.setHeader(headerBean2);
+
+        Gson gson2 = new Gson();
+        String json2 = gson2.toJson(yzmModelRequestBody);
+        LogUtils.logd("参数:" + json2);
+        try {
+            encMsg = DESedeUtil.getRequestAfter3DES(spUtils.getSecretKey(), spUtils.getSecretIv(), json2);
+            signMsg = DESedeUtil.getRequestAfterSign(encMsg);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        LogUtils.logd("id is empty:" + TextUtils.isEmpty(id));
+        if (TextUtils.isEmpty(id)) {
+            mvpPresenter.getAccountIndex(encMsg, signMsg, "2", spUtils.getSecretKeyId());
+        } else {
+            mvpPresenter.delindexzc(encMsg, signMsg, "2", spUtils.getSecretKeyId());
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        LogUtils.loge("onResume");
+//        if (spUtils.getIsLogin()) {
+//            gethjz();//查询黑匣子
+//        }
+
+        LogUtils.loge("onResume count="+count);
+        if (count != 0) {
+            getRequest("");
+        }
+    }
+
+    private String getAppInfo() {
+        try {
+            String pkName = getActivity().getPackageName();
+            String versionName = getActivity().getPackageManager().getPackageInfo(
+                    pkName, 0).versionName;
+            int versionCode = getActivity().getPackageManager()
+                    .getPackageInfo(pkName, 0).versionCode;
+            return pkName + "   " + versionName + "  " + versionCode;
+        } catch (Exception e) {
+        }
+        return null;
+    }
+
+    @TargetApi(Build.VERSION_CODES.KITKAT)
+    @Override
+    public void initView() {
+        alertDialogUtils = new AlertDialogUtils(mActivity);
+        alertDialogOther = new AlertDialogUtils(mActivity);
+
+        LogUtils.loge("initView()------count:"+count);
+        LogUtils.logd("应用包名：" + getAppInfo());
+        LogUtils.loge("initView count="+count);
+        if (count == 0) {//每次重启，获取一次秘钥
+            getSecretkey();
+        }
+        isVisible = true;
+
+        rvZichan.setLayoutManager(new LinearLayoutManager(mActivity));
+        rvZichan2.setLayoutManager(new LinearLayoutManager(mActivity));
+        rvRecommend.setLayoutManager(new LinearLayoutManager(mActivity));
+        rvZichan.setNestedScrollingEnabled(false);
+        rvZichan2.setNestedScrollingEnabled(false);
+        rvRecommend.setNestedScrollingEnabled(false);
+
+        mAdapter = new AdapterZichan(R.layout.main_zichan_item2, null);//用户自添加
+        rvZichan.setAdapter(mAdapter);
+        mAdapterRecommend = new AdapterRecommend(R.layout.main_ecommend_item, null);
+        rvRecommend.setAdapter(mAdapterRecommend);
+
+        mAdapter.setOnItemClickListener(new BaseQuickAdapter.OnItemClickListener() {
+            @Override
+            public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
+                Intent in = null;
+                switch (fieldViewAmountListBeanList.get(position).getNameValue()) {
+                    case "0001":
+                        in = new Intent(mActivity, StockActivity.class);//股票
+                        break;
+                    case "0002":
+                        in = new Intent(mActivity, FundActivity.class);//基金
+                        break;
+                    case "0003":
+                        in = new Intent(mActivity, CurrentFinancialActivity.class);//活期理财
+                        break;
+                    case "0004":
+                        in = new Intent(mActivity, BankCardActivity.class);//银行卡
+                        break;
+                    case "0005":
+                        in = new Intent(mActivity, PrepaidActivity.class);//预付卡
+                        break;
+                    case "0006":
+                        in = new Intent(mActivity, ArrearsassetActivity.class);//欠款
+                        break;
+                    case "0007":
+                        in = new Intent(mActivity, CreditActivity.class);//贷款
+                        break;
+                    case "0008":
+                        in = new Intent(mActivity, EquityActivity.class);//股权
+                        break;
+                    case "0009":
+                        in = new Intent(mActivity, FixedIncomeActivity.class);//固定收益
+                        break;
+                    case "0010":
+                        in = new Intent(mActivity, PrivateOfferingActivity.class);//私募
+                        break;
+                    case "0011":
+                        in = new Intent(mActivity, InsuranceActivity.class);//保险
+                        break;
+                    case "0012":
+                        in = new Intent(mActivity, OverseasActivity.class);//海外房产
+                        break;
+                    case "0013":
+                        in = new Intent(mActivity, ReimbursementActivity.class);//报销单
+                        break;
+                    case "0014":
+                        in = new Intent(mActivity, DominActivity.class);//域名估值
+                        break;
+                    case "0015":
+                        in = new Intent(mActivity, InternetActivity.class);//互联网账号
+                        break;
+                    case "0016":
+                        in = new Intent(mActivity, GameActivity.class);//游戏
+                        break;
+                    case "0017":
+                        in = new Intent(mActivity, LoanActivity.class);//借款
+                        break;
+                    case "9999":
+                        in = new Intent(mActivity, CustomActivity.class);//其它
+                        break;
+                    default:
+                        in = new Intent(mActivity, FundActivity.class);//基金
+                        break;
+                }
+                if (in != null) {
+                    mActivity.startActivity(in);
+                    mActivity.overridePendingTransition(R.anim.left_in, 0);
+                }
+            }
+        });
+
+        mAdapter.setOnItemLongClickListener(new BaseQuickAdapter.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(BaseQuickAdapter adapter, View view, int position) {
+                alertDialogUtils.setMessage("确定要删除" + fieldViewAmountListBeanList.get(position).getNameView() + "？");
+                alertDialogUtils.setPosition(position);
+                alertDialogUtils.show();
+                return true;
+                //返回false时点击事件和长按事件会有冲突，设为true,事件拦截，冲突解除
+            }
+        });
+
+
+        alertDialogUtils.setOnDialogClickListener(new DialogClickListener() {
+            @Override
+            public void clickYes(int which) {
+                mPosition = which;
+                getRequest(fieldViewAmountListBeanList.get(which).getNameValue());
+            }
+
+            @Override
+            public void clickNo() {
+            }
+        });
+
+
+        //下拉刷新条的颜色
+        mSwipeRefreshLayout.setColorSchemeResources(R.color.colorGold);
+
+        mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                isLoadMore = false;
+                getRequest("");
+            }
+        });
+
+        appbar.addOnOffsetChangedListener(new AppBarStateChangeListener() {
+            @Override
+            public void onOffset(AppBarLayout appBarLayout, int i) {
+                int totalOffset = appBarLayout.getTotalScrollRange();
+                float scale = (float) (totalOffset - i) / (float) totalOffset;//展开-1 收起-0
+//                LogUtils.logd("appBar-totalOffset:"+totalOffset+"--scale:"+scale);
+//                if(scale == 1){
+//                    mSwipeRefreshLayout.setEnabled(true);
+//                }else{
+//                    mSwipeRefreshLayout.setEnabled(false);
+//                }
+
+                if (scale < 0.5) {
+//                    tvHeixiazi.setTextColor(getResources().getColor(R.color.colorBlack));
+                    ivHeixiazi.setImageResource(R.drawable.heixia_black);
+                    tvXinyuan.setTextColor(getResources().getColor(R.color.colorBlack));
+                    ivHeixiazi.setAlpha(1 - scale * 2);
+                    tvXinyuan.setAlpha(1 - scale * 2);
+                } else {
+//                    tvHeixiazi.setTextColor(getResources().getColor(R.color.colorWhite));
+                    ivHeixiazi.setImageResource(R.drawable.heixia_white);
+                    tvXinyuan.setTextColor(getResources().getColor(R.color.colorWhite));
+                    ivHeixiazi.setAlpha(2 * scale - 1);
+                    tvXinyuan.setAlpha(2 * scale - 1);
+                }
+            }
+
+            @Override
+            public void onStateChanged(AppBarLayout appBarLayout, State state) {
+                //判断appbar状态，防止与SwipeRefreshLayout下拉事件冲突
+                //这个判断有问题，它至于完全展开和完全折叠状态会触发，其他中间状态不触发
+                //发现还有一个状态-IDLE，从EXPANDED、COLLAPSED滑动到中间某个位置，第一次会触发
+                if (state == State.EXPANDED) {//展开状态
+                    LogUtils.logd("appBar-EXPANDED");
+                    mSwipeRefreshLayout.setEnabled(true);
+                } else if (state == State.COLLAPSED) {//折叠状态
+                    LogUtils.logd("appBar-COLLAPSED");
+                    mSwipeRefreshLayout.setEnabled(false);
+                }else if (state == State.IDLE) {//中间状态
+                    LogUtils.logd("appBar-IDLE");
+                    mSwipeRefreshLayout.setEnabled(false);
+                }
+            }
+        });
+    }
+
+    @Override
+    protected CommonPresenter createPresenter() {
+        return new CommonPresenter(getActivity(), this);
+    }
+
+    @Override
+    public void getDataSuccess(AccountIndexModel model) {
+        mSwipeRefreshLayout.setRefreshing(false);
+        fieldViewAmountListBeanList = model.getBody().getFieldViewAmountList();
+        fieldViewAmountListBeanListCopy = model.getBody().getFieldViewAmountList();
+        fieldViewdelListBeanList = model.getBody().getFieldViewdelList();
+        reProListBeanList = model.getBody().getReProList();
+        fieldnListCopy = new ArrayList<>();
+        for (int i = 0; i < fieldViewAmountListBeanList.size(); i++) {
+            fieldnListCopy.add(fieldViewAmountListBeanList.get(i).getAmount());
+        }
+
+
+        if (reProListBeanList != null && reProListBeanList.size() > 0) {
+            llRecommend.setVisibility(View.VISIBLE);
+            rvRecommend.setVisibility(View.VISIBLE);
+            mAdapterRecommend.setNewData(reProListBeanList);
+        } else {
+            llRecommend.setVisibility(View.GONE);
+            rvRecommend.setVisibility(View.GONE);
+        }
+
+        mAdapter.setNewData(fieldViewAmountListBeanList);
+//        mAdapter2.setNewData(fieldViewdelListBeanList);
+
+        jzc = model.getBody().getUserDayAssetJzc();//净资产
+        zzc = model.getBody().getUserDayAssetZzc();//总资产
+        zqk = model.getBody().getUserDayAssetZqk();//总负债
+
+//        if (Double.parseDouble(jzc) == 0 && Double.parseDouble(zzc) == 0 && Double.parseDouble(zqk) == 0) {//用户还未记账或全部删除
+        if (fieldViewAmountListBeanList == null || fieldViewAmountListBeanList.size() < 1) {//用户还未记账或全部删除
+            ivVisible.setVisibility(View.GONE);
+            llZichanEmpty.setVisibility(View.VISIBLE);
+            tvJzc.setTextSize(22);
+            tvJzc.setTextColor(getResources().getColor(R.color.E2E6EF));
+            tvJzc.setText("财富人生从记账开始");
+
+            tvZzc.setText("0.00");
+            tvZfz.setText("0.00");
+
+        } else {
+            llZichanEmpty.setVisibility(View.GONE);
+            ivVisible.setVisibility(View.VISIBLE);
+            tvJzc.setTextSize(30);
+            tvJzc.setTextColor(getResources().getColor(R.color.colorGold));
+
+            try {
+                if (!isVisible) {
+                    tvJzc.setText("****");
+                    tvZzc.setText("****");
+                    tvZfz.setText("****");
+
+                    for (int i = 0; i < fieldViewAmountListBeanList.size(); i++) {
+                        mAdapter.getItem(i).setAmount("****");
+                    }
+                    mAdapter.notifyDataSetChanged();
+                } else {
+                    tvJzc.setText(SppaConstant.addCommaContainsPoint(jzc));
+                    tvZzc.setText(SppaConstant.addCommaContainsPoint(zzc));
+                    tvZfz.setText(SppaConstant.addCommaContainsPoint(zqk));
+
+                    for (int i = 0; i < fieldViewAmountListBeanList.size(); i++) {
+                        mAdapter.getItem(i).setAmount((SppaConstant.addCommaContainsPoint(fieldnListCopy.get(i))));
+                    }
+                    mAdapter.notifyDataSetChanged();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+
+        }
+
+
+    }
+
+    @Override
+    public void getDataFail(String msg) {
+        mSwipeRefreshLayout.setRefreshing(false);
+        toastShow(msg);
+    }
+
+
+    @OnClick({R.id.tvAddAssets, R.id.ivVisible, R.id.tvXinyuan, R.id.ivHeixiazi})
+    public void onViewClicked(View view) {
+        switch (view.getId()) {
+            case R.id.ivVisible:
+                try {
+                    if (isVisible) {
+                        tvJzc.setText("****");
+                        tvZzc.setText("****");
+                        tvZfz.setText("****");
+                        isVisible = false;
+                        ivVisible.setImageResource(R.drawable.invisible);
+
+                        for (int i = 0; i < fieldViewAmountListBeanList.size(); i++) {
+                            mAdapter.getItem(i).setAmount("****");
+                        }
+                        mAdapter.notifyDataSetChanged();
+                    } else {
+                        tvJzc.setText(SppaConstant.addCommaContainsPoint(jzc));
+                        tvZzc.setText(SppaConstant.addCommaContainsPoint(zzc));
+                        tvZfz.setText(SppaConstant.addCommaContainsPoint(zqk));
+                        isVisible = true;
+                        ivVisible.setImageResource(R.drawable.visible);
+
+                        for (int i = 0; i < fieldViewAmountListBeanList.size(); i++) {
+                            LogUtils.logd(i + ":" + fieldnListCopy.get(i));
+                            LogUtils.logd(i + ":" + fieldViewAmountListBeanListCopy.get(i).getAmount());
+                            mAdapter.getItem(i).setAmount((SppaConstant.addCommaContainsPoint(fieldnListCopy.get(i))));
+                        }
+                        mAdapter.notifyDataSetChanged();
+
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                break;
+            case R.id.tvAddAssets:
+                if (spUtils.getIsLogin()) {
+                    ActivityUtils.startActivityRightIn(getActivity(), AddAssetsActivity.class);
+                } else {
+                    ActivityUtils.startActivityRightIn(getActivity(), LoginActivity.class);
+                }
+
+                break;
+            case R.id.tvXinyuan:
+                toastShow("功能开发中，敬请期待...");
+
+                break;
+            case R.id.ivHeixiazi:
+                if (spUtils.getIsLogin()) {
+                        gethjz();//查询黑匣子是否开启
+                    /*if (spUtils.getOpenblackBox()) {
+                        ActivityUtils.startActivityRightIn(getActivity(), BlackboxDetailActivity.class);
+                    } else {
+                        ActivityUtils.startActivityRightIn(getActivity(), BlackboxUnsettingActivity.class);
+                    }*/
+                } else {
+                    ActivityUtils.startActivityRightIn(getActivity(), LoginActivity.class);
+                }
+                break;
+        }
+    }
+
+    //删除模块回调
+    @Override
+    public void onSuccess(SercetKeyOverdueModel model) {
+        toastShow("删除成功", R.drawable.gou_toast);
+        try {
+            fieldViewAmountListBeanList.remove(mPosition);
+            mAdapter.notifyItemRemoved(mPosition);//推荐用这个
+            getRequest("");//删除完成，刷新界面
+            if (mAdapter.getItemCount() == 0) {
+                llZichanEmpty.setVisibility(View.VISIBLE);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void onFail(String model) {
+        toastShow(model);
+    }
+
+
+    @Override
+    public void ThirdSuccess(SecretKeyResponseModel model) {
+        count++;//秘钥获取成功后，count++；
+        getRequest("");
+    }
+
+    @Override
+    public void ThirdFail(String msg) {
+        toastShow(msg);
+    }
+
+    /**
+     * 查询黑匣子
+     */
+    private void gethjz() {
+        RequestBody<AddOverseasRequestModel> loginRequestModel = new RequestBody<>();
+        RequestBody.HeaderBean headerBean = new RequestBody.HeaderBean(Utils.getIPAddress(mActivity), spUtils.getSecretKeyId());
+        AddOverseasRequestModel requestModel = new AddOverseasRequestModel();
+        requestModel.setUserNo(spUtils.getUserId());
+        loginRequestModel.setBody(requestModel);
+        loginRequestModel.setHeader(headerBean);
+        Gson gson2 = new Gson();
+        String json2 = gson2.toJson(loginRequestModel);
+        LogUtils.logd(json2);
+        try {
+            encMsg = DESedeUtil.getRequestAfter3DES(spUtils.getSecretKey(), spUtils.getSecretIv(), json2);
+            signMsg = DESedeUtil.getRequestAfterSign(encMsg);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+//        mvpPresenter.gethjz(encMsg, signMsg, "2", spUtils.getSecretKeyId());
+        showLoadingDialog();
+        ApiStores apiStores = AppClient.retrofit(getContext()).create(ApiStores.class);
+        Observable<EncryptedResponseModel> observable = apiStores.gethjz(encMsg, signMsg, "2", spUtils.getSecretKeyId());
+        observable.subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Subscriber<EncryptedResponseModel>() {
+                    @Override
+                    public void onCompleted() {
+                        dismissLoadingDialog();
+                        LogUtils.loge("onCompleted()");
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                        LogUtils.loge("onError()" + e.getMessage());
+                    }
+
+                    @Override
+                    public void onNext(EncryptedResponseModel model) {
+                        LogUtils.loge("MsgType:" + model.getMsgType());
+                        String msgType = model.getMsgType();
+                        if (msgType != null && msgType.equals("2")) {//加密
+                            String encMsg = model.getEncMsg();
+                            LogUtils.loge(model.getEncMsg());
+                            try {
+                                String platext = DESedeUtil.decrypt(encMsg, spUtils.getSecretKey(), spUtils.getSecretIv());
+                                LogUtils.loge("解密后：------查询黑匣子----------" + platext);
+                                GetHjzModel getHjzModel = GsonTools.getObject(platext, GetHjzModel.class);
+                                if (getHjzModel.getHeader().getCode().equals("0000")) {
+                                    if (getHjzModel.getBody().getInfoDto() == null) {
+                                        spUtils.setOpenblackBox(false);
+                                            ActivityUtils.startActivityRightIn(getActivity(), BlackboxUnsettingActivity.class);
+                                    } else {
+                                        spUtils.setOpenblackBox(true);
+                                        ActivityUtils.startActivityRightIn(getActivity(), BlackboxDetailActivity.class);
+                                    }
+                                } else {
+                                    toastShow(getHjzModel.getHeader().getDesc());
+                                }
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        } else {
+                            LogUtils.loge("首页：未加密:" + model.getMsgType());
+                        }
+                    }
+
+                });
+    }
+}

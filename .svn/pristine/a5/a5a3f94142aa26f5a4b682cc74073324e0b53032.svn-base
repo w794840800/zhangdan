@@ -1,0 +1,366 @@
+package com.beidou.ybz.accountbook.ui.fragment;
+
+import android.annotation.SuppressLint;
+import android.os.Build;
+import android.util.Log;
+import android.view.View;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
+
+import com.baidu.mobstat.StatService;
+import com.beidou.ybz.accountbook.R;
+import com.beidou.ybz.accountbook.mvp.entity.AccountModel;
+import com.beidou.ybz.accountbook.mvp.entity.AddOverseasRequestModel;
+import com.beidou.ybz.accountbook.mvp.entity.CsIndexDataModel;
+import com.beidou.ybz.accountbook.mvp.entity.EncryptedResponseModel;
+import com.beidou.ybz.accountbook.mvp.entity.MyModel;
+import com.beidou.ybz.accountbook.mvp.entity.RequestBody;
+import com.beidou.ybz.accountbook.mvp.entity.UserNoModel;
+import com.beidou.ybz.accountbook.mvp.other.MvpFragment;
+import com.beidou.ybz.accountbook.mvp.presenter.CommonPresenter;
+import com.beidou.ybz.accountbook.mvp.view.CommonView;
+import com.beidou.ybz.accountbook.mvp.view.OtherView;
+import com.beidou.ybz.accountbook.retrofit.ApiStores;
+import com.beidou.ybz.accountbook.retrofit.AppClient;
+import com.beidou.ybz.accountbook.util.DESedeUtil;
+import com.beidou.ybz.accountbook.util.GsonTools;
+import com.beidou.ybz.accountbook.util.LogUtils;
+import com.beidou.ybz.accountbook.util.Utils;
+import com.beidou.ybz.accountbook.widget.ProgressWebView1;
+import com.bumptech.glide.Glide;
+import com.google.gson.Gson;
+
+import butterknife.Bind;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
+import de.hdodenhof.circleimageview.CircleImageView;
+import rx.Observable;
+import rx.Subscriber;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.schedulers.Schedulers;
+
+public class CaishangFragment extends MvpFragment<CommonPresenter> implements CommonView<CsIndexDataModel>, OtherView<MyModel> {
+
+    ProgressWebView1 mWebView;
+    @Bind(R.id.caishang_Title)
+    TextView caishangTitle;
+    @Bind(R.id.caishang_fenshu)
+    TextView caishangFenshu;
+    @Bind(R.id.CircleImageView1)
+    CircleImageView CircleImageView1;
+    @Bind(R.id.top1)
+    RelativeLayout top1;
+    @Bind(R.id.CircleImageView2)
+    CircleImageView CircleImageView2;
+    @Bind(R.id.top2)
+    RelativeLayout top2;
+    @Bind(R.id.relativelayout)
+    LinearLayout relativelayout;
+    @Bind(R.id.tv_title)
+    TextView tvTitle;
+    @Bind(R.id.tvtitle2)
+    TextView tvtitle2;
+
+    private String encMsg, signMsg;
+    private String url;
+
+    @Override
+    public int getLayoutRes() {
+        return R.layout.web_cs_home;
+    }
+
+    @Override
+    public void initView() {
+        mWebView = new ProgressWebView1(getActivity(), null, tvTitle);
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT);
+        mWebView.setLayoutParams(lp);
+        relativelayout.addView(mWebView);
+    }
+
+
+    @Override
+    public void onHiddenChanged(boolean hidden) {
+        super.onHiddenChanged(hidden);
+        if (isHidden()) {
+            mWebView.loadUrl("javascript:radioPause()");
+            mWebView.reload();
+        }
+    }
+
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        StatService.onPageStart(getActivity(), "财商首页");
+        if (spUtils.getIsLogin()) {
+            index();
+            indexdata();
+        }
+        request();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        StatService.onPageEnd(getActivity(), "财商首页");
+    }
+
+    @Override
+    protected CommonPresenter createPresenter() {
+        if (mActivity != null) {
+            return new CommonPresenter(mActivity, this);
+        } else {
+            return new CommonPresenter(getActivity(), this);
+        }
+    }
+
+    /**
+     * 财商h5
+     */
+    @SuppressLint("SetJavaScriptEnabled")
+    private void request() {
+        RequestBody<AddOverseasRequestModel> requestBody = new RequestBody<>();
+        RequestBody.HeaderBean headerBean = new RequestBody.HeaderBean(Utils.getIPAddress(mActivity), spUtils.getSecretKeyId());
+        AddOverseasRequestModel addOverseasRequestModel = new AddOverseasRequestModel();
+        addOverseasRequestModel.setUserNo(spUtils.getUserId());
+        LogUtils.loge("----------应用----------" + spUtils.getNickName());
+        if (spUtils.getNickName() == null || spUtils.getNickName().equals("")) {
+            addOverseasRequestModel.setNickName("我是默认昵称");
+        } else {
+            addOverseasRequestModel.setNickName(spUtils.getNickName());
+        }
+        addOverseasRequestModel.setPortraitUrl(spUtils.getPortraitUrl());
+        requestBody.setBody(addOverseasRequestModel);
+        requestBody.setHeader(headerBean);
+        Gson gson2 = new Gson();
+        String json2 = gson2.toJson(requestBody);
+        try {
+            encMsg = DESedeUtil.getRequestAfter3DES(spUtils.getSecretKey(), spUtils.getSecretIv(), json2);
+            signMsg = DESedeUtil.getRequestAfterSign(encMsg);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+//        mvpPresenter.fqindex(encMsg, signMsg, "2", spUtils.getSecretKeyId());
+        url = ApiStores.CAISHANG_URL + "fq/index.htm?" + "encMsg=" + encMsg + "&signMsg=" + signMsg + "&msgType=" + "2" + "&secretKeyId=" + spUtils.getSecretKeyId();
+        Log.e("", "request: --------utl----------" + url);
+        mWebView.loadUrl(url);
+    }
+
+    /**
+     * 财商首页数据
+     */
+    private void indexdata() {
+        RequestBody<AddOverseasRequestModel> requestBody = new RequestBody<>();
+        RequestBody.HeaderBean headerBean = new RequestBody.HeaderBean(Utils.getIPAddress(mActivity), spUtils.getSecretKeyId());
+        AddOverseasRequestModel addOverseasRequestModel = new AddOverseasRequestModel();
+        addOverseasRequestModel.setUserNo(spUtils.getUserId());
+        requestBody.setBody(addOverseasRequestModel);
+        requestBody.setHeader(headerBean);
+        Gson gson2 = new Gson();
+        String json2 = gson2.toJson(requestBody);
+        try {
+            encMsg = DESedeUtil.getRequestAfter3DES(spUtils.getSecretKey(), spUtils.getSecretIv(), json2);
+            signMsg = DESedeUtil.getRequestAfterSign(encMsg);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        mvpPresenter.indexdata(encMsg, signMsg, "2", spUtils.getSecretKeyId());
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        ButterKnife.unbind(this);
+
+        if (mWebView != null) {
+            mWebView.clearCache(true); //清空缓存
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                if (relativelayout != null) {
+                    relativelayout.removeView(mWebView);
+                }
+                mWebView.removeAllViews();
+                mWebView.destroy();
+            } else {
+                mWebView.removeAllViews();
+                mWebView.destroy();
+                if (relativelayout != null) {
+                    relativelayout.removeView(mWebView);
+                }
+            }
+            mWebView = null;
+        }
+    }
+
+    /**
+     * 财商首页数据
+     *
+     * @param model
+     */
+    @Override
+    public void getDataSuccess(CsIndexDataModel model) {
+        if (model.getBody() == null) {//-----未测试+
+            top2.setVisibility(View.VISIBLE);
+            top1.setVisibility(View.GONE);
+        } else if (String.valueOf(model.getBody().getStudyOver()).equals("1")) {//-----已完成
+            top2.setVisibility(View.VISIBLE);
+            top1.setVisibility(View.GONE);
+            tvtitle2.setText("恭喜你已学完全部课程");
+        } else {//----未完成
+            top2.setVisibility(View.GONE);
+            top1.setVisibility(View.VISIBLE);
+            caishangFenshu.setText(model.getBody().getWealthValue() + "分");
+            caishangTitle.setText("我的课程：" + model.getBody().getLevelName());
+        }
+    }
+
+    @Override
+    public void getDataFail(String msg) {
+        toastShow(msg);
+    }
+
+
+    @OnClick(R.id.CircleImageView1)
+    public void onViewClicked(View view) {
+        switch (view.getId()) {
+            case R.id.CircleImageView1:
+                mWebView.loadUrl("javascript:radioPause()");
+                break;
+        }
+    }
+
+    /**
+     * 我的首页接口
+     */
+    private void index() {
+        RequestBody<AddOverseasRequestModel> requestBody = new RequestBody<>();
+        RequestBody.HeaderBean headerBean = new RequestBody.HeaderBean(Utils.getIPAddress(mActivity), spUtils.getSecretKeyId());
+        AddOverseasRequestModel addOverseasRequestModel = new AddOverseasRequestModel();
+        addOverseasRequestModel.setUserNo(spUtils.getUserId());
+        addOverseasRequestModel.setVisitTime(spUtils.getMessageTime());
+        requestBody.setBody(addOverseasRequestModel);
+        requestBody.setHeader(headerBean);
+        Gson gson2 = new Gson();
+        String json2 = gson2.toJson(requestBody);
+        try {
+            encMsg = DESedeUtil.getRequestAfter3DES(spUtils.getSecretKey(), spUtils.getSecretIv(), json2);
+            signMsg = DESedeUtil.getRequestAfterSign(encMsg);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        mvpPresenter.index(encMsg, signMsg, "2", spUtils.getSecretKeyId());
+    }
+
+    @Override
+    public void onSuccess(MyModel model) {
+        String portraitUrl = model.getBody().getPortraitUrl();
+        if (!portraitUrl.equals("") && !portraitUrl.startsWith("http")) {
+            portraitUrl = ApiStores.OTHER_IMG_URL + portraitUrl;
+        }
+        spUtils.setPortraitUrl(portraitUrl);
+        if (model.getBody().getNickName().equals("")) {
+            spUtils.setNickName("我是默认昵称");
+        } else {
+            spUtils.setNickName(model.getBody().getNickName());
+        }
+        Glide.with(mActivity)
+                .load(portraitUrl)
+                .error(R.drawable.defaultavatar)
+                .into(CircleImageView1);
+        Glide.with(mActivity)
+                .load(portraitUrl)
+                .error(R.drawable.defaultavatar)
+                .into(CircleImageView2);
+        request();
+    }
+
+    @Override
+    public void onFail(String model) {
+
+    }
+
+
+    /**
+     * 账户首页接口
+     */
+    private void getAccount() {
+        RequestBody<UserNoModel> requestBody = new RequestBody<>();
+        RequestBody.HeaderBean headerBean = new RequestBody.HeaderBean(Utils.getIPAddress(mActivity), spUtils.getSecretKeyId());
+        UserNoModel requestModel = new UserNoModel();
+
+        requestModel.setUserNo(spUtils.getUserId());
+        requestBody.setBody(requestModel);
+        requestBody.setHeader(headerBean);
+
+        Gson gson2 = new Gson();
+        String json2 = gson2.toJson(requestBody);
+
+        try {
+            encMsg = DESedeUtil.getRequestAfter3DES(spUtils.getSecretKey(), spUtils.getSecretIv(), json2);
+            signMsg = DESedeUtil.getRequestAfterSign(encMsg);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+//        mvpPresenter.account(encMsg, signMsg, "2", spUtils.getSecretKeyId());
+
+        ApiStores apiStores = AppClient.retrofit(mActivity).create(ApiStores.class);
+        Observable<EncryptedResponseModel> observable = apiStores.account(encMsg, signMsg, "2", spUtils.getSecretKeyId());
+        observable.subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Subscriber<EncryptedResponseModel>() {
+                    @Override
+                    public void onCompleted() {
+                        LogUtils.loge("onCompleted()");
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                        LogUtils.loge("onError()" + e.getMessage());
+                    }
+
+                    @Override
+                    public void onNext(EncryptedResponseModel model) {
+                        LogUtils.loge("MsgType:" + model.getMsgType());
+                        String msgType = model.getMsgType();
+                        if (msgType != null && msgType.equals("2")) {//加密
+                            String encMsg = model.getEncMsg();
+                            LogUtils.loge(model.getEncMsg());
+                            try {
+                                String platext = DESedeUtil.decrypt(encMsg, spUtils.getSecretKey(), spUtils.getSecretIv());
+                                LogUtils.loge("解密后：------我的----------" + platext);
+                                AccountModel accountModel = GsonTools.getObject(platext, AccountModel.class);
+                                if (accountModel.getHeader().getCode().equals("0000")) {
+                                    String portraitUrl = accountModel.getBody().getPortraitUrl();
+                                    if (!portraitUrl.equals("") && !portraitUrl.startsWith("http")) {
+                                        portraitUrl = ApiStores.OTHER_IMG_URL + portraitUrl;
+                                    }
+                                    spUtils.setPortraitUrl(portraitUrl);
+                                    if (accountModel.getBody().getNickName().equals("")) {
+                                        spUtils.setNickName("我是默认昵称");
+                                    } else {
+                                        spUtils.setNickName(accountModel.getBody().getNickName());
+                                    }
+                                    Glide.with(mActivity)
+                                            .load(portraitUrl)
+                                            .error(R.drawable.defaultavatar)
+                                            .into(CircleImageView1);
+                                    Glide.with(mActivity)
+                                            .load(portraitUrl)
+                                            .error(R.drawable.defaultavatar)
+                                            .into(CircleImageView2);
+                                } else {
+
+                                }
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        } else {
+                            LogUtils.loge("首页：未加密:" + model.getMsgType());
+                        }
+                    }
+
+                });
+    }
+
+}

@@ -1,0 +1,63 @@
+package com.beidou.ybz.accountbook.adapter;
+
+import android.widget.TextView;
+
+import com.beidou.ybz.accountbook.R;
+import com.beidou.ybz.accountbook.mvp.entity.FundListModel;
+import com.beidou.ybz.accountbook.mvp.entity.StockListModel;
+import com.beidou.ybz.accountbook.util.Utils;
+import com.chad.library.adapter.base.BaseQuickAdapter;
+import com.chad.library.adapter.base.BaseViewHolder;
+
+import java.util.List;
+
+/**http://www.jianshu.com/p/b343fcff51b0
+ * Created by lenovo on 2017/9/7.
+ * 基金列表adapter
+ */
+public class AdapterFund extends BaseQuickAdapter<FundListModel.BodyBean.PositionListBean,BaseViewHolder> {//AccountIndexModel.BodyBean.FieldViewAmountListBean
+    String dqsz,zde,zdf;
+    public AdapterFund(int layoutResId, List data) {
+        super(layoutResId, data);
+    }
+
+    @Override
+    protected void convert(BaseViewHolder helper, FundListModel.BodyBean.PositionListBean item) {
+
+
+        try {
+            dqsz = item.getDqsz();
+            zde = item.getZrsy();
+            zdf = item.getZdf();//String.valueOf(Double.parseDouble(item.getZdf()) * 100);
+//            zdf = String.valueOf(Double.parseDouble(item.getZdf()) * 100);
+
+            helper.setText(R.id.tv_title,item.getFundName());
+            helper.setText(R.id.tv_stockCode,item.getFundCode());
+            helper.setText(R.id.tvDqsz, Utils.addCommaContainsPoint(dqsz));//当前市值
+            helper.setText(R.id.tvZde,Utils.addCommaContainsPoint(zde));
+            helper.setText(R.id.tvZdf,Utils.addCommaContainsPoint(zdf)+"%");
+
+            if(zde != null && zde.startsWith("-")){
+                helper.setText(R.id.tvZde,"-"+Utils.addCommaContainsPoint(zde.substring(1)));
+                helper.setText(R.id.tvZdf,"-"+Utils.addCommaContainsPoint(zdf.substring(1))+"%");
+                ((TextView)helper.getView(R.id.tvZde)).setTextColor(mContext.getResources().getColor(R.color.stock_green));
+                ((TextView)helper.getView(R.id.tvZdf)).setTextColor(mContext.getResources().getColor(R.color.stock_green));
+            }else if(zde != null && Double.parseDouble(zde) == 0){
+                helper.setText(R.id.tvZde,Utils.addCommaContainsPoint(zde));
+                helper.setText(R.id.tvZdf,Utils.addCommaContainsPoint(zdf)+"%");
+                ((TextView)helper.getView(R.id.tvZde)).setTextColor(mContext.getResources().getColor(R.color.stock_gray));
+                ((TextView)helper.getView(R.id.tvZdf)).setTextColor(mContext.getResources().getColor(R.color.stock_gray));
+            }else{
+                helper.setText(R.id.tvZde,Utils.addCommaContainsPoint(zde));
+                helper.setText(R.id.tvZdf,Utils.addCommaContainsPoint(zdf)+"%");
+                ((TextView)helper.getView(R.id.tvZde)).setTextColor(mContext.getResources().getColor(R.color.stock_red));
+                ((TextView)helper.getView(R.id.tvZdf)).setTextColor(mContext.getResources().getColor(R.color.stock_red));
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+
+    }
+}

@@ -1,0 +1,197 @@
+package com.beidou.ybz.accountbook.ui;
+
+import android.content.Intent;
+import android.os.Bundle;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
+import android.view.KeyEvent;
+import android.view.View;
+import android.widget.ImageView;
+import android.widget.TextView;
+
+import com.beidou.ybz.accountbook.R;
+import com.beidou.ybz.accountbook.ui.fragment.CaishangFragment;
+import com.beidou.ybz.accountbook.ui.fragment.LoanFragment;
+import com.beidou.ybz.accountbook.ui.fragment.MyFragment;
+import com.beidou.ybz.accountbook.ui.fragment.MainFragment;
+import com.beidou.ybz.accountbook.util.ActivityUtils;
+import com.orhanobut.logger.Logger;
+
+import butterknife.Bind;
+import butterknife.OnClick;
+
+public class MainActivity extends BaseActivity {
+    Fragment fragmentMain, fragmentZengzhi, fragmentCaishang, fragmentMy;
+    @Bind(R.id.iv_main)
+    ImageView ivMain;
+    @Bind(R.id.tv_main)
+    TextView tvMain;
+    @Bind(R.id.iv_zengzhi)
+    ImageView ivZengzhi;
+    @Bind(R.id.tv_zengzhi)
+    TextView tvZengzhi;
+    @Bind(R.id.iv_caishang)
+    ImageView ivcaishang;
+    @Bind(R.id.tv_caishang)
+    TextView tvcaishang;
+    @Bind(R.id.iv_my)
+    ImageView ivMy;
+    @Bind(R.id.tv_my)
+    TextView tvMy;
+    long exittime = 0;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+//        ActivityUtils.setStatusBar(MainActivity.this);
+        setSwipeBackEnable(false);
+        setSelect(0);
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        Logger.e("MainActivity_:onNewIntent" + this.getTaskId());
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Logger.e("MainActivity_:" + this.getTaskId());
+    }
+
+    /**
+     * 把图片设置为亮色
+     * 设置内容区域
+     *
+     * @param i
+     */
+    private void setSelect(int i) {
+        resetImages();
+        FragmentManager fm = getSupportFragmentManager();
+        FragmentTransaction transaction = fm.beginTransaction();
+        hideFragment(transaction);
+        switch (i) {
+            case 0:
+                if (fragmentMain == null) {
+                    fragmentMain = new MainFragment();
+                    transaction.add(R.id.id_content, fragmentMain, fragmentMain.getClass().getName());
+                } else {
+                    transaction.show(fragmentMain);
+                }
+                ivMain.setImageResource(R.drawable.main_selected);
+                tvMain.setTextColor(getResources().getColor(R.color.textcheck));
+                break;
+            case 1:
+                if (fragmentZengzhi == null) {
+                    fragmentZengzhi = new LoanFragment();
+                    transaction.add(R.id.id_content, fragmentZengzhi, fragmentZengzhi.getClass().getName());
+                } else {
+                    transaction.show(fragmentZengzhi);
+                }
+
+                ivZengzhi.setImageResource(R.drawable.zengzhi_selected);
+                tvZengzhi.setTextColor(getResources().getColor(R.color.textcheck));
+                break;
+            case 2:
+                if (fragmentCaishang == null) {
+                    fragmentCaishang = new CaishangFragment();
+                    transaction.add(R.id.id_content, fragmentCaishang, fragmentCaishang.getClass().getName());
+                } else {
+                    transaction.show(fragmentCaishang);
+                }
+
+                ivcaishang.setImageResource(R.drawable.caishang_selected);
+                tvcaishang.setTextColor(getResources().getColor(R.color.textcheck));
+                break;
+            case 3:
+                if (fragmentMy == null) {
+                    fragmentMy = new MyFragment();
+                    transaction.add(R.id.id_content, fragmentMy, fragmentMy.getClass().getName());
+                } else {
+                    transaction.show(fragmentMy);
+                }
+                ivMy.setImageResource(R.drawable.my_selected);
+                tvMy.setTextColor(getResources().getColor(R.color.textcheck));
+
+                break;
+        }
+        transaction.commit();
+    }
+
+
+    /**
+     * 隐藏所有的Fragment
+     *
+     * @param transaction
+     */
+    private void hideFragment(FragmentTransaction transaction) {
+        if (fragmentMain != null) {
+            transaction.hide(fragmentMain);
+        }
+        if (fragmentZengzhi != null) {
+            transaction.hide(fragmentZengzhi);
+        }
+        if (fragmentCaishang != null) {
+            transaction.hide(fragmentCaishang);
+        }
+        if (fragmentMy != null) {
+            transaction.hide(fragmentMy);
+        }
+
+    }
+
+    /**
+     * 切换图片,文字至暗色
+     */
+    void resetImages() {
+        ivMain.setImageResource(R.drawable.main_unselected);
+        ivZengzhi.setImageResource(R.drawable.zengzhi_unselected);
+        ivcaishang.setImageResource(R.drawable.caishang_unselected);
+        ivMy.setImageResource(R.drawable.my_unselected);
+
+        tvMain.setTextColor(getResources().getColor(R.color.textuncheck));
+        tvZengzhi.setTextColor(getResources().getColor(R.color.textuncheck));
+        tvcaishang.setTextColor(getResources().getColor(R.color.textuncheck));
+        tvMy.setTextColor(getResources().getColor(R.color.textuncheck));
+    }
+
+    @OnClick({R.id.ll_main, R.id.ll_zengzhi, R.id.ll_caishang, R.id.ll_my})
+    public void onClick(View view) {
+        switch (view.getId()) {
+            case R.id.ll_main:
+                setSelect(0);
+                break;
+            case R.id.ll_zengzhi:
+                setSelect(1);
+                break;
+            case R.id.ll_caishang:
+                setSelect(2);
+                break;
+            case R.id.ll_my:
+                setSelect(3);
+                break;
+        }
+    }
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_BACK
+                && event.getAction() == KeyEvent.ACTION_DOWN) {
+            if ((System.currentTimeMillis() - exittime) > 2000) {
+//                ToastUtils.toast(MainActivity.this, R.drawable.tan_toast, "再按一次退出程序");
+                toastShow("再按一次退出程序", R.drawable.tan_toast);
+                exittime = System.currentTimeMillis();
+            } else {
+                System.exit(0);
+                //杀死该应用进程
+                android.os.Process.killProcess(android.os.Process.myPid());
+                finish();
+            }
+            return true;
+        }
+        return super.onKeyDown(keyCode, event);
+    }
+}

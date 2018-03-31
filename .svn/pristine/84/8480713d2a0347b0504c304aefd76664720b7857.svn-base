@@ -1,0 +1,428 @@
+package com.beidou.ybz.accountbook.ui.fragment;
+
+import android.annotation.SuppressLint;
+import android.app.AlertDialog;
+import android.view.View;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
+
+import com.beidou.ybz.accountbook.R;
+import com.beidou.ybz.accountbook.mvp.entity.AccountModel;
+import com.beidou.ybz.accountbook.mvp.entity.AddOverseasRequestModel;
+import com.beidou.ybz.accountbook.mvp.entity.EncryptedResponseModel;
+import com.beidou.ybz.accountbook.mvp.entity.GetHjzModel;
+import com.beidou.ybz.accountbook.mvp.entity.MyModel;
+import com.beidou.ybz.accountbook.mvp.entity.RequestBody;
+import com.beidou.ybz.accountbook.mvp.entity.UserNoModel;
+import com.beidou.ybz.accountbook.mvp.other.MvpFragment;
+import com.beidou.ybz.accountbook.mvp.presenter.CommonPresenter;
+import com.beidou.ybz.accountbook.mvp.view.CommonView;
+import com.beidou.ybz.accountbook.mvp.view.OtherView;
+import com.beidou.ybz.accountbook.retrofit.ApiStores;
+import com.beidou.ybz.accountbook.retrofit.AppClient;
+import com.beidou.ybz.accountbook.ui.AboutUsActivity;
+import com.beidou.ybz.accountbook.ui.BlackboxDetailActivity;
+import com.beidou.ybz.accountbook.ui.BlackboxUnsettingActivity;
+import com.beidou.ybz.accountbook.ui.GestureValidActivity;
+import com.beidou.ybz.accountbook.ui.HuiZhangActivity;
+import com.beidou.ybz.accountbook.ui.HuodongDetailActivity;
+import com.beidou.ybz.accountbook.ui.HuodongListActivity;
+import com.beidou.ybz.accountbook.ui.LoginActivity;
+import com.beidou.ybz.accountbook.ui.MessageListActivity;
+import com.beidou.ybz.accountbook.ui.PersonalInfoActivity;
+import com.beidou.ybz.accountbook.ui.RenmaiActivity;
+import com.beidou.ybz.accountbook.ui.SettingActivity;
+import com.beidou.ybz.accountbook.ui.TongbuActivity;
+import com.beidou.ybz.accountbook.util.ActivityUtils;
+import com.beidou.ybz.accountbook.util.DESedeUtil;
+import com.beidou.ybz.accountbook.util.GsonTools;
+import com.beidou.ybz.accountbook.util.LogUtils;
+import com.beidou.ybz.accountbook.util.Utils;
+import com.bumptech.glide.Glide;
+import com.google.gson.Gson;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
+
+import butterknife.Bind;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
+import rx.Observable;
+import rx.Subscriber;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.schedulers.Schedulers;
+
+/**
+ * Author: Bob on 2017/10/30 15:16
+ * QQ:754444814
+ * E-mail:754444814@qq.com
+ */
+public class MyFragment extends MvpFragment<CommonPresenter> implements CommonView<AccountModel>, OtherView<MyModel> {
+    @Bind(R.id.llUnLogin)
+    LinearLayout llUnLogin;
+    @Bind(R.id.tvNicheng)
+    TextView tvNicheng;
+    @Bind(R.id.llUserCenter)
+    LinearLayout llUserCenter;
+    @Bind(R.id.fragment_my_huizhang)
+    LinearLayout fragmentMyHuizhang;
+    @Bind(R.id.huodong_img1)
+    ImageView huodongImg1;
+    @Bind(R.id.huodong_img2)
+    ImageView huodongImg2;
+    @Bind(R.id.huodong_img3)
+    ImageView huodongImg3;
+    @Bind(R.id.huodong_linear)
+    LinearLayout huodongLinear;
+    @Bind(R.id.huodong_next)
+    RelativeLayout huodongNext;
+    @Bind(R.id.ivTouxiang)
+    ImageView ivTouxiang;
+    @Bind(R.id.tvMessage)
+    TextView tvMessage;
+
+    private String encMsg, signMsg;
+    private String url1, url2, url3;
+    private AlertDialog alertDialog;
+
+
+    @Override
+    public int getLayoutRes() {
+        return R.layout.fragment_my;
+    }
+
+    @SuppressLint("NewApi")
+    @Override
+    public void initView() {
+        alertDialog = new AlertDialog.Builder(mActivity)
+                .setView(R.layout.layout_newversion)
+                .create();
+//        getAccount();
+    }
+
+    /**
+     * 账户首页接口
+     */
+    private void getAccount() {
+        RequestBody<UserNoModel> requestBody = new RequestBody<>();
+        RequestBody.HeaderBean headerBean = new RequestBody.HeaderBean(Utils.getIPAddress(mActivity), spUtils.getSecretKeyId());
+        UserNoModel requestModel = new UserNoModel();
+        requestModel.setUserNo(spUtils.getUserId());
+
+        requestBody.setBody(requestModel);
+        requestBody.setHeader(headerBean);
+
+        Gson gson2 = new Gson();
+        String json2 = gson2.toJson(requestBody);
+
+        try {
+            encMsg = DESedeUtil.getRequestAfter3DES(spUtils.getSecretKey(), spUtils.getSecretIv(), json2);
+            signMsg = DESedeUtil.getRequestAfterSign(encMsg);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        mvpPresenter.account(encMsg, signMsg, "2", spUtils.getSecretKeyId());
+    }
+
+    /**
+     * 我的首页接口
+     */
+    private void index() {
+        RequestBody<AddOverseasRequestModel> requestBody = new RequestBody<>();
+        RequestBody.HeaderBean headerBean = new RequestBody.HeaderBean(Utils.getIPAddress(mActivity), spUtils.getSecretKeyId());
+        AddOverseasRequestModel addOverseasRequestModel = new AddOverseasRequestModel();
+        addOverseasRequestModel.setUserNo(spUtils.getUserId());
+        addOverseasRequestModel.setVisitTime(spUtils.getMessageTime());
+        requestBody.setBody(addOverseasRequestModel);
+        requestBody.setHeader(headerBean);
+        Gson gson2 = new Gson();
+        String json2 = gson2.toJson(requestBody);
+        try {
+            encMsg = DESedeUtil.getRequestAfter3DES(spUtils.getSecretKey(), spUtils.getSecretIv(), json2);
+            signMsg = DESedeUtil.getRequestAfterSign(encMsg);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        mvpPresenter.index(encMsg, signMsg, "2", spUtils.getSecretKeyId());
+    }
+
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (spUtils.getIsLogin()) {
+            index();
+            gethjz();//查询黑匣子
+            llUnLogin.setVisibility(View.GONE);
+            llUserCenter.setVisibility(View.VISIBLE);
+        } else {
+            index();
+            llUnLogin.setVisibility(View.VISIBLE);
+            llUserCenter.setVisibility(View.GONE);
+        }
+    }
+
+    public String formatBirthTime(Long ts) {
+        @SuppressLint("SimpleDateFormat") SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        String timeStr = formatter.format(new Date(ts)); //将日期时间格式化
+        return timeStr;
+    }
+
+    @OnClick({R.id.tvLogin, R.id.llRenmai, R.id.llCaifuhui, R.id.llHeixiazi, R.id.llSetting, R.id.llAboutus, R.id.rlMessage, R.id.llUserCenter,
+            R.id.fragment_my_huizhang, R.id.huodong_img1, R.id.huodong_img2, R.id.huodong_img3, R.id.huodong_next})
+    public void onViewClicked(View view) {
+        switch (view.getId()) {
+            case R.id.llUserCenter://------用户中心
+//                if (spUtils.getBindFlag().equals("0")){
+//                    ActivityUtils.startActivityRightIn(mActivity, BindActivity.class);
+//                }else {
+//                    ActivityUtils.startActivityRightIn(mActivity, PersonalInfoActivity.class);
+//                }
+                ActivityUtils.startActivityRightIn(mActivity, PersonalInfoActivity.class);
+                break;
+            case R.id.rlMessage://--------消息中心不需要登陆
+                spUtils.setMessageTime(formatBirthTime(System.currentTimeMillis()));
+                ActivityUtils.startActivityRightIn(mActivity, MessageListActivity.class);
+                break;
+            case R.id.tvLogin://--------登陆注册
+//                ActivityUtils.startActivityRightIn(mActivity, LoginActivity.class);
+                ActivityUtils.startActivityRightInWithFrom(mActivity, LoginActivity.class, "forgetGes");
+                break;
+            case R.id.llRenmai://---------人脉
+                if (spUtils.getIsLogin()) {
+                    ActivityUtils.startActivityRightIn(mActivity, TongbuActivity.class);
+                   /* if (spUtils.getIsSave()){
+                        String jsonstring = spUtils.getcontactJson();
+                        List<String> contractList = GsonTools.getObjectList(jsonstring,String.class);
+                        ActivityUtils.startActivityRightInWithList(mActivity, RenmaiActivity.class, contractList);
+                    }else {
+                        ActivityUtils.startActivityRightIn(mActivity, TongbuActivity.class);
+                    }*/
+                } else {
+                    ActivityUtils.startActivityRightIn(mActivity, LoginActivity.class);
+                }
+                break;
+            case R.id.llCaifuhui://--------财富汇
+
+                break;
+            case R.id.llHeixiazi://-------黑匣子
+                if (spUtils.getIsLogin()) {
+                    if (spUtils.getOpenblackBox()) {
+                        ActivityUtils.startActivityRightIn(getActivity(), BlackboxDetailActivity.class);
+                    } else {
+                        ActivityUtils.startActivityRightIn(getActivity(), BlackboxUnsettingActivity.class);
+                    }
+                } else {
+                    ActivityUtils.startActivityRightIn(mActivity, LoginActivity.class);
+                }
+                break;
+            case R.id.llSetting://--------设置
+                if (spUtils.getIsLogin()) {
+                    ActivityUtils.startActivityRightIn(mActivity, SettingActivity.class);
+                } else {
+                    ActivityUtils.startActivityRightIn(mActivity, LoginActivity.class);
+                }
+                break;
+            case R.id.llAboutus://--------关于我们
+                ActivityUtils.startActivityRightIn(mActivity, AboutUsActivity.class);
+                break;
+            case R.id.fragment_my_huizhang://徽章墙
+                if (spUtils.getIsLogin()) {
+                    ActivityUtils.startActivityRightIn(mActivity, HuiZhangActivity.class);
+                } else {
+                    ActivityUtils.startActivityRightIn(mActivity, LoginActivity.class);
+                }
+                break;
+            case R.id.huodong_img1:
+                ActivityUtils.startActivityRightInWithUrl(getActivity(), HuodongDetailActivity.class, url1);
+                break;
+            case R.id.huodong_img2:
+                ActivityUtils.startActivityRightInWithUrl(getActivity(), HuodongDetailActivity.class, url2);
+                break;
+            case R.id.huodong_img3:
+                ActivityUtils.startActivityRightInWithUrl(getActivity(), HuodongDetailActivity.class, url3);
+                break;
+            case R.id.huodong_next:
+                ActivityUtils.startActivityRightIn(mActivity, HuodongListActivity.class);
+                break;
+        }
+    }
+
+
+    @Override
+    protected CommonPresenter createPresenter() {
+        if (mActivity != null) {
+            return new CommonPresenter(mActivity, this);
+        } else {
+            return new CommonPresenter(getActivity(), this);
+        }
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        ButterKnife.unbind(this);
+    }
+
+    @Override
+    public void getDataSuccess(AccountModel accountModel) {
+//        spUtils.setEmail(accountModel.getBody().getEmail());//--------保存邮箱
+//        spUtils.setPhone(accountModel.getBody().getMobile());//-------保存隐藏的手机号
+//        spUtils.setHidePhone(accountModel.getBody().getHideMobile());//--------保存正常的手机号
+//        spUtils.setNickName(accountModel.getBody().getNickName());
+//        spUtils.setPortraitUrl(accountModel.getBody().getPortraitUrl());
+//        Glide.with(mActivity)
+//                .load(spUtils.getPortraitUrl())
+//                .placeholder(R.drawable.defaultavatar)
+//                .error(R.drawable.defaultavatar)
+//                .into(ivTouxiang);
+//        tvNicheng.setText(spUtils.getNickName());
+    }
+
+    @Override
+    public void getDataFail(String msg) {
+
+    }
+
+    /**
+     * 我的
+     *
+     * @param model
+     */
+    @Override
+    public void onSuccess(MyModel model) {
+//        alertDialog.show();
+        //-----------消息中心红点
+        if (model != null) {
+            if (model.getBody().getMessageCount().equals("0")) {
+                tvMessage.setVisibility(View.INVISIBLE);
+            } else {
+                if (spUtils.getIsLogin()) {
+                    tvMessage.setVisibility(View.VISIBLE);
+                }
+            }
+            //-----------头像
+            String portraitUrl = model.getBody().getPortraitUrl();
+            if (!portraitUrl.startsWith("http")) {
+                portraitUrl = ApiStores.OTHER_IMG_URL + portraitUrl;
+            }
+            Glide.with(mActivity)
+                    .load(portraitUrl)
+//                .placeholder(R.drawable.defaultavatar)
+                    .error(R.drawable.defaultavatar)
+                    .into(ivTouxiang);
+            spUtils.setPortraitUrl(portraitUrl);
+            if (model.getBody().getNickName().equals("")) {
+                tvNicheng.setText("我是默认昵称");
+            } else {
+                tvNicheng.setText(model.getBody().getNickName());
+            }
+            int size = model.getBody().getActivityList().size();
+            if (size == 0) {//------没有活动
+                huodongNext.setVisibility(View.GONE);
+                huodongImg1.setVisibility(View.GONE);
+                huodongLinear.setVisibility(View.GONE);
+            } else if (size == 1) {
+                huodongNext.setVisibility(View.VISIBLE);
+                huodongImg1.setVisibility(View.VISIBLE);
+                huodongLinear.setVisibility(View.GONE);
+                Glide.with(getContext())
+                        .load(ApiStores.CMS_IMG_URL + model.getBody().getActivityList().get(0).getActivityPic())
+                        .into(huodongImg1);
+                if (model.getBody().getActivityList().get(0).getActivityUrl() != null && model.getBody().getActivityList().get(0).getActivityUrl() != "") {
+                    url3 = model.getBody().getActivityList().get(0).getActivityUrl();
+                }
+            } else if (size == 2) {
+                huodongNext.setVisibility(View.VISIBLE);
+                huodongImg1.setVisibility(View.GONE);
+                huodongLinear.setVisibility(View.VISIBLE);
+                Glide.with(getContext())
+                        .load(ApiStores.CMS_IMG_URL + model.getBody().getActivityList().get(0).getActivityPic())
+                        .into(huodongImg2);
+                Glide.with(getContext())
+                        .load(ApiStores.CMS_IMG_URL + model.getBody().getActivityList().get(1).getActivityPic())
+                        .into(huodongImg3);
+                if (model.getBody().getActivityList().get(0).getActivityUrl() != null && model.getBody().getActivityList().get(0).getActivityUrl() != "") {
+                    url2 = model.getBody().getActivityList().get(0).getActivityUrl();
+                }
+                if (model.getBody().getActivityList().get(1).getActivityUrl() != null && model.getBody().getActivityList().get(1).getActivityUrl() != "") {
+                    url3 = model.getBody().getActivityList().get(1).getActivityUrl();
+                }
+            }
+        }
+    }
+
+    @Override
+    public void onFail(String model) {
+        toastShow(model);
+    }
+
+    /**
+     * 查询黑匣子
+     */
+    private void gethjz() {
+        RequestBody<AddOverseasRequestModel> loginRequestModel = new RequestBody<>();
+        RequestBody.HeaderBean headerBean = new RequestBody.HeaderBean(Utils.getIPAddress(mActivity), spUtils.getSecretKeyId());
+        AddOverseasRequestModel requestModel = new AddOverseasRequestModel();
+        requestModel.setUserNo(spUtils.getUserId());
+        loginRequestModel.setBody(requestModel);
+        loginRequestModel.setHeader(headerBean);
+        Gson gson2 = new Gson();
+        String json2 = gson2.toJson(loginRequestModel);
+        LogUtils.logd(json2);
+        try {
+            encMsg = DESedeUtil.getRequestAfter3DES(spUtils.getSecretKey(), spUtils.getSecretIv(), json2);
+            signMsg = DESedeUtil.getRequestAfterSign(encMsg);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+//        mvpPresenter.gethjz(encMsg, signMsg, "2", spUtils.getSecretKeyId());
+        ApiStores apiStores = AppClient.retrofit(getContext()).create(ApiStores.class);
+        Observable<EncryptedResponseModel> observable = apiStores.gethjz(encMsg, signMsg, "2", spUtils.getSecretKeyId());
+        observable.subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Subscriber<EncryptedResponseModel>() {
+                    @Override
+                    public void onCompleted() {
+                        LogUtils.loge("onCompleted()");
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                        LogUtils.loge("onError()" + e.getMessage());
+                    }
+
+                    @Override
+                    public void onNext(EncryptedResponseModel model) {
+                        LogUtils.loge("MsgType:" + model.getMsgType());
+                        String msgType = model.getMsgType();
+                        if (msgType != null && msgType.equals("2")) {//加密
+                            String encMsg = model.getEncMsg();
+                            LogUtils.loge(model.getEncMsg());
+                            try {
+                                String platext = DESedeUtil.decrypt(encMsg, spUtils.getSecretKey(), spUtils.getSecretIv());
+                                LogUtils.loge("解密后：------查询黑匣子----------" + platext);
+                                GetHjzModel getHjzModel = GsonTools.getObject(platext, GetHjzModel.class);
+                                if (getHjzModel.getHeader().getCode().equals("0000")) {
+                                    if (getHjzModel.getBody().getInfoDto() == null) {
+                                        spUtils.setOpenblackBox(false);
+                                    } else {
+                                        spUtils.setOpenblackBox(true);
+                                    }
+                                } else {
+                                    toastShow(getHjzModel.getHeader().getDesc());
+                                }
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        } else {
+                            LogUtils.loge("首页：未加密:" + model.getMsgType());
+                        }
+                    }
+
+                });
+    }
+}

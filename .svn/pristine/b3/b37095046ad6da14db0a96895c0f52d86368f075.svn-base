@@ -1,0 +1,188 @@
+package com.beidou.ybz.accountbook.ui;
+
+import android.Manifest;
+import android.annotation.SuppressLint;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
+import android.support.v7.widget.Toolbar;
+import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.view.animation.LinearInterpolator;
+import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+
+import com.beidou.ybz.accountbook.R;
+import com.beidou.ybz.accountbook.mvp.other.MvpActivity;
+import com.beidou.ybz.accountbook.mvp.presenter.CommonPresenter;
+import com.beidou.ybz.accountbook.util.ActivityUtils;
+import com.beidou.ybz.accountbook.util.ConstactUtil;
+import com.beidou.ybz.accountbook.util.ImeUtil;
+import com.beidou.ybz.accountbook.util.LogUtils;
+import com.google.gson.Gson;
+import com.tbruyelle.rxpermissions.RxPermissions;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import butterknife.Bind;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
+import rx.functions.Action1;
+
+public class TongbuActivity extends MvpActivity<CommonPresenter> {
+
+    @Bind(R.id.toolbar)
+    Toolbar toolbar;
+    @Bind(R.id.btn_login)
+    Button btnLogin;
+    @Bind(R.id.xuanhzuan_img)
+    ImageView xuanhzuanImg;
+    @Bind(R.id.linear1)
+    LinearLayout linear1;
+    @Bind(R.id.linear2)
+    LinearLayout linear2;
+    @Bind(R.id.fenshu)
+    TextView fenshu;
+
+    private Boolean isgo = false;
+    private Map<String, String> callRecords;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_tongbu);
+        ButterKnife.bind(this);
+
+
+        toolbar.setNavigationIcon(R.drawable.back);
+//        toolbar.setBackgroundColor(getResources().getColor(R.color.colorWhite));
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ImeUtil.hideSoftKeyboard(v);
+                ActivityUtils.finishActivity(mActivity);
+            }
+        });
+
+        linear1.setVisibility(View.VISIBLE);
+        linear2.setVisibility(View.GONE);
+
+        permissions();
+    }
+
+    void permissions(){
+        RxPermissions.getInstance(TongbuActivity.this)
+                .request(Manifest.permission.READ_CONTACTS, Manifest.permission.WRITE_CONTACTS)//这里填写所需要的权限
+                .subscribe(new Action1<Boolean>() {
+                    @Override
+                    public void call(Boolean aBoolean) {
+                        if (aBoolean) {//true表示获取权限成功（注意这里在android6.0以下默认为true）
+//                                    toastShow("成功");
+                            isgo = true;
+                        } else {
+                            isgo = false;
+                        }
+                    }
+                });
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        linear1 = null;
+        linear2 = null;
+        xuanhzuanImg = null;
+        toolbar = null;
+    }
+
+    @Override
+    protected CommonPresenter createPresenter() {
+        return null;
+    }
+
+
+    @OnClick(R.id.btn_login)
+    public void onViewClicked(View view) {
+        switch (view.getId()) {
+            case R.id.btn_login://---同步
+                if (isgo) {
+                    linear1.setVisibility(View.GONE);
+                    linear2.setVisibility(View.VISIBLE);
+//                rotate();
+                    request();
+                }else {
+                    permissions();
+                }
+                break;
+        }
+    }
+
+
+
+    List<String> constact = new ArrayList<String>();
+    String str;
+    Thread thread = new Thread() {
+        @Override
+        public void run() {
+            super.run();
+            callRecords = ConstactUtil.getAllCallRecords(TongbuActivity.this);
+
+            for (Iterator<String> keys = callRecords.keySet().iterator(); keys.hasNext(); ) {
+                String key = keys.next();
+                constact.add(key);
+
+                str = String.valueOf(Float.parseFloat(String.valueOf(constact.size())) /
+                        Float.parseFloat(String.valueOf(callRecords.size())) * 100);
+
+//                double result1 = Double.parseDouble(str) / 10000f;
+//                BigDecimal b = new BigDecimal(result1);
+//                double f1 = b.setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue();
+//                String str1 = String.valueOf(f1);
+
+                LogUtils.loge("--------进度-------" + str);
+//                handler.sendEmptyMessage(0);//发送消息到handler，通知下载进度
+                handler.sendEmptyMessageDelayed(0,100);
+            }
+            ActivityUtils.startActivityRightInWithList(TongbuActivity.this, RenmaiActivity.class, constact);
+            Gson gson = new Gson();
+            String strJson = gson.toJson(constact);
+            LogUtils.loge("-------dddlist------"+strJson);
+            spUtils.setContactJson(strJson);
+            spUtils.setIsSave(true);
+            ActivityUtils.finishActivity(mActivity);
+        }
+    };
+
+    @SuppressLint("HandlerLeak")
+    private Handler handler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            switch (msg.what) {
+                case 0:
+                    rotate();
+                    fenshu.setText(str);
+                    break;
+            }
+        }
+    };
+
+    private void request() {
+        thread.start();
+    }
+
+
+    private void rotate() {
+        //---旋转动画
+        Animation animation = AnimationUtils.loadAnimation(this, R.anim.tongbu_animation);
+        LinearInterpolator lin = new LinearInterpolator();//设置动画匀速运动
+        animation.setInterpolator(lin);
+        xuanhzuanImg.startAnimation(animation);
+    }
+}

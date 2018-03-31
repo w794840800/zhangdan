@@ -1,0 +1,232 @@
+package com.beidou.ybz.accountbook.ui;
+
+import android.content.Intent;
+import android.graphics.Color;
+import android.os.Bundle;
+import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
+import android.util.Log;
+import android.view.View;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import com.baidu.mobstat.StatService;
+import com.beidou.ybz.accountbook.R;
+import com.beidou.ybz.accountbook.adapter.HuodongListAdapter;
+import com.beidou.ybz.accountbook.mvp.entity.AddOverseasRequestModel;
+import com.beidou.ybz.accountbook.mvp.entity.HuodongListModel;
+import com.beidou.ybz.accountbook.mvp.entity.RequestBody;
+import com.beidou.ybz.accountbook.mvp.other.MvpActivity;
+import com.beidou.ybz.accountbook.mvp.presenter.CommonPresenter;
+import com.beidou.ybz.accountbook.mvp.view.OtherView;
+import com.beidou.ybz.accountbook.util.ActivityUtils;
+import com.beidou.ybz.accountbook.util.DESedeUtil;
+import com.beidou.ybz.accountbook.util.ImeUtil;
+import com.beidou.ybz.accountbook.util.LogUtils;
+import com.beidou.ybz.accountbook.util.Utils;
+import com.chad.library.adapter.base.BaseQuickAdapter;
+import com.google.gson.Gson;
+
+import java.util.List;
+
+import butterknife.Bind;
+import butterknife.ButterKnife;
+
+public class HuodongListActivity extends MvpActivity<CommonPresenter> implements OtherView<HuodongListModel>,
+        BaseQuickAdapter.RequestLoadMoreListener, SwipeRefreshLayout.OnRefreshListener {
+    @Bind(R.id.tv_title)
+    TextView tvTitle;
+    @Bind(R.id.toolbar)
+    Toolbar toolbar;
+    @Bind(R.id.rv_list)
+    RecyclerView rvList;
+    @Bind(R.id.swipeLayout)
+    SwipeRefreshLayout swipeLayout;
+    private int page = 1;
+    private String encMsg, signMsg;
+    private HuodongListAdapter mAdapter;
+    private List<HuodongListModel.BodyBean.RowsBean> rowsBeans;
+    /**
+     * 服务器端一共多少条数据
+     */
+    private static int TOTAL_COUNTER = 0;//如果服务器没有返回总数据或者总页数，这里设置为最大值比如10000，什么时候没有数据了根据接口返回判断
+    /**
+     * 每一页展示多少条数据
+     */
+    private static final int PAGE_SIZE = 10;
+    /**
+     * 已经获取到多少条数据了
+     */
+    private static int mCurrentCounter = 0;
+    private boolean isLoadmore;
+    private int count = 0;
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_huodong_list);
+        ButterKnife.bind(this);
+
+        tvTitle.setText("活动列表");
+        tvTitle.setTextColor(getResources().getColor(R.color.txt_color));
+        toolbar.setNavigationIcon(R.drawable.back_black);
+        toolbar.setBackgroundColor(getResources().getColor(R.color.colorWhite));
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ImeUtil.hideSoftKeyboard(v);
+                ActivityUtils.finishActivity(mActivity);
+            }
+        });
+
+
+        swipeLayout.setColorSchemeResources(R.color.colorGold);
+        rvList.setLayoutManager(new LinearLayoutManager(this));
+        swipeLayout.setOnRefreshListener(this);
+        mAdapter = new HuodongListAdapter(R.layout.huodong_item, null);
+        rvList.setAdapter(mAdapter);
+        mAdapter.setOnLoadMoreListener(this, rvList);
+        activitylist(page);
+
+        mAdapter.setOnItemClickListener(new BaseQuickAdapter.OnItemClickListener() {
+            @Override
+            public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
+                //?userNo=xxx&userName=xxx&mobile=xxx&headImg=xxx&token=xxx
+                //http://act.360caifu.test/ybz/sign/index?userNo=xxx&userName=xxx&mobile=xxx&headImg=xxx&token=xxx
+//                ActivityUtils.startActivityRightInWithUrl(mActivity, HuodongDetailActivity.class, rowsBeans.get(position).getLink()
+//                        +"?userNo="+spUtils.getUserId()+"&userName="+spUtils.getNickName()
+//                        +"&mobile="+spUtils.getPhone()+"&headImg="+spUtils.getPortraitUrl()+"&token="+spUtils.getdeviceToken());
+
+//                ActivityUtils.startActivityRightInWithUrl(mActivity, HuodongDetailActivity.class, rowsBeans.get(position).getLink());
+
+                Intent in = new Intent(mActivity, HuodongDetailActivity.class);
+                in.putExtra("url",rowsBeans.get(position).getLink());
+                in.putExtra("title",rowsBeans.get(position).getName());
+                startActivity(in);
+                overridePendingTransition(R.anim.left_in, 0);
+            }
+        });
+
+    }
+
+    @Override
+    protected CommonPresenter createPresenter() {
+        return new CommonPresenter(this, this);
+    }
+
+    private void activitylist(int pageNum) {
+        RequestBody<AddOverseasRequestModel> loginRequestModel = new RequestBody<>();
+        RequestBody.HeaderBean headerBean = new RequestBody.HeaderBean(Utils.getIPAddress(mActivity), spUtils.getSecretKeyId());
+        AddOverseasRequestModel requestModel = new AddOverseasRequestModel();
+
+        requestModel.setPageSize(PAGE_SIZE+"");
+        requestModel.setPageNum(pageNum + "");
+
+        loginRequestModel.setBody(requestModel);
+        loginRequestModel.setHeader(headerBean);
+        Gson gson2 = new Gson();
+        String json2 = gson2.toJson(loginRequestModel);
+        LogUtils.logd(json2);
+        try {
+            encMsg = DESedeUtil.getRequestAfter3DES(spUtils.getSecretKey(), spUtils.getSecretIv(), json2);
+            signMsg = DESedeUtil.getRequestAfterSign(encMsg);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        if(!Utils.isNetworkAvailable(mActivity)) {
+            Toast.makeText(mActivity, "当前网络不可用，请检查网络情况", Toast.LENGTH_SHORT).show();
+        }else {
+            mvpPresenter.activitylist(encMsg, signMsg, "2", spUtils.getSecretKeyId());
+            if (count == 0) {
+                swipeLayout.setRefreshing(true);
+            }
+        }
+    }
+
+
+    @Override
+    public void onRefresh() {
+        mAdapter.setEnableLoadMore(false);
+        page = 1;
+        activitylist(page);
+        isLoadmore = false;
+        mCurrentCounter = PAGE_SIZE;
+    }
+
+    @Override
+    public void onSuccess(HuodongListModel huodongListModel) {
+        swipeLayout.setRefreshing(false);
+        mAdapter.loadMoreComplete();
+        swipeLayout.setRefreshing(false);
+        count++;
+        rowsBeans = huodongListModel.getBody().getRows();
+        if (isLoadmore) {
+            mAdapter.addData(rowsBeans);
+        } else {
+            mAdapter.setNewData(rowsBeans);
+        }
+
+        mCurrentCounter = mAdapter.getData().size();
+        TOTAL_COUNTER = huodongListModel.getBody().getTotal();
+
+//        mCurrentCounter += rowsBeans.size();
+        Log.e("", "onNext: -------已经获取多少条数据-------" + mCurrentCounter);
+
+        /**
+         * 接口返回的数据 < 每页显示的数据量,不需要分页
+         */
+        if (mAdapter.getData().size() < PAGE_SIZE) {
+            mAdapter.setEnableLoadMore(false);
+        } else {
+            mAdapter.setEnableLoadMore(true);
+        }
+    }
+
+    @Override
+    public void onFail(String model) {
+
+    }
+
+    @Override
+    public void onLoadMoreRequested() {
+        isLoadmore = true;
+        swipeLayout.setEnabled(false);
+        /**
+         * 接口返回的数据 < 每页显示的数据量
+         */
+        if (mAdapter.getData().size() < PAGE_SIZE) {
+            mAdapter.loadMoreEnd(true);
+        } else {
+            if (mCurrentCounter >= TOTAL_COUNTER) {//获取到的数据 >= 总数，则加载结束
+                //数据全部加载完毕
+                mAdapter.loadMoreEnd();
+            } else {//否则，继续加载
+                if (isLoadmore) {
+                    //成功获取更多数据
+                    page++;
+                    activitylist(page);
+                } else {
+                    //获取更多数据失败
+                    isLoadmore = true;
+                    toastShow("network_err");
+                    mAdapter.loadMoreFail();
+                }
+            }
+        }
+        swipeLayout.setEnabled(true);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        StatService.onPageStart(mActivity,"活动列表页面");
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        StatService.onPageEnd(mActivity,"活动列表页面");
+    }
+
+}

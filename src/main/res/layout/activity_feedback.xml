@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/back_lightgreen"
+    android:fitsSystemWindows="true"
+    android:orientation="vertical">
+
+    <include layout="@layout/toolbar" />
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@drawable/shadow"/>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:layout_marginTop="5dp"
+        android:background="@color/colorWhite"
+        android:orientation="vertical" >
+
+        <EditText
+            android:id="@+id/etContent"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="200dp"
+            android:layout_marginTop="16dp"
+            android:paddingLeft="16dp"
+            android:background="@null"
+            android:gravity="top"
+            android:hint="您的反馈使我们变得更好（200字以内）"
+            android:textColorHint="#D3D6DE"
+            android:textColor="#4C566C"
+            android:textSize="14sp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true"
+            android:layout_marginBottom="15dp"
+            android:layout_marginRight="25dp"
+            android:gravity="right"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="right"
+                android:text="最少输入5个字，"
+                android:textColor="#D3D6DE"
+                android:textSize="12sp" />
+
+            <TextView
+                android:id="@+id/count"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="right"
+                android:text="0/200"
+                android:textColor="#D3D6DE"
+                android:textSize="12sp" />
+            <!-- <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="right"
+                android:text="/200"
+                android:textColor="#D3D6DE"
+                android:textSize="12.0sp" />-->
+        </LinearLayout>
+
+    </RelativeLayout>
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@drawable/shadow"/>
+    <com.beidou.ybz.accountbook.widget.ClearEditText
+        android:id="@+id/cetPhone"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="50dp"
+        android:layout_marginTop="5dp"
+        android:background="#fff"
+        android:textColorHint="#D3D6DE"
+        android:maxLength="30"
+        android:text=""
+        android:textColor="#4C566C"
+        android:paddingLeft="16dp"
+        android:paddingRight="30dp"
+        android:textSize="14sp"
+        android:hint="您的联系方式：QQ／邮箱/微信"/>
+    <Button
+        android:id="@+id/btnSave"
+        android:layout_width="match_parent"
+        android:layout_height="45dp"
+        android:text="提交"
+        android:textColor="#fff"
+        android:textSize="14sp"
+        android:enabled="false"
+        android:layout_marginTop="20dp"
+        android:layout_marginBottom="30dp"
+        android:layout_marginLeft="15dp"
+        android:layout_marginRight="15dp"
+        android:background="@drawable/bg_unenabled"
+        />
+
+</LinearLayout>

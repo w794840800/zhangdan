@@ -1,0 +1,358 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/colorWhite"
+    android:orientation="vertical">
+
+    <android.support.v4.widget.SwipeRefreshLayout
+        android:id="@+id/swipeRefresh"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <android.support.design.widget.CoordinatorLayout
+            android:id="@+id/main_content"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@color/colorWhite">
+
+            <android.support.design.widget.AppBarLayout
+                android:id="@+id/appbar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
+                <!--app:layout_behavior="@string/appbar_spring_behavior"-->
+
+                <android.support.design.widget.CollapsingToolbarLayout
+                    android:id="@+id/collapsing_toolbar"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    app:contentScrim="?attr/colorPrimary"
+                    app:expandedTitleMarginStart="48dp"
+                    app:expandedTitleTextAppearance="@style/transText"
+                    app:layout_scrollFlags="scroll|exitUntilCollapsed">
+
+                    <RelativeLayout
+                        android:id="@+id/relativelayout"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        app:layout_collapseMode="parallax"
+                        app:layout_collapseParallaxMultiplier="0.7">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:background="@color/background"
+                            android:gravity="center_horizontal"
+                            android:orientation="vertical"
+                            android:paddingTop="60dp">
+
+                            <RelativeLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content">
+
+                                <LinearLayout
+                                    android:id="@+id/llJin"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_centerInParent="true"
+                                    android:gravity="center"
+                                    android:orientation="horizontal">
+
+                                    <View
+                                        android:layout_width="40dp"
+                                        android:layout_height="0.8dp"
+                                        android:background="#394151" />
+
+                                    <TextView
+                                        android:id="@+id/tvJin"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:layout_marginLeft="15dp"
+                                        android:layout_marginRight="15dp"
+                                        android:gravity="center"
+                                        android:text="净资产(元)"
+                                        android:textColor="@color/button_text_unable"
+                                        android:textSize="14sp" />
+
+                                    <View
+                                        android:layout_width="40dp"
+                                        android:layout_height="0.8dp"
+                                        android:background="#394151" />
+                                </LinearLayout>
+
+                                <ImageView
+                                    android:id="@+id/ivVisible"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginLeft="15dp"
+                                    android:layout_toRightOf="@id/llJin"
+                                    android:src="@drawable/visible" />
+                            </RelativeLayout>
+
+                            <TextView
+                                android:id="@+id/tvJzc"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginBottom="37dp"
+                                android:layout_marginTop="20dp"
+                                android:text="财富人生从记账开始"
+                                android:textColor="#E2E6EF"
+                                android:textSize="22sp" />
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_alignParentBottom="true"
+                                android:background="#222730"
+                                android:orientation="horizontal"
+                                android:paddingBottom="12dp"
+                                android:paddingTop="11dp">
+
+                                <LinearLayout
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:gravity="center_horizontal"
+                                    android:orientation="vertical">
+
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="总资产(元)"
+                                        android:textColor="#ff707889"
+                                        android:textSize="14sp" />
+
+                                    <TextView
+                                        android:id="@+id/tvZzc"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:layout_marginTop="4dp"
+                                        android:text="--"
+                                        android:textColor="#fff"
+                                        android:textSize="14sp" />
+                                </LinearLayout>
+
+                                <View
+                                    android:layout_width="0.3dp"
+                                    android:layout_height="match_parent"
+                                    android:layout_marginBottom="10dp"
+                                    android:layout_marginTop="10dp"
+                                    android:background="#707889" />
+
+                                <LinearLayout
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:gravity="center_horizontal"
+                                    android:orientation="vertical">
+
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="总负债(元)"
+                                        android:textColor="#ff707889" />
+
+                                    <TextView
+                                        android:id="@+id/tvZfz"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:layout_marginTop="4dp"
+                                        android:text="--"
+                                        android:textColor="#fff"
+                                        android:textSize="14sp" />
+                                </LinearLayout>
+                            </LinearLayout>
+                        </LinearLayout>
+                    </RelativeLayout>
+
+                    <android.support.v7.widget.Toolbar
+                        android:id="@+id/toolbar"
+                        android:layout_width="match_parent"
+                        android:layout_height="50dp"
+                        android:paddingTop="1dp"
+                        app:layout_collapseMode="pin"
+                        app:theme="@style/AppTheme">
+
+                        <TextView
+                            android:id="@+id/tvXinyuan"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:padding="10dp"
+                            android:visibility="visible"
+                            android:text="我的心愿账本  ▸"
+                            android:textColor="@color/colorWhite"
+                            android:textSize="16sp" />
+
+                        <ImageView
+                            android:id="@+id/ivHeixiazi"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="right"
+                            android:layout_marginRight="5dp"
+                            android:padding="10dp"
+                            android:src="@drawable/heixia_white" />
+                        <!--<TextView
+                            android:id="@+id/tvHeixiazi"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:padding="10dp"
+                            android:text="黑匣子"
+                            android:layout_gravity="right"
+                            android:textSize="16sp"
+                            android:layout_marginRight="15dp"
+                            android:textColor="@color/colorWhite"/>-->
+                    </android.support.v7.widget.Toolbar>
+                    <!--<LinearLayout
+                        android:layout_width="match_parent"
+                        android:orientation="horizontal"
+                        android:layout_height="80dp"
+                        app:layout_collapseMode="pin"
+                        app:theme="@style/AppTheme">
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
+                            android:layout_height="wrap_content"
+                            android:padding="10dp"
+                            android:text="我的心愿账本  >"
+                            android:textColor="@color/colorWhite"/>
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:padding="10dp"
+                            android:text="黑匣子"
+                            android:textColor="@color/colorWhite"/>
+                    </LinearLayout>-->
+                </android.support.design.widget.CollapsingToolbarLayout>
+            </android.support.design.widget.AppBarLayout>
+
+            <!--  <com.bob.miche.widge.CustomSwipeToRefresh
+                  android:id="@+id/SwipeRefreshLayout"
+                  android:layout_width="match_parent"
+                  android:layout_height="match_parent"
+                  app:layout_behavior="@string/appbar_scrolling_view_behavior"
+                  >-->
+
+            <android.support.v4.widget.NestedScrollView
+                android:id="@+id/scroll_view"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@color/colorWhite"
+                android:orientation="vertical"
+                android:fillViewport="true"
+                app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+                <LinearLayout
+                    android:id="@+id/view1"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_marginTop="15dp"
+                    android:clipChildren="false"
+                    android:orientation="vertical"
+                    android:visibility="visible">
+
+                    <TextView
+                        android:id="@+id/tvAddAssets"
+                        android:layout_width="match_parent"
+                        android:layout_height="45dp"
+                        android:layout_marginLeft="15dp"
+                        android:layout_marginRight="15dp"
+                        android:background="@drawable/bg1"
+                        android:focusable="true"
+                        android:focusableInTouchMode="true"
+                        android:gravity="center"
+                        android:minHeight="40dp"
+                        android:text="+ 添加资产"
+                        android:textColor="@color/colorWhite"
+                        android:textSize="16sp" />
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="4dp"
+                        android:layout_marginTop="15dp"
+                        android:background="#F7F9FF" />
+
+                    <android.support.v7.widget.RecyclerView
+                        android:id="@+id/rvZichan"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="15dp"
+                        android:visibility="visible" />
+                    <LinearLayout
+                        android:id="@+id/llZichanEmpty"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@color/back_lightgreen"
+                        android:gravity="center"
+                        android:visibility="gone"
+                        android:orientation="vertical">
+                        <ImageView
+                            android:layout_width="wrap_content"
+                            android:layout_height="58dp"
+                            android:adjustViewBounds="true"
+                            android:layout_marginTop="20dp"
+                            android:src="@drawable/empty_icon"
+                            />
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="18dp"
+                            android:text="快来添加资产，让你理财更有道！"
+                            android:layout_marginBottom="30dp"
+                            android:textColor="#ff707889"
+                            android:textSize="16sp"
+                            />
+                    </LinearLayout>
+
+                    <android.support.v7.widget.RecyclerView
+                        android:id="@+id/rvZichan2"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:visibility="gone" />
+
+                    <LinearLayout
+                        android:id="@+id/llRecommend"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="#F7F9FF"
+                        android:gravity="center"
+                        android:minHeight="50dp"
+                        android:orientation="horizontal">
+
+                        <View
+                            android:layout_width="40dp"
+                            android:layout_height="0.8dp"
+                            android:background="@drawable/line_background" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="15dp"
+                            android:layout_marginRight="15dp"
+                            android:gravity="center"
+                            android:text="热门推荐"
+                            android:textColor="@color/button_text_unable"
+                            android:textSize="14sp" />
+
+                        <View
+                            android:layout_width="40dp"
+                            android:layout_height="0.8dp"
+                            android:background="@drawable/line_background" />
+                    </LinearLayout>
+
+                    <android.support.v7.widget.RecyclerView
+                        android:id="@+id/rvRecommend"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="1dp"
+                        android:visibility="visible" />
+
+                </LinearLayout>
+
+            </android.support.v4.widget.NestedScrollView>
+            <!--</com.bob.miche.widge.CustomSwipeToRefresh>-->
+
+        </android.support.design.widget.CoordinatorLayout>
+    </android.support.v4.widget.SwipeRefreshLayout>
+</LinearLayout>

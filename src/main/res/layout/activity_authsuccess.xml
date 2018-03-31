@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/back_lightgreen"
+    android:fitsSystemWindows="true"
+    android:orientation="vertical"
+    >
+
+    <include layout="@layout/toolbar"/>
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/divider" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="50dp"
+        android:layout_marginTop="5dp"
+        android:background="@color/colorWhite"
+        android:paddingLeft="20dp"
+        android:paddingRight="20dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="姓名"
+            android:textColor="#ff262b36"
+            android:textSize="15sp"
+            />
+        <TextView
+            android:id="@+id/tvRealname"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="*雯雯"
+            android:textColor="#ff4c566c"
+            android:textSize="12sp"
+            />
+    </LinearLayout>
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginLeft="20dp"
+        android:background="@color/divider" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="50dp"
+        android:background="@color/colorWhite"
+        android:paddingLeft="20dp"
+        android:paddingRight="20dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="身份证"
+            android:textColor="#ff262b36"
+            android:textSize="15sp"
+            />
+        <TextView
+            android:id="@+id/tvIdNum"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="3*************3"
+            android:textColor="#ff4c566c"
+            android:textSize="12sp"
+            />
+    </LinearLayout>
+
+
+
+</LinearLayout>

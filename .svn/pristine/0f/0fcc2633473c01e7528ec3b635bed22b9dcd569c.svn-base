@@ -1,0 +1,319 @@
+package com.beidou.ybz.accountbook.ui;
+
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.os.Bundle;
+import android.support.v7.app.AlertDialog;
+import android.text.Html;
+import android.text.TextUtils;
+import android.view.KeyEvent;
+import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.widget.ImageView;
+import android.widget.TextView;
+
+import com.baidu.mobstat.StatService;
+import com.beidou.ybz.accountbook.R;
+import com.beidou.ybz.accountbook.retrofit.ApiStores;
+import com.beidou.ybz.accountbook.util.ActivityUtils;
+import com.beidou.ybz.accountbook.util.LogUtils;
+import com.beidou.ybz.accountbook.widget.Lock9View;
+import com.beidou.ybz.accountbook.widget.MaterialDialog;
+import com.bumptech.glide.Glide;
+
+import butterknife.Bind;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
+import de.hdodenhof.circleimageview.CircleImageView;
+
+/**
+ * 手势密码验证界面
+ * Created by Bob on 2016/9/27.
+ */
+public class GestureValidActivity extends BaseActivity {
+    @Bind(R.id.lock_9_view)
+    Lock9View lock9View;
+    @Bind(R.id.text_tip)
+    TextView mTexTip;
+    @Bind(R.id.tv_phone)
+    TextView tvPhone;
+    @Bind(R.id.tv_forget)
+    TextView tvForget;
+    @Bind(R.id.tv_changeaccount)
+    TextView tvChangeaccount;
+    @Bind(R.id.viewLine)
+    View viewLine;
+    @Bind(R.id.ivBack)
+    ImageView ivBack;
+    @Bind(R.id.ivIcon)
+    CircleImageView ivIcon;
+    private int count = 0;
+    private MaterialDialog materialDialog;
+    Animation shakeAnimation;
+    private String flag = "";
+    private Intent intent = null;
+    private AlertDialog alertForget, alertOther;
+    private int errorCount = 5;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_gesturevalid);
+        ButterKnife.bind(this);
+        setSwipeBackEnable(false);
+
+        intent = getIntent();
+        if (intent != null) {
+            flag = intent.getStringExtra("flag");
+        }
+
+        /**
+         * 透明状态栏
+         */
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+//            Window window = getWindow();
+//            window.setFlags(
+//                    WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS,
+//                    WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+//        }
+
+        ActivityUtils.setStatusBar(mActivity);
+
+        initView();
+        initDialog();
+
+    }
+
+    void initDialog() {
+        alertForget = new AlertDialog.Builder(this)
+                .setTitle("提示")
+                .setMessage("忘记手势密码，需重新登录")
+                .setNegativeButton("再想想", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        dialogInterface.dismiss();
+                    }
+                })
+                .setPositiveButton("重新登录", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        dialogInterface.dismiss();
+                        ActivityUtils.startActivityRightInWithFrom(GestureValidActivity.this, LoginActivity.class, "forgetGes");
+                        spUtils.setIsFromGes(true);
+                            tvForget.postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    finish();
+                                }
+                            }, 800);
+//                            overridePendingTransition(R.anim.slide_up_in, 0);
+                    }
+                })
+                .setCancelable(false)
+                .create();
+        alertForget.getWindow().setWindowAnimations(R.style.dialogAnimation);
+
+        alertOther = new AlertDialog.Builder(this)
+                .setTitle("提示")
+                .setMessage("您即将退出本账号，用其他账号登录")
+                .setNegativeButton("取消", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        dialogInterface.dismiss();
+                    }
+                })
+                .setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        dialogInterface.dismiss();
+                        ActivityUtils.startActivityRightInWithFrom(GestureValidActivity.this, LoginActivity.class, "forgetGes");
+                        spUtils.setIsFromGes(true);
+//                            Intent ins = new Intent(GestureValidActivity.this, LoginActivity.class);
+//                            ins.putExtra("flag", "change");
+//                            startActivity(ins);
+//                            overridePendingTransition(R.anim.left_in, 0);
+                            tvChangeaccount.postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    finish();
+                                }
+                            }, 800);
+
+                    }
+                })
+                .setCancelable(false)
+                .create();
+        alertOther.getWindow().setWindowAnimations(R.style.dialogAnimation);
+    }
+
+    public void initView() {
+        tvPhone.setText("Hi，" + spUtils.getNickName());//+ sp.getNickName()
+        LogUtils.logd("spUtils.getNickName():"+spUtils.getNickName());
+        shakeAnimation = AnimationUtils.loadAnimation(GestureValidActivity.this, R.anim.shake);
+        mTexTip.setText(Html.fromHtml("<font color='#FFFFFF'>请绘制手势密码</font>"));
+        materialDialog = new MaterialDialog(this);
+//        Glide.with(mActivity).load(ApiStores.OTHER_IMG_URL+spUtils.getPortraitUrl()).into(ivIcon);
+//        Glide.with(mActivity).load(spUtils.getPortraitUrl()).placeholder(R.drawable.defaultavatar).into(ivIcon);
+        Glide.with(mActivity).load(spUtils.getPortraitUrl()).error(R.drawable.defaultavatar).into(ivIcon);
+        LogUtils.logd("spUtils.getPortraitUrl():"+spUtils.getPortraitUrl());
+        count = 0;
+        if (!TextUtils.isEmpty(flag) && flag.equals("alter")) {//从修改手势密码过来
+            mTexTip.setText("请绘制原手势密码");
+            tvChangeaccount.setVisibility(View.GONE);
+            viewLine.setVisibility(View.GONE);
+            ivBack.setVisibility(View.VISIBLE);
+        } else if (!TextUtils.isEmpty(flag) && flag.equals("launch") || !TextUtils.isEmpty(flag) && flag.equals("homekey")) {
+            mTexTip.setText("请绘制手势密码");
+            tvChangeaccount.setVisibility(View.VISIBLE);
+            viewLine.setVisibility(View.VISIBLE);
+            ivBack.setVisibility(View.INVISIBLE);
+        } else {
+            mTexTip.setText("请绘制手势密码");
+            tvChangeaccount.setVisibility(View.VISIBLE);
+            viewLine.setVisibility(View.VISIBLE);
+            ivBack.setVisibility(View.VISIBLE);
+
+        }
+
+
+        lock9View.setCallBack(new Lock9View.CallBack() {
+            @Override
+            public void onFinish(String inputCode) {
+                if (inputCode.equals(spUtils.getGesture())) {//密码正确
+                    mTexTip.setText(Html.fromHtml("<font color='#FFFFFF'>验证通过</font>"));
+//                    mTexTip.setAlpha(0);
+
+//                    new Handler().postDelayed(new Runnable() {
+//                        @Override
+//                        public void run() {
+                    if (!TextUtils.isEmpty(flag) && flag.equals("alter")) {//从修改手势密码过来
+                        Intent in = new Intent(GestureValidActivity.this, GestureEditActivity.class);
+                        in.putExtra("flag", "alter");
+                        startActivity(in);
+                        overridePendingTransition(R.anim.left_in, 0);
+                        tvForget.postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                finish();
+                            }
+                        }, 500);//延时关闭，以便关闭动画正常显示
+
+                    } else if (!TextUtils.isEmpty(flag) && flag.equals("close")) {
+                        spUtils.setIsGesture(false);
+                        ActivityUtils.finishActivity(mActivity);
+                        toastShow("手势密码已关闭", R.drawable.gou_toast);
+                    } else if (!TextUtils.isEmpty(flag) && flag.equals("homekey")) {
+                        finish();
+                        overridePendingTransition(0, R.anim.slide_down_out);
+                    } else if (!TextUtils.isEmpty(flag) && flag.equals("unbindvalid_wechat")) {
+                        startActivity(new Intent(mActivity, ReleaseBindActivity.class)
+                                .putExtra("thirdAcctChannel", "1"));
+                        finish();
+                        overridePendingTransition(R.anim.left_in, 0);
+                    } else if (!TextUtils.isEmpty(flag) && flag.equals("unbindvalid_QQ")) {
+                        startActivity(new Intent(mActivity, ReleaseBindActivity.class)
+                                .putExtra("thirdAcctChannel", "2"));
+                        finish();
+                        overridePendingTransition(R.anim.left_in, 0);
+                    } else {
+                        enterMain();
+                    }
+//                        }
+//                    }, 200);
+
+                } else {//两次录入手势密码不一致 （录入失败!）
+                    count++;
+                    mTexTip.setText(Html.fromHtml("<font color='#FA5553'>密码错误，您还可以绘制" + (errorCount - count) + "次</font>"));
+                    if (count >= errorCount) {
+                        mTexTip.setText(Html.fromHtml("<font color='#FA5553'>手势密码已关闭，请重新登录</font>"));
+                        materialDialog.setTitle("提示");
+                        materialDialog.setMessage("您已连续5次绘制错误，\n手势密码已关闭，请重新登录");
+                        materialDialog.setPositiveButton("重新登录", new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                ActivityUtils.startActivityRightInWithFrom(GestureValidActivity.this, LoginActivity.class, "gesvalidfail");
+                                materialDialog.dismiss();
+                            }
+                        });
+                        materialDialog.show();
+                        materialDialog.setPositiveButtonEnable(true);
+                    }
+
+                    //左右移动动画
+
+                    mTexTip.startAnimation(shakeAnimation);
+                }
+            }
+
+        });
+    }
+
+    @OnClick({R.id.tv_forget, R.id.tv_changeaccount})
+    public void onClick(View view) {
+        switch (view.getId()) {
+            case R.id.tv_forget:
+                alertForget.show();
+                break;
+            case R.id.tv_changeaccount:
+                alertOther.show();
+
+
+                break;
+        }
+    }
+
+    void enterMain() {
+        Intent in = new Intent(GestureValidActivity.this, MainActivity.class);
+        startActivity(in);
+        finish();
+//        ActivityUtils.finishActivity(mActivity);
+//        overridePendingTransition(
+//                R.anim.fade_in2, R.anim.fade_out2);
+    }
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_BACK
+                && event.getAction() == KeyEvent.ACTION_DOWN) {
+            return true;
+//            ActivityUtils.finishActivity(mActivity);
+           /* if (!TextUtils.isEmpty(flag) && flag.equals("alter")) {//从修改手势密码过来
+                finish();
+            } else {
+                //应用一进来时，在输入手势时点击返回键，则调到app首页并清空登录状态
+//                spUtils.clear();
+                spUtils.setUserId("");
+                spUtils.setPhone("");
+                spUtils.setIsLogin(false);
+                spUtils.setGesture("");
+                spUtils.setIsGesture(false);
+                Intent ins = new Intent(GestureValidActivity.this, MainActivity.class);
+                startActivity(ins);
+//                overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
+            }*/
+        }
+        return super.onKeyDown(keyCode, event);
+    }
+
+
+    @OnClick(R.id.ivBack)
+    public void onViewClicked() {
+        ActivityUtils.finishActivity(mActivity);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        StatService.onPageStart(mActivity,"手势密码验证页面");
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        StatService.onPageEnd(mActivity,"手势密码验证页面");
+    }
+
+
+
+}

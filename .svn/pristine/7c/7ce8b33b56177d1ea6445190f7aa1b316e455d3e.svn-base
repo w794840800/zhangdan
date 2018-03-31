@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/catalog"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/bg_sort_color"
+        android:clickable="false"
+        android:enabled="false"
+        android:paddingBottom="5dip"
+        android:paddingLeft="5dip"
+        android:paddingTop="5dip"
+        android:textColor="#454545" />
+
+    <RelativeLayout
+        android:id="@+id/ll_constact"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        >
+        <!--<com.finddreams.sortedcontact.ImageTextView
+            android:id="@+id/icon"
+            android:layout_marginLeft="5dip"
+            android:layout_height="wrap_content"
+            android:layout_width="45dip"
+            android:text="find"
+            />-->
+        <TextView
+            android:id="@+id/title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="16.5dp"
+            android:layout_centerVertical="true"
+            android:text="我是人名"
+            android:singleLine="true"
+            android:maxLength="20"
+            android:ellipsize="end"
+            android:textColor="#ff262b36"
+            android:textSize="16dp" />
+
+        <LinearLayout
+            android:id="@+id/inviate"
+            android:layout_width="86dp"
+            android:layout_height="23dp"
+            android:orientation="vertical"
+            android:layout_centerVertical="true"
+            android:background="@drawable/renmai_inviate"
+            android:gravity="center"
+            android:layout_alignParentRight="true"
+            android:layout_marginRight="40dp"
+            android:layout_marginTop="13.5dp"
+            android:layout_marginBottom="13.5dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="立即邀请"
+                android:textColor="#ff707889"
+                android:textSize="11sp"
+                />
+        </LinearLayout>
+
+
+        
+    </RelativeLayout>
+
+</LinearLayout>

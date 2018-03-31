@@ -1,0 +1,204 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/colorWhite"
+    android:fitsSystemWindows="true"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#F7F9FF"
+        android:layout_above="@+id/tvSave"
+        android:orientation="vertical">
+
+        <include layout="@layout/toolbar" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@drawable/shadow" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:background="#fff"
+            android:orientation="horizontal"
+            android:paddingLeft="15dp"
+            android:paddingRight="15dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="资产名称"
+                android:textColor="#ff262b36"
+                android:textSize="16sp" />
+
+            <com.beidou.ybz.accountbook.widget.ClearEditText
+                android:id="@+id/cetName"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@null"
+                android:hint="请输入资产名称"
+                android:maxLength="20"
+                android:paddingLeft="16dp"
+                android:textColorHint="#D3D6DE"
+                android:textSize="14sp" />
+        </LinearLayout>
+
+
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="0.8dp"
+            android:background="@color/divider" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="#fff"
+            android:paddingLeft="15dp"
+            android:paddingRight="15dp"
+            android:paddingTop="17.5dp"
+            android:text="估值"
+            android:textColor="@color/colorBlack"
+            android:textSize="16sp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:background="#fff"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingLeft="15dp"
+            android:paddingRight="15dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="￥"
+                android:textColor="#262B36"
+                android:textSize="24sp" />
+
+            <com.beidou.ybz.accountbook.widget.ClearEditText
+                android:id="@+id/cetMoney"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@null"
+                android:hint="请输入金额"
+                android:inputType="numberDecimal"
+                android:maxLength="12"
+                android:paddingLeft="60dp"
+                android:textColor="#262B36"
+                android:textColorHint="#D3D6DE"
+                android:textSize="14sp" />
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="0.8dp"
+            android:background="@color/divider" />
+
+        <LinearLayout
+            android:id="@+id/llShowMore"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_marginTop="6dp"
+            android:background="#fff"
+            android:orientation="horizontal"
+            android:paddingLeft="15dp"
+            android:paddingRight="15dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:text="添加更多自定义信息"
+                android:textColor="@color/background"
+                android:textSize="16sp" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_marginLeft="0dp"
+                android:layout_weight="1"
+                android:background="@null"
+                android:gravity="center_vertical"
+                android:text="（选填）"
+                android:textColor="#949AA7"
+                android:textSize="14sp" />
+
+            <ImageView
+                android:id="@+id/ivShowMore"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:src="@drawable/xiala" />
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="0.8dp"
+            android:background="@color/divider" />
+
+        <LinearLayout
+            android:id="@+id/llMore"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="100dp"
+                android:layout_marginTop="6dp"
+                android:background="#fff"
+                android:orientation="horizontal"
+                android:paddingLeft="15dp"
+                android:paddingRight="15dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:paddingTop="17.5dp"
+                    android:text="备注"
+                    android:textColor="@color/colorBlack"
+                    android:textSize="16sp" />
+
+                <com.beidou.ybz.accountbook.widget.ClearEditText
+                    android:id="@+id/cetMemo"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:paddingLeft="50dp"
+                    android:background="@null"
+                    android:gravity="top"
+                    android:hint="请输入备注"
+                    android:maxLength="50"
+                    android:paddingTop="17.5dp"
+                    android:textColorHint="#D3D6DE"
+                    android:textSize="14sp" />
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="0.8dp"
+                android:background="@color/divider" />
+        </LinearLayout>
+        <Button
+            android:id="@+id/btnSave"
+            android:layout_width="match_parent"
+            android:layout_height="45dp"
+            android:text="保存"
+            android:textColor="#fff"
+            android:textSize="14sp"
+            android:enabled="false"
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="30dp"
+            android:layout_marginLeft="15dp"
+            android:layout_marginRight="15dp"
+            android:background="@drawable/bg_unenabled"
+            />
+    </LinearLayout>
+
+
+</RelativeLayout>

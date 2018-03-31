@@ -1,0 +1,204 @@
+package com.beidou.ybz.accountbook.ui;
+
+import android.os.Bundle;
+import android.support.v7.widget.Toolbar;
+import android.view.View;
+import android.widget.Button;
+import android.widget.TextView;
+
+import com.baidu.mobstat.StatService;
+import com.beidou.ybz.accountbook.R;
+import com.beidou.ybz.accountbook.mvp.entity.AddOverseasRequestModel;
+import com.beidou.ybz.accountbook.mvp.entity.RequestBody;
+import com.beidou.ybz.accountbook.mvp.entity.SercetKeyOverdueModel;
+import com.beidou.ybz.accountbook.mvp.other.MvpActivity;
+import com.beidou.ybz.accountbook.mvp.presenter.CommonPresenter;
+import com.beidou.ybz.accountbook.mvp.view.CommonView;
+import com.beidou.ybz.accountbook.util.ActivityUtils;
+import com.beidou.ybz.accountbook.util.AlertDialogUtils;
+import com.beidou.ybz.accountbook.util.DESedeUtil;
+import com.beidou.ybz.accountbook.util.DialogClickListener;
+import com.beidou.ybz.accountbook.util.ImeUtil;
+import com.beidou.ybz.accountbook.util.LogUtils;
+import com.beidou.ybz.accountbook.util.ToastUtils;
+import com.beidou.ybz.accountbook.util.Utils;
+import com.beidou.ybz.accountbook.widget.PinEntryEditText;
+import com.google.gson.Gson;
+import com.jakewharton.rxbinding.widget.RxTextView;
+
+import butterknife.Bind;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
+import rx.functions.Action1;
+
+/**
+ * Author: xu.yang on 2018/3/5
+ * QQ:754444814
+ * E-mail:754444814@qq.com
+ * module:设置支付密码页面(第二步)
+ */
+public class SetPayPasswdConfirmActivity extends MvpActivity<CommonPresenter> implements CommonView<SercetKeyOverdueModel> {
+    @Bind(R.id.tv_title)
+    TextView tvTitle;
+    @Bind(R.id.toolbar)
+    Toolbar toolbar;
+    @Bind(R.id.petPasswd)
+    PinEntryEditText petPasswd;
+    @Bind(R.id.tvDescribe)
+    TextView tvDescribe;
+    @Bind(R.id.btnSave)
+    Button btnSave;
+    @Bind(R.id.tv_right)
+    TextView tvRight;
+    private String encMsg, signMsg;
+    AlertDialogUtils alertDialogUtils;
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_setpaypasswd);
+        ButterKnife.bind(this);
+
+        tvTitle.setText("设置支付密码");
+        tvDescribe.setText("请确认新的支付密码");
+        tvRight.setText("重置");
+        tvRight.setTextColor(getResources().getColor(R.color.background));
+        tvTitle.setTextColor(getResources().getColor(R.color.txt_color));
+        toolbar.setBackgroundColor(getResources().getColor(R.color.colorWhite));
+        toolbar.setNavigationIcon(R.drawable.back_black);
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ActivityUtils.finishActivity(mActivity);
+                ImeUtil.hideSoftKeyboard(petPasswd);
+            }
+        });
+        alertDialogUtils = new AlertDialogUtils(mActivity,"");
+        petPasswd.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                ImeUtil.showSoftKeyboard(petPasswd);
+            }
+        }, 300);
+
+        alertDialogUtils.setOnDialogClickListener(new DialogClickListener() {
+            @Override
+            public void clickYes(int which) {
+                petPasswd.setText(null);
+                ActivityUtils.finishActivity(mActivity);
+            }
+            @Override
+            public void clickNo() {
+            }
+        });
+
+        petPasswd.setOnPinEnteredListener(new PinEntryEditText.OnPinEnteredListener() {
+            @Override
+            public void onPinEntered(CharSequence str) {
+                LogUtils.logd("密码输入："+str);
+                ImeUtil.hideSoftKeyboard(petPasswd);
+                btnSave.setEnabled(true);
+                btnSave.setBackgroundResource(R.drawable.bg1);
+            }
+
+        });
+
+        btnSave.setVisibility(View.VISIBLE);
+
+        RxTextView.textChanges(petPasswd).subscribe(new Action1<CharSequence>() {
+            @Override
+            public void call(CharSequence charSequence) {
+                if (charSequence.length() < 6) {
+                    btnSave.setEnabled(false);
+                    btnSave.setBackgroundResource(R.drawable.bg_unenabled);
+                } else {
+                    btnSave.setEnabled(true);
+                    btnSave.setBackgroundResource(R.drawable.bg1);
+                }
+            }
+        });
+
+
+    }
+
+
+    /**
+     * 查询支付密码是否已设置
+     */
+    void settxpwd() {
+        RequestBody<AddOverseasRequestModel> requestBody = new RequestBody<>();
+        RequestBody.HeaderBean headerBean = new RequestBody.HeaderBean(Utils.getIPAddress(mActivity), spUtils.getSecretKeyId());
+        AddOverseasRequestModel requestModel = new AddOverseasRequestModel();
+        requestModel.setUserNo(spUtils.getUserId());
+        requestModel.setTxPwd(petPasswd.getText().toString());
+
+
+        requestBody.setBody(requestModel);
+        requestBody.setHeader(headerBean);
+
+        Gson gson2 = new Gson();
+        String json2 = gson2.toJson(requestBody);
+
+        try {
+            encMsg = DESedeUtil.getRequestAfter3DES(spUtils.getSecretKey(), spUtils.getSecretIv(), json2);
+            signMsg = DESedeUtil.getRequestAfterSign(encMsg);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        mvpPresenter.settxpwd(encMsg, signMsg, "2", spUtils.getSecretKeyId());
+    }
+
+    @Override
+    public void getDataSuccess(SercetKeyOverdueModel model) {
+        toastShow("支付密码设置成功",R.drawable.gou_toast);
+        petPasswd.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                ActivityUtils.startActivity(mActivity,SettingActivity.class);
+                ActivityUtils.finishActivity(mActivity);
+            }
+        }, ToastUtils.toastTime);
+
+
+    }
+
+    @Override
+    public void getDataFail(String msg) {
+
+    }
+
+    @Override
+    protected CommonPresenter createPresenter() {
+        return new CommonPresenter(this, this);
+    }
+
+    @OnClick({R.id.tv_right, R.id.btnSave})
+    public void onViewClicked(View view) {
+        switch (view.getId()) {
+            case R.id.tv_right:
+                petPasswd.setText(null);
+                ActivityUtils.finishActivity(mActivity);
+                break;
+            case R.id.btnSave:
+                if(valid()) {
+                    settxpwd();
+                }
+                break;
+        }
+    }
+
+    boolean valid(){
+        if(petPasswd.getText().toString().equals(spUtils.getPayPasswd())){
+            return true;
+        }else{
+            alertDialogUtils.setMessage("两次输入的密码不一致，请重新设置");
+            alertDialogUtils.show();
+            return false;
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        ImeUtil.hideSoftKeyboard(petPasswd);
+    }
+}

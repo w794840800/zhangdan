@@ -1,0 +1,350 @@
+package com.beidou.ybz.accountbook.ui;
+
+import android.animation.AnimatorSet;
+import android.animation.ObjectAnimator;
+import android.content.Intent;
+import android.os.Bundle;
+import android.support.v4.widget.SwipeRefreshLayout;
+import android.text.TextUtils;
+import android.view.View;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+
+import com.beidou.ybz.accountbook.R;
+import com.beidou.ybz.accountbook.mvp.entity.ArrearsDetailModel;
+import com.beidou.ybz.accountbook.mvp.entity.RequestBody;
+import com.beidou.ybz.accountbook.mvp.presenter.CommonPresenter;
+import com.beidou.ybz.accountbook.mvp.view.CommonView;
+import com.beidou.ybz.accountbook.util.DESedeUtil;
+import com.beidou.ybz.accountbook.util.DialogClickListener;
+import com.beidou.ybz.accountbook.util.LogUtils;
+import com.beidou.ybz.accountbook.mvp.entity.AddOverseasRequestModel;
+import com.beidou.ybz.accountbook.mvp.entity.InsuranceListModel;
+import com.beidou.ybz.accountbook.mvp.entity.SercetKeyOverdueModel;
+import com.beidou.ybz.accountbook.mvp.other.MvpActivity;
+import com.beidou.ybz.accountbook.mvp.view.OtherView;
+import com.beidou.ybz.accountbook.util.ActivityUtils;
+import com.beidou.ybz.accountbook.util.AlertDialogUtils;
+import com.beidou.ybz.accountbook.util.Utils;
+import com.google.gson.Gson;
+
+import java.util.List;
+
+import butterknife.Bind;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
+
+/**
+ * Author: xu.yang on 2017/12/6
+ * QQ:754444814
+ * E-mail:754444814@qq.com
+ * module: 欠款详情界面
+ */
+public class ArrearsDetailActivity extends MvpActivity<CommonPresenter> implements CommonView<ArrearsDetailModel>, OtherView<SercetKeyOverdueModel> {
+    @Bind(R.id.tv_title)
+    TextView tvTitle;
+    @Bind(R.id.swipeRefresh)
+    SwipeRefreshLayout mSwipeRefreshLayout;
+    @Bind(R.id.tvAmount)
+    TextView tvAmount;
+    @Bind(R.id.tvAddAssets)
+    TextView tvAddAssets;
+    @Bind(R.id.tvBorrowTime)
+    TextView tvBorrowTime;
+    @Bind(R.id.viewLine)
+    View viewLine;
+    @Bind(R.id.tvReturnTime)
+    TextView tvReturnTime;
+    @Bind(R.id.tvMemo)
+    TextView tvMemo;
+    @Bind(R.id.tv_subtitle)
+    TextView tvSubtitle;
+    @Bind(R.id.llMemo)
+    LinearLayout llMemo;
+    @Bind(R.id.llBorrowTime)
+    LinearLayout llBorrowTime;
+    @Bind(R.id.llReturnTime)
+    LinearLayout llReturnTime;
+    @Bind(R.id.llTime)
+    LinearLayout llTime;
+    @Bind(R.id.ivYihuanqing)
+    ImageView ivYihuanqing;
+    @Bind(R.id.tvJie)
+    TextView tvJie;
+    @Bind(R.id.tvHuan)
+    TextView tvHuan;
+    private String encMsg, signMsg;
+    private List<InsuranceListModel.BodyBean.ProListBean> proListBeanlist;
+    AlertDialogUtils alertDialogUtils;
+    private String id, name, amount, arrearsName, arrearsStatus, interest, loanTime, memo, returnTime;
+    //    private String andorsub, amount;
+    private boolean isEdit;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_arrearsdetail);
+        ButterKnife.bind(this);
+
+        Intent in = getIntent();
+        if (in != null) {
+            id = in.getStringExtra("id");
+            name = in.getStringExtra("name");
+        }
+
+        alertDialogUtils = new AlertDialogUtils(mActivity);
+//        toolbar.setNavigationIcon(R.drawable.back_black);
+        tvAddAssets.setText("欠款已还清");
+        tvTitle.setText("欠" + name);
+        tvJie.setText("借入时间");
+        tvHuan.setText("还款时间");
+        ivYihuanqing.setImageResource(R.drawable.yihuanqing);
+//        tvRight.setText("编辑");
+//        tvRight.setTextColor(getResources().getColor(R.color.txt_color));
+        tvTitle.setTextColor(getResources().getColor(R.color.txt_color));
+//        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                ActivityUtils.finishActivity(mActivity);
+//            }
+//        });
+
+        //下拉刷新条的颜色
+        mSwipeRefreshLayout.setColorSchemeResources(R.color.colorGold);
+
+        mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                isEdit = false;
+            }
+        });
+
+        alertDialogUtils.setMessage("欠款确认已还清？");
+        alertDialogUtils.setOnDialogClickListener(new DialogClickListener() {
+            @Override
+            public void clickYes(int which) {
+                save();
+
+
+            }
+
+            @Override
+            public void clickNo() {
+
+            }
+        });
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        LogUtils.logd("onResume");
+        isEdit = false;
+
+        request();
+    }
+
+
+    @Override
+    protected CommonPresenter createPresenter() {
+        return new CommonPresenter(this, this);
+    }
+
+
+    void request() {
+        RequestBody<AddOverseasRequestModel> requestBody = new RequestBody<>();
+        RequestBody.HeaderBean headerBean = new RequestBody.HeaderBean(Utils.getIPAddress(mActivity), spUtils.getSecretKeyId());
+        AddOverseasRequestModel requestModel = new AddOverseasRequestModel();
+        requestModel.setUserNo(spUtils.getUserId());
+        requestModel.setId(id);
+
+        requestBody.setBody(requestModel);
+        requestBody.setHeader(headerBean);
+
+        Gson gson2 = new Gson();
+        String json2 = gson2.toJson(requestBody);
+
+        try {
+            encMsg = DESedeUtil.getRequestAfter3DES(spUtils.getSecretKey(), spUtils.getSecretIv(), json2);
+            signMsg = DESedeUtil.getRequestAfterSign(encMsg);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        mvpPresenter.getarrearsasset(encMsg, signMsg, "2", spUtils.getSecretKeyId());
+    }
+
+    @OnClick({R.id.ib_back, R.id.tvEdit, R.id.tvAddAssets})
+    public void onClick(View view) {
+        switch (view.getId()) {
+            case R.id.ib_back:
+                ActivityUtils.finishActivity(mActivity);
+                break;
+            case R.id.tvAddAssets:
+                alertDialogUtils.show();
+//                ivYihuanqing.animate().scaleX(0.8f).scaleY(0.8f).alpha(1.0f).translationX(-50).translationY(-50).setDuration(500).start();
+
+                break;
+            case R.id.tvEdit:
+                Intent in = new Intent(this, AddArrears.class);
+                in.putExtra("id", id);
+                in.putExtra("arrearsName", arrearsName);
+                in.putExtra("amount", amount);
+                in.putExtra("loanTime", loanTime);
+                in.putExtra("returnTime", returnTime);
+                in.putExtra("arrearsStatus", arrearsStatus);
+                in.putExtra("interest", interest);
+                in.putExtra("memo", memo);
+                startActivity(in);
+                overridePendingTransition(R.anim.left_in, 0);
+                break;
+
+        }
+    }
+
+    @Override
+    public void getDataSuccess(ArrearsDetailModel model) {
+        mSwipeRefreshLayout.setRefreshing(false);
+        // amount, arrearsName,arrearsStatus,interest,loanTime,memo,returnTime
+        try {
+            amount = model.getBody().getInfoDto().getAmount();
+            arrearsName = model.getBody().getInfoDto().getArrearsName();
+
+            arrearsStatus = model.getBody().getInfoDto().getArrearsStatus();
+            interest = model.getBody().getInfoDto().getInterest();
+            loanTime = model.getBody().getInfoDto().getLoanTime();
+            memo = model.getBody().getInfoDto().getMemo();
+            returnTime = model.getBody().getInfoDto().getReturnTime();
+
+
+            if (arrearsStatus != null && arrearsStatus.equals("1")) {//已还清
+                ivYihuanqing.setAlpha(1f);
+                tvAddAssets.setVisibility(View.GONE);
+            } else {
+                ivYihuanqing.setAlpha(0f);
+                tvAddAssets.setVisibility(View.VISIBLE);
+            }
+
+            tvAmount.setText(Utils.addCommaContainsPoint(amount));
+            tvBorrowTime.setText(loanTime);
+            tvReturnTime.setText(returnTime);
+            tvMemo.setText(memo);
+            tvSubtitle.setText("利息" + interest + "%");
+
+            if (memo == null || TextUtils.isEmpty(memo)) {
+                llMemo.setVisibility(View.GONE);
+                viewLine.setVisibility(View.GONE);
+            } else {
+                llMemo.setVisibility(View.VISIBLE);
+                viewLine.setVisibility(View.VISIBLE);
+            }
+
+            if (interest == null || TextUtils.isEmpty(interest)) {
+                tvSubtitle.setVisibility(View.GONE);
+            } else {
+                tvSubtitle.setVisibility(View.VISIBLE);
+            }
+
+            if (TextUtils.isEmpty(loanTime) && TextUtils.isEmpty(returnTime)) {//两个都为空
+                llTime.setVisibility(View.GONE);
+            } else if (loanTime == null || TextUtils.isEmpty(loanTime)) { //借入时间为空,归还时间不为空
+                llTime.setVisibility(View.VISIBLE);
+                llBorrowTime.setVisibility(View.GONE);
+                llReturnTime.setVisibility(View.VISIBLE);
+                llReturnTime.setOrientation(LinearLayout.HORIZONTAL);
+
+                LinearLayout.LayoutParams layoutParam = new LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+                layoutParam.setMargins(20, 0, 0, 0);
+
+                tvReturnTime.setLayoutParams(layoutParam);
+            } else if(returnTime == null || TextUtils.isEmpty(returnTime)){//归还时间为空,借入时间不为空
+                llBorrowTime.setVisibility(View.VISIBLE);
+                llReturnTime.setVisibility(View.GONE);
+                llTime.setVisibility(View.VISIBLE);
+                llBorrowTime.setOrientation(LinearLayout.HORIZONTAL);
+
+                LinearLayout.LayoutParams layoutParam = new LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+                layoutParam.setMargins(20, 0, 0, 0);
+
+                tvBorrowTime.setLayoutParams(layoutParam);
+            }else{//借入、归还时间都不为空
+                llBorrowTime.setVisibility(View.VISIBLE);
+                llReturnTime.setVisibility(View.VISIBLE);
+                llTime.setVisibility(View.VISIBLE);
+            }
+
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void getDataFail(String msg) {
+        toastShow(msg);
+    }
+
+    void save() {
+        RequestBody<AddOverseasRequestModel> loginRequestModel = new RequestBody<>();
+        RequestBody.HeaderBean headerBean = new RequestBody.HeaderBean(Utils.getIPAddress(mActivity), spUtils.getSecretKeyId());
+        AddOverseasRequestModel requestModel = new AddOverseasRequestModel();
+        requestModel.setUserNo(spUtils.getUserId());
+        requestModel.setId(id);
+        requestModel.setArrearsStatus("1");//已还清
+
+//        requestModel.setArrearsName(cetName.getText().toString());
+//        requestModel.setAmount(cetMoney.getText().toString());
+//        requestModel.setLoanTime(tvBorrowTime.getText().toString());
+//        requestModel.setReturnTime(tvReturnTime.getText().toString());
+//        requestModel.setInterest(cetInterest.getText().toString());
+//        requestModel.setMemo(cetMemo.getText().toString());
+
+        requestModel.setArrearsName(arrearsName);
+        requestModel.setAmount(amount);
+        requestModel.setLoanTime(loanTime);
+        requestModel.setReturnTime(returnTime);
+        requestModel.setInterest(interest);
+        requestModel.setMemo(memo);
+
+        loginRequestModel.setBody(requestModel);
+        loginRequestModel.setHeader(headerBean);
+
+        Gson gson2 = new Gson();
+        String json2 = gson2.toJson(loginRequestModel);
+        LogUtils.logd(json2);
+        try {
+            encMsg = DESedeUtil.getRequestAfter3DES(spUtils.getSecretKey(), spUtils.getSecretIv(), json2);
+            signMsg = DESedeUtil.getRequestAfterSign(encMsg);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        mvpPresenter.updatearrearsasset(encMsg, signMsg, "2", spUtils.getSecretKeyId());
+    }
+
+
+    //更新回调
+    @Override
+    public void onSuccess(SercetKeyOverdueModel model) {
+//            toastShow("还款成功");
+        arrearsStatus = "1";
+        ObjectAnimator oa1 = ObjectAnimator.ofFloat(ivYihuanqing, "alpha", 0f, 1f);
+        ObjectAnimator oa2 = ObjectAnimator.ofFloat(ivYihuanqing, "scaleX", 1.1f, 0.9f);
+        ObjectAnimator oa3 = ObjectAnimator.ofFloat(ivYihuanqing, "scaleY", 1.1f, 0.9f);
+        ObjectAnimator oa4 = ObjectAnimator.ofFloat(ivYihuanqing, "translationX", -80f);
+        ObjectAnimator oa5 = ObjectAnimator.ofFloat(ivYihuanqing, "translationY", -80f);
+
+        AnimatorSet set = new AnimatorSet();
+        set.play(oa1).before(oa2);
+        set.play(oa2).with(oa3).with(oa4).with(oa5);
+        set.setDuration(300);
+        set.start();
+        tvAddAssets.setVisibility(View.GONE);
+    }
+
+    @Override
+    public void onFail(String model) {
+        toastShow(model);
+    }
+}

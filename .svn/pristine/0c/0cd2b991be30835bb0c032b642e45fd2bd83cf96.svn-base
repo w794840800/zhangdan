@@ -1,0 +1,844 @@
+package com.beidou.ybz.accountbook.mvp.entity;
+
+/**
+ * Author: xu.yang on 2017/12/10
+ * QQ:754444814
+ * E-mail:754444814@qq.com
+ * module:添加海外房产请求model
+ */
+public class AddOverseasRequestModel {
+
+    private String userNo;//用户id
+    private String homeName;//名称
+    private String amount;//估值
+    private String area;//面积
+
+    private String unit;// 面积单位;
+    private String address;//所在地
+    private String memo ;//备注
+    private String curType ;//货币类型
+
+    //股票
+    private String stockName;// 股票名称
+    private String stockCode;// 股票代码
+    private String positionNumber;//股票持仓数
+    private String brokerName ;//股票券商名称
+
+
+    //保险
+    private String productName;// 名称
+    private String yearBonus;//年金
+
+    //股票所搜关键字
+    private String words;
+
+    //欠款
+    private String arrearsName;//借款名称
+    private String loanTime;//借款时间
+    private String returnTime;//归还时间
+    private String arrearsStatus;//欠款状态
+    private String interest;//利息
+
+    //贷款
+    private String periods;//期数
+
+    //股权
+    private String investmentTime;//投资时间
+    private String investmentTerm;//投资期限
+
+    //域名估值
+    private String hosturl;//域名
+
+    //互联网账号
+    private String accountNo;//互联网账号
+
+    //固定收益
+    private String yearIncome;//年化收益
+
+    //预付卡
+    private String times;//可用次数
+    private String expireDate;//到期时间
+    private String comment;//内容
+
+    //游戏
+    private String gameName;//游戏名称
+
+    //借款
+    private String loanName;//借款人
+    private String loanStatus;//借款状态
+
+    //自定义分类
+    private String name;//分类名称
+    private String buyTime;//购买时间
+
+    //域名
+    private String buyDate;//购入时间
+    private String endDate;//到期时间
+
+    //基金
+    private String fundCode;//基金代码
+    private String fundName;//基金名称
+
+    //徽章
+    private String badgeType;
+
+    //意见反馈
+    private String tel;//手机号
+    private String content;//分享内容
+    private String contact;//联系方式
+
+    //徽章
+    private String badgeDetailId;//徽章详情id
+
+
+    private String source;
+
+    public String getSource() {
+        return source;
+    }
+
+    public void setSource(String source) {
+        this.source = source;
+    }
+
+    public String getBadgeDetailId() {
+        return badgeDetailId;
+    }
+
+    public void setBadgeDetailId(String badgeDetailId) {
+        this.badgeDetailId = badgeDetailId;
+    }
+
+    public String getTel() {
+        return tel;
+    }
+
+    public void setTel(String tel) {
+        this.tel = tel;
+    }
+
+    public String getContent() {
+        return content;
+    }
+
+    public void setContent(String content) {
+        this.content = content;
+    }
+
+    public String getContact() {
+        return contact;
+    }
+
+    public void setContact(String contact) {
+        this.contact = contact;
+    }
+
+    public String getBadgeType() {
+        return badgeType;
+    }
+
+    public void setBadgeType(String badgeType) {
+        this.badgeType = badgeType;
+    }
+
+    public String getFundCode() {
+        return fundCode;
+    }
+
+    public void setFundCode(String fundCode) {
+        this.fundCode = fundCode;
+    }
+
+    public String getFundName() {
+        return fundName;
+    }
+
+    public void setFundName(String fundName) {
+        this.fundName = fundName;
+    }
+
+    public String getBuyDate() {
+        return buyDate;
+    }
+
+    public void setBuyDate(String buyDate) {
+        this.buyDate = buyDate;
+    }
+
+    public String getEndDate() {
+        return endDate;
+    }
+
+    public void setEndDate(String endDate) {
+        this.endDate = endDate;
+    }
+
+    public String getBuyTime() {
+        return buyTime;
+    }
+
+    public void setBuyTime(String buyTime) {
+        this.buyTime = buyTime;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getLoanStatus() {
+        return loanStatus;
+    }
+
+    public void setLoanStatus(String loanStatus) {
+        this.loanStatus = loanStatus;
+    }
+
+
+
+    public String getLoanName() {
+        return loanName;
+    }
+
+    public void setLoanName(String loanName) {
+        this.loanName = loanName;
+    }
+
+    public String getGameName() {
+        return gameName;
+    }
+
+    public void setGameName(String gameName) {
+        this.gameName = gameName;
+    }
+
+    public String getTimes() {
+        return times;
+    }
+
+    public void setTimes(String times) {
+        this.times = times;
+    }
+
+    public String getExpireDate() {
+        return expireDate;
+    }
+
+    public void setExpireDate(String expireDate) {
+        this.expireDate = expireDate;
+    }
+
+    public String getComment() {
+        return comment;
+    }
+
+    public void setComment(String comment) {
+        this.comment = comment;
+    }
+
+    public String getYearIncome() {
+        return yearIncome;
+    }
+
+    public void setYearIncome(String yearIncome) {
+        this.yearIncome = yearIncome;
+    }
+
+
+
+    public String getAccountNo() {
+        return accountNo;
+    }
+
+    public void setAccountNo(String accountNo) {
+        this.accountNo = accountNo;
+    }
+
+    public String getHosturl() {
+        return hosturl;
+    }
+
+    public void setHosturl(String hosturl) {
+        this.hosturl = hosturl;
+    }
+
+    public String getInvestmentTime() {
+        return investmentTime;
+    }
+
+    public void setInvestmentTime(String investmentTime) {
+        this.investmentTime = investmentTime;
+    }
+
+    public String getInvestmentTerm() {
+        return investmentTerm;
+    }
+
+    public void setInvestmentTerm(String investmentTerm) {
+        this.investmentTerm = investmentTerm;
+    }
+
+    public String getPeriods() {
+        return periods;
+    }
+
+    public void setPeriods(String periods) {
+        this.periods = periods;
+    }
+
+    public String getArrearsName() {
+        return arrearsName;
+    }
+
+    public void setArrearsName(String arrearsName) {
+        this.arrearsName = arrearsName;
+    }
+
+    public String getLoanTime() {
+        return loanTime;
+    }
+
+    public void setLoanTime(String loanTime) {
+        this.loanTime = loanTime;
+    }
+
+    public String getReturnTime() {
+        return returnTime;
+    }
+
+    public void setReturnTime(String returnTime) {
+        this.returnTime = returnTime;
+    }
+
+    public String getArrearsStatus() {
+        return arrearsStatus;
+    }
+
+    public void setArrearsStatus(String arrearsStatus) {
+        this.arrearsStatus = arrearsStatus;
+    }
+
+    public String getInterest() {
+        return interest;
+    }
+
+    public void setInterest(String interest) {
+        this.interest = interest;
+    }
+
+    public String getWords() {
+        return words;
+    }
+
+    public void setWords(String words) {
+        this.words = words;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    private String id;
+
+    public String getAndorsub() {
+        return andorsub;
+    }
+
+    public void setAndorsub(String andorsub) {
+        this.andorsub = andorsub;
+    }
+
+    private String andorsub;
+
+    public String getPositionId() {
+        return positionId;
+    }
+
+    public void setPositionId(String positionId) {
+        this.positionId = positionId;
+    }
+
+    private String positionId;//
+
+    /**
+     * 修改手机号
+     */
+    private String newMobile;
+    private String newMessageCode;
+
+    /**
+     * 修改或添加邮箱
+     * @return
+     */
+    private String email;
+
+    private String txPwd;//支付密码
+
+    public String getTxPwd() {
+        return txPwd;
+    }
+
+    public void setTxPwd(String txPwd) {
+        this.txPwd = txPwd;
+    }
+
+    /**
+     * 短信校验
+     * @return
+     */
+    private String mobile;
+    private String validType;
+    private String messageCode;
+
+    /**
+     * 图形验证码校验
+     * @return
+     */
+
+    private String picCode;
+
+    public String getPicCode() {
+        return picCode;
+    }
+
+    public void setPicCode(String picCode) {
+        this.picCode = picCode;
+    }
+
+    public String getMobile() {
+        return mobile;
+    }
+
+    public void setMobile(String mobile) {
+        this.mobile = mobile;
+    }
+
+    public String getValidType() {
+        return validType;
+    }
+
+    public void setValidType(String validType) {
+        this.validType = validType;
+    }
+
+    public String getMessageCode() {
+        return messageCode;
+    }
+
+    public void setMessageCode(String messageCode) {
+        this.messageCode = messageCode;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getNewMobile() {
+        return newMobile;
+    }
+
+    public void setNewMobile(String newMobile) {
+        this.newMobile = newMobile;
+    }
+
+    public String getNewMessageCode() {
+        return newMessageCode;
+    }
+
+    public void setNewMessageCode(String newMessageCode) {
+        this.newMessageCode = newMessageCode;
+    }
+
+    //活期理财
+    private String currentType;// 宝宝类型
+
+    //银行卡
+    private String bankNo;// 卡号
+    private String bankId;// 所属银行号
+    private String bankType;//银行卡类型
+
+    public String getBankName() {
+        return bankName;
+    }
+
+    public void setBankName(String bankName) {
+        this.bankName = bankName;
+    }
+
+    private String bankName;//银行名称
+
+    public String getBankNo() {
+        return bankNo;
+    }
+
+    public void setBankNo(String bankNo) {
+        this.bankNo = bankNo;
+    }
+
+    public String getBankId() {
+        return bankId;
+    }
+
+    public void setBankId(String bankId) {
+        this.bankId = bankId;
+    }
+
+    public String getBankType() {
+        return bankType;
+    }
+
+    public void setBankType(String bankType) {
+        this.bankType = bankType;
+    }
+
+    public String getCurrentType() {
+        return currentType;
+    }
+
+    public void setCurrentType(String currentType) {
+        this.currentType = currentType;
+    }
+
+    public String getProductName() {
+        return productName;
+    }
+
+    public void setProductName(String productName) {
+        this.productName = productName;
+    }
+
+    public String getYearBonus() {
+        return yearBonus;
+    }
+
+    public void setYearBonus(String yearBonus) {
+        this.yearBonus = yearBonus;
+    }
+
+    public String getStockName() {
+        return stockName;
+    }
+
+    public String getStockCode() {
+        return stockCode;
+    }
+
+    public void setStockCode(String stockCode) {
+        this.stockCode = stockCode;
+    }
+
+    public void setStockName(String stockName) {
+        this.stockName = stockName;
+    }
+
+    public String getPositionNumber() {
+        return positionNumber;
+    }
+
+    public void setPositionNumber(String positionNumber) {
+        this.positionNumber = positionNumber;
+    }
+
+    public String getBrokerName() {
+        return brokerName;
+    }
+
+    public void setBrokerName(String brokerName) {
+        this.brokerName = brokerName;
+    }
+
+    public String getUserNo() {
+        return userNo;
+    }
+
+    public void setUserNo(String userNo) {
+        this.userNo = userNo;
+    }
+
+    public String getHomeName() {
+        return homeName;
+    }
+
+    public void setHomeName(String homeName) {
+        this.homeName = homeName;
+    }
+
+    public String getAmount() {
+        return amount;
+    }
+
+    public void setAmount(String amount) {
+        this.amount = amount;
+    }
+
+    public String getArea() {
+        return area;
+    }
+
+    public void setArea(String area) {
+        this.area = area;
+    }
+
+    public String getUnit() {
+        return unit;
+    }
+
+    public void setUnit(String unit) {
+        this.unit = unit;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
+    public String getMemo() {
+        return memo;
+    }
+
+    public void setMemo(String memo) {
+        this.memo = memo;
+    }
+
+    public String getCurType() {
+        return curType;
+    }
+
+    public void setCurType(String curType) {
+        this.curType = curType;
+    }
+
+    /**
+     * 财商测试
+     */
+    private String nickName;
+    private String portraitUrl;
+
+    public String getNickName() {
+        return nickName;
+    }
+
+    public void setNickName(String nickName) {
+        this.nickName = nickName;
+    }
+
+    public String getPortraitUrl() {
+        return portraitUrl;
+    }
+
+    public void setPortraitUrl(String portraitUrl) {
+        this.portraitUrl = portraitUrl;
+    }
+
+    /**
+     * 我的首页
+     */
+    private String visitTime;
+
+    public String getVisitTime() {
+        return visitTime;
+    }
+
+    public void setVisitTime(String visitTime) {
+        this.visitTime = visitTime;
+    }
+
+
+    /**
+     * 打开已学课程详情
+     */
+    private String studyNo;
+
+    public String getStudyNo() {
+        return studyNo;
+    }
+
+    public void setStudyNo(String studyNo) {
+        this.studyNo = studyNo;
+    }
+
+
+
+
+    /**
+     * 黑匣子
+     */
+    private String notice;
+    //    private String mobile;
+//    private String mobileName;
+    private String conditionif;
+    private String cfDate;
+    private String message;
+    private String sfkq;
+
+    public String getNotice() {
+        return notice;
+    }
+
+    public void setNotice(String notice) {
+        this.notice = notice;
+    }
+
+//    public String getMobileName() {
+//        return mobileName;
+//    }
+//
+//    public void setMobileName(String mobileName) {
+//        this.mobileName = mobileName;
+//    }
+
+    public String getConditionif() {
+        return conditionif;
+    }
+
+    public void setConditionif(String conditionif) {
+        this.conditionif = conditionif;
+    }
+
+    public String getCfDate() {
+        return cfDate;
+    }
+
+    public void setCfDate(String cfDate) {
+        this.cfDate = cfDate;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+
+    public String getSfkq() {
+        return sfkq;
+    }
+
+    public void setSfkq(String sfkq) {
+        this.sfkq = sfkq;
+    }
+
+
+    /**
+     * 活动列表
+     */
+    private String pageNum;
+    private String pageSize;
+
+    public String getPageNum() {
+        return pageNum;
+    }
+
+    public void setPageNum(String pageNum) {
+        this.pageNum = pageNum;
+    }
+
+    public String getPageSize() {
+        return pageSize;
+    }
+
+    public void setPageSize(String pageSize) {
+        this.pageSize = pageSize;
+    }
+
+
+    /**
+     * qq登录
+     */
+    private String acctChannel;
+    private String code;
+    private String openId;
+
+    public String getAcctChannel() {
+        return acctChannel;
+    }
+
+    public void setAcctChannel(String acctChannel) {
+        this.acctChannel = acctChannel;
+    }
+
+    public String getCode() {
+        return code;
+    }
+
+    public void setCode(String code) {
+        this.code = code;
+    }
+
+    public String getOpenId() {
+        return openId;
+    }
+
+    public void setOpenId(String openId) {
+        this.openId = openId;
+    }
+
+
+    /**
+     * 三方登录绑定账户接口
+     */
+    private String thirdAcctNo;
+    private String nickname;
+    private String headImgUrl;
+
+    public String getThirdAcctNo() {
+        return thirdAcctNo;
+    }
+
+    public void setThirdAcctNo(String thirdAcctNo) {
+        this.thirdAcctNo = thirdAcctNo;
+    }
+
+    public String getNickname() {
+        return nickname;
+    }
+
+    public void setNickname(String nickname) {
+        this.nickname = nickname;
+    }
+
+    public String getHeadImgUrl() {
+        return headImgUrl;
+    }
+
+    public void setHeadImgUrl(String headImgUrl) {
+        this.headImgUrl = headImgUrl;
+    }
+
+    /**
+     * 三方登录解除绑定接口
+     */
+    private String thirdAcctChannel;
+    private String thirdAcctType;
+
+    public String getThirdAcctChannel() {
+        return thirdAcctChannel;
+    }
+
+    public void setThirdAcctChannel(String thirdAcctChannel) {
+        this.thirdAcctChannel = thirdAcctChannel;
+    }
+
+    public String getThirdAcctType() {
+        return thirdAcctType;
+    }
+
+    public void setThirdAcctType(String thirdAcctType) {
+        this.thirdAcctType = thirdAcctType;
+    }
+}

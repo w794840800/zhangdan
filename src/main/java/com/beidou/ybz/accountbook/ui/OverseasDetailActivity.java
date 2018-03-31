@@ -1,0 +1,241 @@
+package com.beidou.ybz.accountbook.ui;
+
+import android.content.Intent;
+import android.os.Bundle;
+import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.widget.Toolbar;
+import android.text.TextUtils;
+import android.view.View;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+
+import com.baidu.mobstat.StatService;
+import com.beidou.ybz.accountbook.R;
+import com.beidou.ybz.accountbook.mvp.presenter.CommonPresenter;
+import com.beidou.ybz.accountbook.mvp.entity.AddOverseasRequestModel;
+import com.beidou.ybz.accountbook.mvp.entity.InsuranceListModel;
+import com.beidou.ybz.accountbook.mvp.entity.OverseasDetailModel;
+import com.beidou.ybz.accountbook.mvp.entity.RequestBody;
+import com.beidou.ybz.accountbook.mvp.other.MvpActivity;
+import com.beidou.ybz.accountbook.mvp.view.CommonView;
+import com.beidou.ybz.accountbook.util.ActivityUtils;
+import com.beidou.ybz.accountbook.util.AlertDialogUtils;
+import com.beidou.ybz.accountbook.util.DESedeUtil;
+import com.beidou.ybz.accountbook.util.LogUtils;
+import com.beidou.ybz.accountbook.util.Utils;
+import com.google.gson.Gson;
+
+import java.text.DecimalFormat;
+import java.util.List;
+
+import butterknife.Bind;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
+
+/**
+ * Author: xu.yang on 2017/12/6
+ * QQ:754444814
+ * E-mail:754444814@qq.com
+ * module: 海外房产详情界面
+ */
+public class OverseasDetailActivity extends MvpActivity<CommonPresenter> implements CommonView<OverseasDetailModel> {
+    @Bind(R.id.tv_title)
+    TextView tvTitle;
+    @Bind(R.id.toolbar)
+    Toolbar toolbar;
+    @Bind(R.id.swipeRefresh)
+    SwipeRefreshLayout mSwipeRefreshLayout;
+    @Bind(R.id.tv_right)
+    TextView tvRight;
+    @Bind(R.id.tvAmount)
+    TextView tvAmount;
+    @Bind(R.id.tvMemo)
+    TextView tvMemo;
+    @Bind(R.id.tvAddress)
+    TextView tvAddress;
+    @Bind(R.id.tvAcreage)
+    TextView tvAcreage;
+    @Bind(R.id.llMemo)
+    LinearLayout llMemo;
+    @Bind(R.id.llAddress)
+    LinearLayout llAddress;
+    @Bind(R.id.llAcreage)
+    LinearLayout llAcreage;
+    @Bind(R.id.tvYuguTitle)
+    TextView tvYuguTitle;
+    @Bind(R.id.tvRmbAmount)
+    TextView tvRmbAmount;
+    private String encMsg, signMsg;
+    private List<InsuranceListModel.BodyBean.ProListBean> proListBeanlist;
+    AlertDialogUtils alertDialogUtils;
+    private String id, name, memo, acreage, amount, Rmbamount, address, unit, curType;
+    DecimalFormat df ;
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_overseasdetail);
+        ButterKnife.bind(this);
+
+        Intent in = getIntent();
+        if (in != null) {
+            id = in.getStringExtra("id");
+            name = in.getStringExtra("name");
+        }
+
+        df = new DecimalFormat("######0");
+
+        alertDialogUtils = new AlertDialogUtils(mActivity);
+        toolbar.setNavigationIcon(R.drawable.back_black);
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ActivityUtils.finishActivity(mActivity);
+            }
+        });
+        tvTitle.setText(name);
+        tvRight.setText("编辑");
+        tvRight.setTextColor(getResources().getColor(R.color.txt_color));
+        tvTitle.setTextColor(getResources().getColor(R.color.txt_color));
+
+        //下拉刷新条的颜色
+        mSwipeRefreshLayout.setColorSchemeResources(R.color.colorGold);
+
+        mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                request(id);
+            }
+        });
+
+//        request(id);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        request(id);
+        StatService.onPageStart(mActivity,"房产详情页面");
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        StatService.onPageEnd(mActivity,"房产详情页面");
+    }
+
+    @Override
+    protected CommonPresenter createPresenter() {
+        return new CommonPresenter(this, this);
+    }
+
+    void request(String id) {
+        RequestBody<AddOverseasRequestModel> requestBody = new RequestBody<>();
+        RequestBody.HeaderBean headerBean = new RequestBody.HeaderBean(Utils.getIPAddress(mActivity), spUtils.getSecretKeyId());
+        AddOverseasRequestModel requestModel = new AddOverseasRequestModel();
+        requestModel.setUserNo(spUtils.getUserId());
+        requestModel.setId(id);
+
+        requestBody.setBody(requestModel);
+        requestBody.setHeader(headerBean);
+
+        Gson gson = new Gson();
+        String json = gson.toJson(requestBody);
+        LogUtils.logd("参数:" + json);
+
+        try {
+            encMsg = DESedeUtil.getRequestAfter3DES(spUtils.getSecretKey(), spUtils.getSecretIv(), json);
+            signMsg = DESedeUtil.getRequestAfterSign(encMsg);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        mvpPresenter.getoverseas(encMsg, signMsg, "2", spUtils.getSecretKeyId());
+    }
+
+
+    @OnClick({R.id.tv_right})
+    public void onViewClicked(View view) {
+        switch (view.getId()) {
+            case R.id.tv_right:
+                Intent in = new Intent(mActivity, AddOverseasAssets.class);
+                in.putExtra("id", id);
+                in.putExtra("name", name);
+                in.putExtra("address", address);
+                in.putExtra("memo", memo);
+                in.putExtra("amount", amount);
+                in.putExtra("acreage", acreage);
+                in.putExtra("unit", unit);
+                in.putExtra("curType", curType);
+                startActivity(in);
+                overridePendingTransition(R.anim.left_in, 0);
+                break;
+        }
+    }
+
+    @Override
+    public void getDataSuccess(OverseasDetailModel model) {
+        mSwipeRefreshLayout.setRefreshing(false);
+        try {
+            amount = model.getBody().getOverseas().getAmount();
+            Rmbamount = model.getBody().getOverseas().getAmountRmb();
+
+            memo = model.getBody().getOverseas().getMemo();
+            acreage = model.getBody().getOverseas().getArea();
+            address = model.getBody().getOverseas().getAddress();
+            unit = model.getBody().getOverseas().getUnit();
+            curType = model.getBody().getOverseas().getCurType();
+
+
+            if (memo == null || TextUtils.isEmpty(memo)) {
+                llMemo.setVisibility(View.GONE);
+            } else {
+                llMemo.setVisibility(View.VISIBLE);
+            }
+
+            if (address == null || TextUtils.isEmpty(address)) {
+                llAddress.setVisibility(View.GONE);
+            } else {
+                llAddress.setVisibility(View.VISIBLE);
+            }
+
+            if (acreage == null || TextUtils.isEmpty(acreage)) {
+                llAcreage.setVisibility(View.GONE);
+            } else {
+                llAcreage.setVisibility(View.VISIBLE);
+                if(unit != null && unit.equals("㎡")){
+                    tvAcreage.setText(acreage + unit);
+                }else{
+                    DecimalFormat df = new DecimalFormat("######0"); //四色五入转换成整数
+                    tvAcreage.setText(acreage + unit+" ≈ "+df.format(Double.parseDouble(acreage)*0.0929)+"㎡");
+                }
+            }
+
+            tvAmount.setText(Utils.addCommaContainsPoint(amount));
+            tvMemo.setText(memo);
+
+
+
+
+            tvAddress.setText(address);
+            tvRmbAmount.setText("≈ CNY\t"+Utils.addCommaContainsPoint(Rmbamount));
+            if(curType != null && curType.equals("CNY")){
+                tvYuguTitle.setText("预估市值(元)");
+                tvRmbAmount.setVisibility(View.INVISIBLE);
+            }else{
+                tvRmbAmount.setVisibility(View.VISIBLE);
+                tvYuguTitle.setText("预估市值"+"("+curType+")");
+            }
+
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void getDataFail(String msg) {
+        mSwipeRefreshLayout.setRefreshing(false);
+        toastShow(msg);
+    }
+
+
+}

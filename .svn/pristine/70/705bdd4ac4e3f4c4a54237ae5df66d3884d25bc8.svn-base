@@ -1,0 +1,407 @@
+package com.beidou.ybz.accountbook.ui;
+
+import android.animation.ValueAnimator;
+import android.app.DatePickerDialog;
+import android.content.Intent;
+import android.os.Bundle;
+import android.support.v7.widget.Toolbar;
+import android.text.Editable;
+import android.text.TextUtils;
+import android.text.TextWatcher;
+import android.util.Log;
+import android.util.TypedValue;
+import android.view.View;
+import android.widget.DatePicker;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+
+import com.baidu.mobstat.StatService;
+import com.beidou.ybz.accountbook.R;
+import com.beidou.ybz.accountbook.mvp.entity.SercetKeyOverdueModel;
+import com.beidou.ybz.accountbook.mvp.main.TextWatchView;
+import com.beidou.ybz.accountbook.mvp.presenter.CommonPresenter;
+import com.beidou.ybz.accountbook.mvp.view.CommonView;
+import com.beidou.ybz.accountbook.util.DESedeUtil;
+import com.beidou.ybz.accountbook.util.ImeUtil;
+import com.beidou.ybz.accountbook.util.LogUtils;
+import com.beidou.ybz.accountbook.widget.ClearEditText;
+import com.beidou.ybz.accountbook.mvp.entity.AddOverseasRequestModel;
+import com.beidou.ybz.accountbook.mvp.entity.IndexModel;
+import com.beidou.ybz.accountbook.mvp.entity.RequestBody;
+import com.beidou.ybz.accountbook.mvp.other.MvpActivity;
+import com.beidou.ybz.accountbook.util.ActivityUtils;
+import com.beidou.ybz.accountbook.util.Utils;
+import com.beidou.ybz.accountbook.widget.NewWatcher;
+import com.google.gson.Gson;
+import com.jakewharton.rxbinding.widget.RxTextView;
+
+import java.util.Calendar;
+
+import butterknife.Bind;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
+import rx.Observable;
+import rx.functions.Action1;
+import rx.functions.Func5;
+
+/**
+ * Author: xu.yang on 2017/12/5
+ * QQ:754444814
+ * E-mail:754444814@qq.com
+ * module: 添加域名
+ */
+public class AddDomin extends MvpActivity<CommonPresenter> implements CommonView<SercetKeyOverdueModel> {
+    @Bind(R.id.tv_title)
+    TextView tvTitle;
+    @Bind(R.id.toolbar)
+    Toolbar toolbar;
+    @Bind(R.id.ivShowMore)
+    ImageView ivShowMore;
+    @Bind(R.id.llShowMore)
+    LinearLayout llShowMore;
+    @Bind(R.id.llMore)
+    LinearLayout llMore;
+    @Bind(R.id.btnSave)
+    TextView btnSave;
+    @Bind(R.id.cetMoney)
+    ClearEditText cetMoney;
+    @Bind(R.id.cetName)
+    ClearEditText cetName;
+    @Bind(R.id.tvBuyTime)
+    TextView tvBuyTime;
+    @Bind(R.id.tvExpirytime)
+    TextView tvExpirytime;
+    @Bind(R.id.cetMemo)
+    ClearEditText cetMemo;
+    private boolean isMoreShow;
+    private int height;
+    private ValueAnimator valueAnimatorShow, valueAnimatorHide;
+    private DatePickerDialog datePickerDialog;
+    private int year, month, day;
+    private String encMsg, signMsg;
+    private boolean isEdit;//true-编辑 false-新增
+    private boolean isBorrow;//是否是购入时间选择器
+    private boolean isFromList;
+    private String id, name ,memo ,amount ,from,buyDate,endDate;
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_adddomin);
+        ButterKnife.bind(this);
+
+        tvTitle.setText("添加域名");
+        tvTitle.setTextColor(getResources().getColor(R.color.txt_color));
+        toolbar.setBackgroundColor(getResources().getColor(R.color.colorWhite));
+        toolbar.setNavigationIcon(R.drawable.back_black);
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ActivityUtils.finishActivity(mActivity);
+                ImeUtil.hideSoftKeyboard(cetName);
+            }
+        });
+        handleIntent(getIntent());
+        initView();
+        initNumberPicker();
+
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        handleIntent(intent);
+    }
+
+    private void handleIntent(Intent in){
+        //id, name ,memo, comment ,amount ,from,times,expireDate
+        if (in != null) {
+            id = in.getStringExtra("id");
+            name = in.getStringExtra("name");
+            memo = in.getStringExtra("memo");
+            buyDate = in.getStringExtra("buyDate");
+            amount = in.getStringExtra("amount");
+            endDate = in.getStringExtra("endDate");
+            from = in.getStringExtra("from");
+        }
+
+        if(name != null && !TextUtils.isEmpty(name)){
+            isEdit = true;
+        }else{
+            isEdit = false;
+        }
+        LogUtils.logd("isEdit:"+isEdit);
+        if(isEdit){
+            tvTitle.setText("编辑域名");
+        }else{
+            tvTitle.setText("添加域名");
+        }
+
+        if(from != null && from.equals("list")){
+            isFromList = true;
+        }else{
+            isFromList = false;
+        }
+
+        cetName.setText(name);
+        cetMoney.setText(amount);
+        if (!TextUtils.isEmpty(cetMoney.getText().toString())) {
+            cetMoney.setTextSize(TypedValue.COMPLEX_UNIT_SP, 30);
+        }
+
+        if(name != null && name.length() > 0 ){
+            cetName.setSelection(name.length());
+        }
+        tvBuyTime.setText(buyDate);
+        tvExpirytime.setText(endDate);
+        cetMemo.setText(memo);
+    }
+
+    /**
+     * DatePicker 日期监听
+     */
+    private DatePickerDialog.OnDateSetListener datelistener = new DatePickerDialog.OnDateSetListener() {
+        @Override
+        public void onDateSet(DatePicker view, int myyear, int monthOfYear, int dayOfMonth) {
+            //修改year、month、day的变量值，以便以后单击按钮时，DatePickerDialog上显示上一次修改后的值
+            year = myyear;
+            month = monthOfYear;
+            day = dayOfMonth;
+            //更新日期
+            updateDate();
+        }
+        //当DatePickerDialog关闭时，更新日期显示
+        private void updateDate() {
+            //在TextView上显示日期
+            if(isBorrow) {
+                tvBuyTime.setText(year + "年" + (month + 1) + "月" + day + "日");
+            }else{
+                tvExpirytime.setText(year + "年" + (month + 1) + "月" + day + "日");
+            }
+        }
+    };
+
+    void initNumberPicker() {
+        Calendar mycalendar = Calendar.getInstance();
+
+        year = mycalendar.get(Calendar.YEAR); //获取Calendar对象中的年
+        month = mycalendar.get(Calendar.MONTH);//获取Calendar对象中的月
+        day = mycalendar.get(Calendar.DAY_OF_MONTH);//获取这个月的第几天
+
+        datePickerDialog = new DatePickerDialog(mActivity, datelistener, year, month, day);
+        datePickerDialog.getWindow().setWindowAnimations(R.style.dialogAnimation);
+    }
+
+    void initView() {
+        bindViewByRxBinding();
+
+//        cetName.addTextChangedListener(new NewWatcher(this));
+//        cetMoney.addTextChangedListener(new NewWatcher(this));
+
+        //计算llMore的高度
+        int w = View.MeasureSpec.makeMeasureSpec(0,
+                View.MeasureSpec.UNSPECIFIED);
+        int h = View.MeasureSpec.makeMeasureSpec(0,
+                View.MeasureSpec.UNSPECIFIED);
+        llMore.measure(w, h);
+        height = llMore.getMeasuredHeight();
+        Log.e("height", "initView: " + height);
+
+        initAnimator();
+
+        /**
+         * 添加监听，在hint时和text时切换字体大小
+         */
+        Utils.textChangedListener(cetMoney);
+    }
+
+    /**
+     * 布局展开/隐藏动画
+     * 属性动画-动态改变布局高度
+     */
+    void initAnimator() {
+        final ValueAnimator.AnimatorUpdateListener ani = new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+                int h = (Integer) animation.getAnimatedValue();
+                //动态更新view的高度
+                llMore.getLayoutParams().height = h;
+                llMore.requestLayout();
+            }
+        };
+
+        valueAnimatorHide = ValueAnimator.ofInt(height, 0);
+        valueAnimatorShow = ValueAnimator.ofInt(0, height);
+
+        valueAnimatorHide.addUpdateListener(ani);
+        valueAnimatorShow.addUpdateListener(ani);
+
+        valueAnimatorShow.setDuration(400);
+        valueAnimatorHide.setDuration(400);
+
+    }
+
+    /**
+     * 用combineLatest处理表单验证
+     */
+    private void bindViewByRxBinding(){
+        Observable<CharSequence> Observable1 = RxTextView.textChanges(cetName);
+        Observable<CharSequence> Observable2 = RxTextView.textChanges(cetMoney);
+        Observable<CharSequence> Observable3 = RxTextView.textChanges(tvBuyTime);
+        Observable<CharSequence> Observable4 = RxTextView.textChanges(tvExpirytime);
+        Observable<CharSequence> Observable5 = RxTextView.textChanges(cetMemo);
+
+        Observable.combineLatest(Observable1,Observable2,Observable3,Observable4,Observable5,
+                new Func5<CharSequence, CharSequence,CharSequence,CharSequence,CharSequence, Boolean>() {
+                    @Override
+                    public Boolean call(CharSequence string1, CharSequence string2, CharSequence string3, CharSequence string4, CharSequence string5) {
+                        return !Utils.isTextEmpty(string1.toString()) || !Utils.isTextEmpty(string2.toString())
+                                || !Utils.isTextEmpty(string3.toString()) || !Utils.isTextEmpty(string4.toString())
+                                ||!Utils.isTextEmpty(string5.toString());
+                    }
+                }).subscribe(new Action1<Boolean>() {
+            @Override
+            public void call(Boolean verify) {
+                if (verify) {
+                    btnSave.setEnabled(true);
+                    btnSave.setBackgroundResource(R.drawable.bg1);
+                } else {
+                    btnSave.setEnabled(false);
+                    btnSave.setBackgroundResource(R.drawable.bg_unenabled);
+                }
+            }
+        });
+    }
+
+    @Override
+    public void getDataSuccess(SercetKeyOverdueModel model) {
+        if (isEdit) {
+            toastShow("编辑成功", R.drawable.gou_toast);
+            ActivityUtils.startActivity(mActivity,DominActivity.class);//从详情页跳转过来编辑成功后，回到列表页
+            ActivityUtils.finishActivity(mActivity);
+        } else {
+            toastShow("添加成功", R.drawable.gou_toast);
+            if (isFromList) {
+                ActivityUtils.finishActivity(mActivity);//从列表过来，保存成功后直接返回到列表
+            } else {
+                Intent in = new Intent(mActivity, DominActivity.class);
+                in.putExtra("from", "add");
+                startActivity(in);
+                overridePendingTransition(R.anim.left_in, 0);
+            }
+        }
+    }
+
+    @Override
+    public void getDataFail(String msg) {
+        toastShow(msg);
+    }
+
+    @Override
+    protected CommonPresenter createPresenter() {
+        return new CommonPresenter(this,this);
+    }
+
+    @OnClick({R.id.llShowMore, R.id.btnSave,R.id.llBuyTime, R.id.llExpirytime})
+    public void onViewClicked(View view) {
+        switch (view.getId()) {
+            case R.id.llBuyTime:
+                isBorrow = true;
+                datePickerDialog.show();
+
+                break;
+            case R.id.llExpirytime:
+                isBorrow = false;
+                datePickerDialog.show();
+                break;
+            case R.id.llShowMore:
+                ImeUtil.hideSoftKeyboard(cetName);
+                if (!isMoreShow) {
+                    valueAnimatorShow.start();
+                    isMoreShow = true;
+                    ivShowMore.animate().rotation(180f).setDuration(400).start();
+                } else {
+                    valueAnimatorHide.start();
+                    isMoreShow = false;
+                    ivShowMore.animate().rotation(0f).setDuration(400).start();
+                }
+                break;
+            case R.id.btnSave:
+                if (valid()) {
+                    sava();
+                }
+                break;
+        }
+    }
+
+    /**
+     * 提交前判断输入是否为空
+     *
+     * @return
+     */
+    boolean valid() {
+        if (TextUtils.isEmpty(cetName.getText().toString())) {
+            toastShow("请输入域名地址");
+            return false;
+        } else if(TextUtils.isEmpty(cetMoney.getText().toString())){
+            toastShow("请输入估值金额");
+            return false;
+        }else {
+            return true;
+        }
+    }
+
+
+    void sava() {
+        RequestBody<AddOverseasRequestModel> loginRequestModel = new RequestBody<>();
+        RequestBody.HeaderBean headerBean = new RequestBody.HeaderBean(Utils.getIPAddress(mActivity), spUtils.getSecretKeyId());
+        AddOverseasRequestModel requestModel = new AddOverseasRequestModel();
+        requestModel.setUserNo(spUtils.getUserId());
+        requestModel.setId(id);
+        requestModel.setHosturl(cetName.getText().toString());
+        requestModel.setAmount(cetMoney.getText().toString());
+        requestModel.setBuyDate(tvBuyTime.getText().toString());//购入时间
+        requestModel.setEndDate(tvExpirytime.getText().toString());//到期时间
+        requestModel.setMemo(cetMemo.getText().toString());
+
+        loginRequestModel.setBody(requestModel);
+        loginRequestModel.setHeader(headerBean);
+
+        Gson gson2 = new Gson();
+        String json2 = gson2.toJson(loginRequestModel);
+        LogUtils.logd(json2);
+        try {
+            encMsg = DESedeUtil.getRequestAfter3DES(spUtils.getSecretKey(), spUtils.getSecretIv(), json2);
+            signMsg = DESedeUtil.getRequestAfterSign(encMsg);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        if (isEdit) {
+            mvpPresenter.updatedomain(encMsg, signMsg, "2", spUtils.getSecretKeyId());
+        } else {
+            mvpPresenter.adddomain(encMsg, signMsg, "2", spUtils.getSecretKeyId());
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if(isEdit) {
+            StatService.onPageStart(mActivity, "编辑域名页面");
+        }else{
+            StatService.onPageStart(mActivity, "添加域名页面");
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        ImeUtil.hideSoftKeyboard(cetName);
+
+        if(isEdit) {
+            StatService.onPageEnd(mActivity, "编辑域名页面");
+        }else{
+            StatService.onPageEnd(mActivity, "添加域名页面");
+        }
+    }
+}

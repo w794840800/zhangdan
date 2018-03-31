@@ -1,0 +1,136 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background"
+    android:fitsSystemWindows="true"
+    android:orientation="vertical">
+
+    <include layout="@layout/toolbar" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/back_lightgreen"
+        android:orientation="vertical">
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="0.6dp"
+            android:background="@color/divider" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_marginTop="10dp"
+            android:background="@color/colorWhite"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingLeft="15dp"
+            android:paddingRight="15dp">
+
+            <ImageView
+                android:layout_width="16dp"
+                android:layout_height="23.5dp"
+                android:visibility="gone"
+                android:src="@drawable/phone_login" />
+
+            <com.beidou.ybz.accountbook.widget.ClearEditText
+                android:id="@+id/et_phone"
+                android:layout_width="0dp"
+                android:layout_height="40dp"
+                android:layout_weight="1"
+                android:maxLength="11"
+                android:background="@null"
+                android:hint="请输入手机号码"
+                android:inputType="number"
+                android:paddingLeft="4dp"
+                android:textColorHint="@color/et_focus_color"
+                android:textSize="16sp" />
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/divider" />
+
+
+        <LinearLayout
+            android:id="@+id/ll1"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_below="@id/et_phone"
+            android:background="@color/colorWhite"
+            android:gravity="center_vertical"
+            android:paddingLeft="15dp"
+            android:paddingRight="15dp"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                android:src="@drawable/yzm_login" />
+
+            <ScrollView
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:fillViewport="true"
+                android:orientation="vertical"
+                android:scrollbars="vertical">
+
+                <com.beidou.ybz.accountbook.widget.ClearEditText
+                    android:id="@+id/et_yzm"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:paddingLeft="4dp"
+                    android:background="@null"
+                    android:hint="请输入6位验证码"
+                    android:inputType="number"
+                    android:maxLength="6"
+                    android:textColorHint="@color/et_focus_color"
+                    android:textSize="16sp" />
+            </ScrollView>
+
+            <View
+                android:layout_width="1dp"
+                android:layout_height="match_parent"
+                android:layout_marginBottom="10dp"
+                android:layout_marginTop="10dp"
+                android:background="@color/bgcolor" />
+
+            <Button
+                android:id="@+id/btn_yzm"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="6dp"
+                android:layout_marginTop="6dp"
+                android:background="@drawable/bg_gold"
+                android:paddingLeft="8dp"
+                android:paddingRight="8dp"
+                android:text="获取验证码"
+                android:textColor="@color/colorGold"
+                style="?android:attr/borderlessButtonStyle"/>
+        </LinearLayout>
+
+        <View
+            android:id="@+id/ll2"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@drawable/et_background" />
+
+        <Button
+            android:id="@+id/btn_login"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:layout_marginLeft="27dp"
+            android:layout_marginRight="27dp"
+            android:layout_marginTop="40dp"
+            android:background="@drawable/bg_unenabled"
+            android:enabled="true"
+            android:text="确认"
+            android:textColor="@color/colorWhite"
+            android:textSize="14sp"
+            style="?android:attr/borderlessButtonStyle"/>
+    </LinearLayout>
+</LinearLayout>

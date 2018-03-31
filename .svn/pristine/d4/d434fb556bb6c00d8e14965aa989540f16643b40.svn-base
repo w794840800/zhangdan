@@ -1,0 +1,249 @@
+package com.beidou.ybz.accountbook.ui;
+
+import android.content.Intent;
+import android.os.Build;
+import android.os.Bundle;
+import android.support.annotation.Nullable;
+import android.text.TextUtils;
+import android.util.Log;
+import android.view.KeyEvent;
+import android.view.View;
+import android.webkit.WebView;
+import android.widget.ImageButton;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+
+import com.beidou.ybz.accountbook.R;
+import com.beidou.ybz.accountbook.util.ImeUtil;
+import com.beidou.ybz.accountbook.util.LogUtils;
+import com.beidou.ybz.accountbook.widget.ProgressWebView;
+import com.beidou.ybz.accountbook.util.ActivityUtils;
+import com.orhanobut.logger.Logger;
+
+import butterknife.Bind;
+import butterknife.OnClick;
+
+/**
+ * H5界面
+ * Created by Bob on 2016/7/5.
+ */
+public class WebActivity extends BaseActivity {
+    @Bind(R.id.tv_title)
+    TextView tvTitle;
+    ProgressWebView mWebView;
+    @Bind(R.id.relativelayout)
+    LinearLayout relativelayout;
+    @Bind(R.id.ib_back)
+    ImageButton ibBack;
+    @Bind(R.id.tvEdit)
+    TextView tvEdit;
+    @Bind(R.id.tv_subtitle)
+    TextView tvSubtitle;
+    //    @Bind(R.id.ib_share)
+//    ImageButton ibShare;
+    private String imageUrl, title;
+    //// requestUrl(id,stockCode,stockName,positionNumber,brokerName,memo);from
+    String url,from,id,stockCode,stockName,positionNumber,brokerName,memo;
+    boolean isShare;
+
+    @Override
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.web);
+        initView();
+//        ActivityUtils.setStatusBar(mActivity);
+    }
+
+
+    public void initView() {
+        mWebView = new ProgressWebView(WebActivity.this, null, tvTitle);
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT);
+
+        mWebView.setLayoutParams(lp);
+
+        mWebView.setWebViewClient(new WebViewClient());
+
+        relativelayout.addView(mWebView);
+
+        Intent intent = getIntent();
+
+        url = intent.getStringExtra("url");
+        imageUrl = intent.getStringExtra("imageurl");
+        title = intent.getStringExtra("title");
+        isShare = intent.getBooleanExtra("isShare", false);
+        //from,id,stockCode,stockName,positionNumber,brokerName,memo
+        from = intent.getStringExtra("from");
+        id = intent.getStringExtra("id");
+        stockCode = intent.getStringExtra("stockCode");
+        stockName = intent.getStringExtra("stockName");
+        positionNumber = intent.getStringExtra("positionNumber");
+        brokerName = intent.getStringExtra("brokerName");
+        memo = intent.getStringExtra("memo");
+
+        if(stockCode == null || TextUtils.isEmpty(stockCode)){
+            tvSubtitle.setVisibility(View.GONE);
+        }else{
+            tvSubtitle.setVisibility(View.VISIBLE);
+            tvSubtitle.setText(stockCode);
+        }
+
+        if(from != null && !TextUtils.isEmpty(from)){
+            tvEdit.setVisibility(View.VISIBLE);
+        }else{
+            tvEdit.setVisibility(View.INVISIBLE);
+        }
+
+        Logger.e(url);
+        if (url != null) {
+            mWebView.loadUrl(url);
+        }
+        LogUtils.loge("tvTitle.getText():" + tvTitle.getText().toString());
+
+    }
+
+    public class WebViewClient extends android.webkit.WebViewClient {
+        @Override
+        public boolean shouldOverrideUrlLoading(WebView view, String url) {
+            // 调用拨号程序
+         if (url.startsWith("en://StockRecord")) {//股票操作记录列表
+             Intent in = new Intent(mActivity,  StockOperationRecordActivity.class);
+             in.putExtra("id",id);
+             startActivity(in);
+             overridePendingTransition(R.anim.left_in, 0);
+            } else if(url.startsWith("en://refreshPage")){
+                mWebView.reload();
+         }else if(url.startsWith("en://SimuRecord")){//私募基金操作记录列表
+             Intent in = new Intent(mActivity,  SimuOperationRecordActivity.class);
+             in.putExtra("id",id);
+             startActivity(in);
+             overridePendingTransition(R.anim.left_in, 0);
+         }else if(url.startsWith("en://FundRecord")){//en://FundRecord
+             Intent in = new Intent(mActivity,  SimuOperationRecordActivity.class);
+             in.putExtra("id",id);
+             startActivity(in);
+             overridePendingTransition(R.anim.left_in, 0);
+         }else {
+                view.loadUrl(url);
+                LogUtils.loge("哈哈哈哈哈或或或：：：：：" + url);
+            }
+
+            return true;
+        }
+
+        @Override
+        public void onPageFinished(WebView view, String url) {
+            super.onPageFinished(view, url);
+//            tv.setText(view.getTitle());
+
+            Log.d("WebView", "onPageFinished ");
+//            view.loadUrl("javascript:window.local_obj.showSource('<head>'+" +
+//                    "document.getElementsByTagName('p')[0].innerText+'</head>');");
+
+            view.loadUrl("javascript:window.local_obj.showSource(" +
+                    "document.getElementById('js_content').innerText);");
+
+        }
+
+        @Override
+        public void onReceivedError(WebView view, int errorCode,
+                                    String description, String failingUrl) {
+            super.onReceivedError(view, errorCode, description, failingUrl);
+//            mFailingUrl = failingUrl;
+//            Logger.d(failingUrl);
+            //加载出错的自定义界面
+            view.loadUrl("file:///android_asset/error.html");
+        }
+    }
+
+
+    @Override
+    public boolean onKeyDown(int keyCoder, KeyEvent event) {
+        Logger.e("mWebView.canGoBack():" + (mWebView.canGoBack()));
+      if (mWebView.canGoBack() && keyCoder == KeyEvent.KEYCODE_BACK) {
+            mWebView.goBack();
+            return false;
+        } else{
+//        if (keyCoder == KeyEvent.KEYCODE_BACK) {
+            ActivityUtils.finishActivity(WebActivity.this);
+//            ActivityUtils.finishActivity(WebActivity.this);// 按了返回键，但已经不能返回(mWebView.canGoBack()=false)，则执行退出确认
+            return true;
+        }
+//        return false;
+    }
+
+
+    @OnClick({R.id.ib_back ,R.id.tvEdit})
+    public void onClick(View view) {
+        switch (view.getId()) {
+            case R.id.ib_back:
+                ActivityUtils.finishActivity(WebActivity.this);
+                ImeUtil.hideSoftKeyboard(tvEdit);
+//                finish();
+                break;
+            case R.id.tvEdit:
+                if(from != null && from.equals("stocklist")){//来自股票
+                    Intent in = new Intent(this, AddStockAssets.class);
+                    in.putExtra("id",id);
+                    in.putExtra("stockCode",stockCode);
+                    in.putExtra("stockName",stockName);
+                    in.putExtra("positionNumber",positionNumber);
+                    in.putExtra("brokerName",brokerName);
+                    in.putExtra("memo",memo);
+                    startActivity(in);
+                    overridePendingTransition(R.anim.left_in, 0);
+                }else if(from != null && from.equals("smfund")){//来自私募基金
+                    Intent in = new Intent(this, AddPrivateOfferingFund.class);
+                    in.putExtra("id",id);
+                    in.putExtra("stockCode",stockCode);
+                    in.putExtra("stockName",stockName);
+                    in.putExtra("positionNumber",positionNumber);
+                    in.putExtra("brokerName",brokerName);
+                    in.putExtra("memo",memo);
+                    startActivity(in);
+                    overridePendingTransition(R.anim.left_in, 0);
+                }else if(from != null && from.equals("fund")){//来自基金
+                    Intent in = new Intent(this, AddFundAssets.class);
+                    in.putExtra("id",id);
+                    in.putExtra("stockCode",stockCode);
+                    in.putExtra("stockName",stockName);
+                    in.putExtra("positionNumber",positionNumber);
+                    in.putExtra("brokerName",brokerName);
+                    in.putExtra("memo",memo);
+                    startActivity(in);
+                    overridePendingTransition(R.anim.left_in, 0);
+                }
+                break;
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        ImeUtil.hideSoftKeyboard(tvEdit);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (mWebView != null) {
+            mWebView.clearCache(true); //清空缓存
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                if (relativelayout != null) {
+                    relativelayout.removeView(mWebView);
+                }
+                mWebView.removeAllViews();
+                mWebView.destroy();
+            } else {
+                mWebView.removeAllViews();
+                mWebView.destroy();
+                if (relativelayout != null) {
+                    relativelayout.removeView(mWebView);
+                }
+            }
+            mWebView = null;
+        }
+
+    }
+
+}

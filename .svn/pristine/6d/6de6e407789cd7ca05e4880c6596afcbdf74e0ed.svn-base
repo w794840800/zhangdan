@@ -1,0 +1,34 @@
+package com.beidou.ybz.accountbook.adapter;
+
+
+import android.widget.ImageView;
+
+import com.beidou.ybz.accountbook.R;
+import com.beidou.ybz.accountbook.mvp.entity.AccountIndexModel;
+import com.beidou.ybz.accountbook.ui.BaseApplication;
+import com.chad.library.adapter.base.BaseQuickAdapter;
+import com.chad.library.adapter.base.BaseViewHolder;
+
+import java.util.List;
+
+/**http://www.jianshu.com/p/b343fcff51b0
+ * Created by lenovo on 2017/9/7.
+ * 首页-资产列表adapter
+ */
+public class AdapterZichan2 extends BaseQuickAdapter<AccountIndexModel.BodyBean.FieldViewdelListBean,BaseViewHolder> {//AccountIndexModel.BodyBean.FieldViewAmountListBean
+    public AdapterZichan2(int layoutResId, List data) {
+        super(layoutResId, data);
+    }
+
+    @Override
+    protected void convert(BaseViewHolder helper, AccountIndexModel.BodyBean.FieldViewdelListBean item) {
+        try {
+            helper.setText(R.id.tv_title,item.getNameView());
+            helper.setText(R.id.tv_syrs,item.getAmount()+"人已添加");
+            ((ImageView)helper.getView(R.id.iv)).setImageResource(BaseApplication.getClassifiIcon(item.getNameValue()));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }
+}

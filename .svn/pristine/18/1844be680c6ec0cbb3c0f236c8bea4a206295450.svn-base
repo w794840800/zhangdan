@@ -1,0 +1,494 @@
+package com.beidou.ybz.accountbook.ui;
+
+import android.animation.ValueAnimator;
+import android.content.Intent;
+import android.os.Bundle;
+import android.support.v7.widget.Toolbar;
+import android.text.TextUtils;
+import android.util.Log;
+import android.util.TypedValue;
+import android.view.View;
+import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+
+import com.baidu.mobstat.StatService;
+import com.beidou.ybz.accountbook.R;
+import com.beidou.ybz.accountbook.mvp.entity.RequestBody;
+import com.beidou.ybz.accountbook.mvp.entity.SercetKeyOverdueModel;
+import com.beidou.ybz.accountbook.mvp.main.TextWatchView;
+import com.beidou.ybz.accountbook.mvp.other.MvpActivity;
+import com.beidou.ybz.accountbook.mvp.presenter.CommonPresenter;
+import com.beidou.ybz.accountbook.mvp.view.CommonView;
+import com.beidou.ybz.accountbook.util.DESedeUtil;
+import com.beidou.ybz.accountbook.util.LogUtils;
+import com.beidou.ybz.accountbook.util.Utils;
+import com.beidou.ybz.accountbook.widget.BankCardTextWatcher;
+import com.beidou.ybz.accountbook.widget.ClearEditText;
+import com.beidou.ybz.accountbook.mvp.entity.AddOverseasRequestModel;
+import com.beidou.ybz.accountbook.util.ActivityUtils;
+import com.beidou.ybz.accountbook.util.ImeUtil;
+import com.beidou.ybz.accountbook.widget.NewWatcher;
+import com.google.gson.Gson;
+import com.jakewharton.rxbinding.widget.RxTextView;
+
+import butterknife.Bind;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
+import rx.Observable;
+import rx.functions.Action1;
+import rx.functions.Func4;
+import rx.functions.Func5;
+
+/**
+ * Author: xu.yang on 2017/12/4
+ * QQ:754444814
+ * E-mail:754444814@qq.com
+ * module: 添加银行卡
+ */
+public class AddBankCard extends MvpActivity<CommonPresenter> implements CommonView<SercetKeyOverdueModel> {
+    @Bind(R.id.tv_title)
+    TextView tvTitle;
+    @Bind(R.id.toolbar)
+    Toolbar toolbar;
+    @Bind(R.id.ivShowMore)
+    ImageView ivShowMore;
+    @Bind(R.id.llShowMore)
+    LinearLayout llShowMore;
+    @Bind(R.id.llMore)
+    LinearLayout llMore;
+    @Bind(R.id.btnSave)
+    Button btnSave;
+    @Bind(R.id.cetMoney)
+    ClearEditText cetMoney;
+    @Bind(R.id.tvDebitCard)
+    TextView tvDebitCard;//
+    @Bind(R.id.tvCardname)
+    TextView tvCardname;
+    @Bind(R.id.tvCreditCard)
+    TextView tvCreditCard;
+    @Bind(R.id.llEdu)
+    LinearLayout llEdu;
+    @Bind(R.id.cetBankNo)
+    ClearEditText cetBankNo;
+    @Bind(R.id.cetMemo)
+    ClearEditText cetMemo;
+    private boolean isMoreShow, isEduShow;
+    private int heightMore, heightEdu;
+    private ValueAnimator valueAnimatorMoreShow, valueAnimatorMoreHide, valueAnimatorEduShow, valueAnimatorEduHide;
+    private String encMsg, signMsg;
+    String id, name, bankNo, bankId, bankType, memo, amount,from;
+    private boolean isEdit;//true-编辑 false-新增
+    private final int requestCodeSupport = 12;
+    String bankname, flag;
+    private int position;
+    private boolean isFromList;
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_addbankcard);
+        ButterKnife.bind(this);
+
+        tvTitle.setTextColor(getResources().getColor(R.color.txt_color));
+        toolbar.setBackgroundColor(getResources().getColor(R.color.colorWhite));
+        toolbar.setNavigationIcon(R.drawable.back_black);
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ActivityUtils.finishActivity(mActivity);
+                ImeUtil.hideSoftKeyboard(tvCardname);
+            }
+        });
+
+        bankType = "1";//默认借记卡
+        handleIntent(getIntent());
+
+        initView();
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        handleIntent(intent);
+    }
+
+    private void handleIntent(Intent in){
+        if (in != null) {
+            id = in.getStringExtra("id");
+            name = in.getStringExtra("name");
+            memo = in.getStringExtra("memo");
+            bankNo = in.getStringExtra("bankNo");
+            bankType = in.getStringExtra("bankType");
+            bankname = in.getStringExtra("name");
+            amount = in.getStringExtra("amount");
+            bankId = in.getStringExtra("bankId");
+            from = in.getStringExtra("from");
+        }
+
+        if (bankType == null || TextUtils.isEmpty(bankType)) {
+            bankType = "1";
+        }
+
+        if (name != null && !TextUtils.isEmpty(name)) {
+            isEdit = true;
+        } else {
+            isEdit = false;
+        }
+        LogUtils.logd("isEdit:" + isEdit);
+        if (isEdit) {
+            tvTitle.setText("编辑银行卡");
+        } else {
+            tvTitle.setText("添加银行卡");
+        }
+
+        if(from != null && from.equals("list")){
+            isFromList = true;
+        }else{
+            isFromList = false;
+        }
+    }
+
+    void initView() {
+//        BankCardTextWatcher.bind(cetBankNo);//添加银行卡输入样式 4-4-3
+//        tvCardname.addTextChangedListener(new NewWatcher(this));
+        bindViewByRxBinding();
+        //计算llMore的高度
+        int w = View.MeasureSpec.makeMeasureSpec(0,
+                View.MeasureSpec.UNSPECIFIED);
+        int h = View.MeasureSpec.makeMeasureSpec(0,
+                View.MeasureSpec.UNSPECIFIED);
+        llMore.measure(w, h);
+        heightMore = llMore.getMeasuredHeight();
+        Log.e("height", "heightMore: " + heightMore);
+
+        //xml中llEdu设置正式高度，便于llMore高度的测量，llMore测量过后再置为0
+        llEdu.getLayoutParams().height = 0;
+        llEdu.requestLayout();
+
+        //计算llEdu的高度
+        llEdu.measure(w, h);
+        heightEdu = llEdu.getMeasuredHeight();
+
+
+        Log.e("height", "heightEdu: " + heightEdu);
+        Log.e("bankType", "bankType: " + bankType);
+
+        initAnimator();
+
+        try {
+            tvCardname.setText(name);
+            if (bankType != null && bankType.equals("2")) {//信用卡
+                tvCreditCard.setTextColor(getResources().getColor(R.color.colorWhite));
+                tvCreditCard.setBackgroundResource(R.drawable.rmb);
+                tvDebitCard.setTextColor(getResources().getColor(R.color.button_text_unable));
+                tvDebitCard.setBackgroundResource(R.drawable.rmb_empty);
+                tvDebitCard.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (!isEduShow) {
+                            valueAnimatorEduShow.start();
+                            isEduShow = true;
+                        }
+                    }
+                }, 300);
+            } else {
+                tvDebitCard.setTextColor(getResources().getColor(R.color.colorWhite));
+                tvDebitCard.setBackgroundResource(R.drawable.rmb);
+                tvCreditCard.setTextColor(getResources().getColor(R.color.button_text_unable));
+                tvCreditCard.setBackgroundResource(R.drawable.rmb_empty);
+                if (isEduShow) {
+                    valueAnimatorEduHide.start();
+                    isEduShow = false;
+                }
+            }
+            cetBankNo.setText(bankNo);
+            cetMemo.setText(memo);
+            if (bankNo != null && bankNo.length() > 0) {
+                cetBankNo.setSelection(cetBankNo.getText().toString().length());
+            }
+            cetMoney.setText(amount);
+            if (!TextUtils.isEmpty(cetMoney.getText().toString())) {
+                cetMoney.setTextSize(TypedValue.COMPLEX_UNIT_SP, 30);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        /**
+         * 添加监听，在hint时和text时切换字体大小
+         */
+        Utils.textChangedListener(cetMoney);
+    }
+
+    /**
+     * 用combineLatest处理表单验证
+     */
+    private void bindViewByRxBinding(){
+        Observable<CharSequence> Observable1 = RxTextView.textChanges(tvCardname);
+        Observable<CharSequence> Observable2 = RxTextView.textChanges(cetBankNo);
+        Observable<CharSequence> Observable3 = RxTextView.textChanges(cetMoney);
+        Observable<CharSequence> Observable4 = RxTextView.textChanges(cetMemo);
+
+        Observable.combineLatest(Observable1,Observable2,Observable3,Observable4,
+                new Func4<CharSequence, CharSequence,CharSequence,CharSequence, Boolean>() {
+                    @Override
+                    public Boolean call(CharSequence string1, CharSequence string2, CharSequence string3, CharSequence string4) {
+                        return !Utils.isTextEmpty(string1.toString()) || !Utils.isTextEmpty(string2.toString())
+                                || !Utils.isTextEmpty(string3.toString()) || !Utils.isTextEmpty(string4.toString());
+                    }
+                }).subscribe(new Action1<Boolean>() {
+            @Override
+            public void call(Boolean verify) {
+                if (verify) {
+                    btnSave.setEnabled(true);
+                    btnSave.setBackgroundResource(R.drawable.bg1);
+                } else {
+                    btnSave.setEnabled(false);
+                    btnSave.setBackgroundResource(R.drawable.bg_unenabled);
+                }
+            }
+        });
+    }
+
+    void sava() {
+        RequestBody<AddOverseasRequestModel> loginRequestModel = new RequestBody<>();
+        RequestBody.HeaderBean headerBean = new RequestBody.HeaderBean(Utils.getIPAddress(mActivity), spUtils.getSecretKeyId());
+        AddOverseasRequestModel requestModel = new AddOverseasRequestModel();
+        requestModel.setUserNo(spUtils.getUserId());
+        requestModel.setBankId(bankId);
+        requestModel.setBankName(bankname);
+        requestModel.setId(id);
+        requestModel.setAmount(cetMoney.getText().toString());
+        requestModel.setBankNo(cetBankNo.getText().toString().replace(" ", ""));
+        requestModel.setMemo(cetMemo.getText().toString());
+        requestModel.setBankType(bankType);
+
+        loginRequestModel.setBody(requestModel);
+        loginRequestModel.setHeader(headerBean);
+
+        Gson gson2 = new Gson();
+        String json2 = gson2.toJson(loginRequestModel);
+        LogUtils.loge("请求参数：" + json2);
+        try {
+            encMsg = DESedeUtil.getRequestAfter3DES(spUtils.getSecretKey(), spUtils.getSecretIv(), json2);
+            signMsg = DESedeUtil.getRequestAfterSign(encMsg);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        if (isEdit) {
+            mvpPresenter.updatebankcard(encMsg, signMsg, "2", spUtils.getSecretKeyId());
+        } else {
+            mvpPresenter.addbankcard(encMsg, signMsg, "2", spUtils.getSecretKeyId());
+        }
+    }
+
+    /**
+     * 布局展开/隐藏动画
+     * 属性动画-动态改变布局高度
+     */
+    void initAnimator() {
+        final ValueAnimator.AnimatorUpdateListener ani = new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+                int h = (Integer) animation.getAnimatedValue();
+                //动态更新view的高度
+                llMore.getLayoutParams().height = h;
+                llMore.requestLayout();
+            }
+        };
+
+        valueAnimatorMoreHide = ValueAnimator.ofInt(heightMore, 0);
+        valueAnimatorMoreShow = ValueAnimator.ofInt(0, heightMore);
+
+        valueAnimatorMoreHide.addUpdateListener(ani);
+        valueAnimatorMoreShow.addUpdateListener(ani);
+
+        valueAnimatorMoreShow.setDuration(400);
+        valueAnimatorMoreHide.setDuration(400);
+
+        final ValueAnimator.AnimatorUpdateListener ani1 = new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+                int h = (Integer) animation.getAnimatedValue();
+                //动态更新view的高度
+                llEdu.getLayoutParams().height = h;
+                llEdu.requestLayout();
+            }
+        };
+
+        valueAnimatorEduHide = ValueAnimator.ofInt(heightEdu, 0);
+        valueAnimatorEduShow = ValueAnimator.ofInt(0, heightEdu);
+
+        valueAnimatorEduHide.addUpdateListener(ani1);
+        valueAnimatorEduShow.addUpdateListener(ani1);
+
+        valueAnimatorEduShow.setDuration(400);
+        valueAnimatorEduHide.setDuration(400);
+    }
+
+    @Override
+    public void getDataSuccess(SercetKeyOverdueModel model) {
+        if (isEdit) {
+            toastShow("编辑成功");
+            ActivityUtils.startActivity(mActivity,BankCardActivity.class);//从详情页跳转过来编辑成功后，回到列表页
+            ActivityUtils.finishActivity(mActivity);
+        } else {
+            toastShow("添加成功");
+            if (isFromList) {
+                ActivityUtils.finishActivity(mActivity);
+            } else {
+                Intent in = new Intent(mActivity, BankCardActivity.class);
+                in.putExtra("from","add");
+                startActivity(in);
+                overridePendingTransition(R.anim.left_in, 0);
+            }
+        }
+    }
+
+    @Override
+    public void getDataFail(String msg) {
+        toastShow(msg);
+    }
+
+    @Override
+    protected CommonPresenter createPresenter() {
+        return new CommonPresenter(this, this);
+    }
+
+    @OnClick({R.id.llShowMore, R.id.btnSave, R.id.tvDebitCard, R.id.tvCreditCard, R.id.llBankSelect})
+    public void onViewClicked(View view) {
+        switch (view.getId()) {
+            case R.id.llBankSelect:
+                startActForResult(requestCodeSupport);
+//                ActivityUtils.startActivityRightIn(mActivity,SupportBankActivity.class);
+                break;
+            case R.id.tvDebitCard:
+                bankType = "1";//默认借记卡
+                ImeUtil.hideSoftKeyboard(view);
+                if (isEduShow) {
+                    valueAnimatorEduHide.start();
+                    isEduShow = false;
+                }
+                tvDebitCard.setTextColor(getResources().getColor(R.color.colorWhite));
+                tvDebitCard.setBackgroundResource(R.drawable.rmb);
+                tvCreditCard.setTextColor(getResources().getColor(R.color.button_text_unable));
+                tvCreditCard.setBackgroundResource(R.drawable.rmb_empty);
+                break;
+            case R.id.tvCreditCard://信用卡
+                bankType = "2";
+                ImeUtil.hideSoftKeyboard(view);
+                tvCreditCard.setTextColor(getResources().getColor(R.color.colorWhite));
+                tvCreditCard.setBackgroundResource(R.drawable.rmb);
+                tvDebitCard.setTextColor(getResources().getColor(R.color.button_text_unable));
+                tvDebitCard.setBackgroundResource(R.drawable.rmb_empty);
+                if (!isEduShow) {
+                    valueAnimatorEduShow.start();
+                    isEduShow = true;
+                }
+                break;
+            case R.id.llShowMore:
+                ImeUtil.hideSoftKeyboard(view);
+                if (!isMoreShow) {
+                    valueAnimatorMoreShow.start();
+                    isMoreShow = true;
+                    ivShowMore.animate().rotation(180f).setDuration(400).start();
+//                    tvMoreHint.animate().alpha(0f).setDuration(400).start();
+                } else {
+                    valueAnimatorMoreHide.start();
+                    isMoreShow = false;
+                    ivShowMore.animate().rotation(0f).setDuration(400).start();
+//                    tvMoreHint.animate().alpha(1f).setDuration(400).start();
+                }
+                break;
+            case R.id.btnSave:
+                if (valid()) {
+                    ImeUtil.hideSoftKeyboard(view);
+                    sava();
+                }
+                break;
+        }
+    }
+
+    /**
+     * startActForResult
+     *
+     * @param requestCode
+     */
+    void startActForResult(int requestCode) {
+        Intent in = new Intent(this, SupportBankActivity.class);
+        in.putExtra("position", position);
+        in.putExtra("flag", flag);
+        in.putExtra("id", bankId);//bankId带过去匹配已选中的项
+//        in.putExtra("tag", tag);
+        startActivityForResult(in, requestCode);
+        overridePendingTransition(R.anim.left_in, 0);
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (resultCode == RESULT_OK) {
+            bankname = data.getStringExtra("bankname");
+            bankId = data.getStringExtra("bankid");
+            flag = data.getStringExtra("flag");
+            position = data.getIntExtra("position", -1);
+            if (requestCode == requestCodeSupport) {
+                tvCardname.setText(bankname);
+            }
+        }
+    }
+
+    /**
+     * 提交参数验证
+     *
+     * @return
+     */
+    boolean valid() {
+        if (TextUtils.isEmpty(tvCardname.getText().toString())) {
+            toastShow("请选择银行卡");
+            return false;
+        } else {
+            return true;
+        }
+        /*if(bankType != null && bankType.equals("2")){//信用卡
+            if (TextUtils.isEmpty(tvCardname.getText().toString()) || TextUtils.isEmpty(cetMoney.getText().toString())) {
+                toastShow(getResources().getString(R.string.addaeeets_input_error));
+                return false;
+            } else {
+                return true;
+            }
+        }else{
+            if (TextUtils.isEmpty(tvCardname.getText().toString()) ) {
+                toastShow(getResources().getString(R.string.addaeeets_input_error));
+                return false;
+            } else {
+                return true;
+            }
+        }*/
+
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if(isEdit) {
+            StatService.onPageStart(mActivity, "编辑银行卡页面");
+        }else{
+            StatService.onPageStart(mActivity, "添加银行卡页面");
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        ImeUtil.hideSoftKeyboard(tvCardname);
+
+        if(isEdit) {
+            StatService.onPageEnd(mActivity, "编辑银行卡页面");
+        }else{
+            StatService.onPageEnd(mActivity, "添加银行卡页面");
+        }
+    }
+}
